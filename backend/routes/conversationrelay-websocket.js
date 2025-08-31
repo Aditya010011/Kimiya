@@ -889,16 +889,14 @@ class ConversationRelayWebSocket {
 
     console.log(`[ConversationRelay-WS] 📤 Sending text message to ${session.callSid}: "${text}"`);
 
-    // TESTING: Use Google TTS for WebSocket messages (ElevenLabs may not work in WebSocket)
-    console.log(`[ConversationRelay-WS] 📤 Sending text message with Google TTS voice config`);
+    // TESTING: Try 'say' message type instead of 'text' to explicitly request TTS
+    console.log(`[ConversationRelay-WS] 📤 Sending 'say' message to explicitly request TTS`);
 
     const textMessage = {
-      type: 'text',
+      type: 'say',
       text: text,
-      voice: {
-        name: 'en-US-Standard-A',  // Google TTS voice (known to work in WebSocket)
-        language: 'en-US'
-      }
+      voice: 'alice',  // Simple voice format for 'say' messages
+      language: 'en-US'
     };
 
     console.log(`[ConversationRelay-WS] 📋 Full message being sent:`, JSON.stringify(textMessage, null, 2));
