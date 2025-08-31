@@ -76,7 +76,8 @@ function generateFastTwiML(workflowId, trackingId) {
         <ConversationRelay
             url="${encodedWebsocketUrl}"
             welcomeGreeting="Hello Aditya! I'm your Kimiya. How can I help you today?"
-            voice="21m00Tcm4TlvDq8ikWAM"
+            ttsProvider="Google"
+            voice="en-US-Journey-O"
             language="en-US"
         />
     </Connect>

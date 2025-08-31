@@ -889,14 +889,12 @@ class ConversationRelayWebSocket {
 
     console.log(`[ConversationRelay-WS] 📤 Sending text message to ${session.callSid}: "${text}"`);
 
-    // TESTING: Try 'say' message type instead of 'text' to explicitly request TTS
-    console.log(`[ConversationRelay-WS] 📤 Sending 'say' message to explicitly request TTS`);
+    // FIXED: Using built-in Google TTS (no API key required)
+    console.log(`[ConversationRelay-WS] 📤 Sending text message with built-in TTS`);
 
     const textMessage = {
-      type: 'say',
-      text: text,
-      voice: 'alice',  // Simple voice format for 'say' messages
-      language: 'en-US'
+      type: 'text',
+      text: text
     };
 
     console.log(`[ConversationRelay-WS] 📋 Full message being sent:`, JSON.stringify(textMessage, null, 2));
