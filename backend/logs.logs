@@ -1,0 +1,353 @@
+=== OPTIMIZED MAKE CALL REQUEST ===
+Timestamp: 2025-08-31T06:02:21.132Z
+Request body keys: [
+  'to',
+  'from',
+  'workflowId',
+  'nodes',
+  'edges',
+  'globalPrompt',
+  'config',
+  'record',
+  'timeout',
+  'twilioAccountSid',
+  'twilioAuthToken'
+]
+[PredictiveCache] Initialized with config: { maxCacheSize: 10000, maxAge: 86400000, semanticThreshold: 0.85 }
+[LanguageOptimizer] Initialized with support for 53 languages
+[LanguageOptimizer] Cantonese specialization enabled
+[StreamingAudioProcessor] Initialized with config: {
+  sampleRate: 8000,
+  audioFormat: 'mulaw',
+  streamingMode: 'bidirectional',
+  optimizations: {
+    noiseReduction: true,
+    echoCancellation: true,
+    voiceActivityDetection: true
+  }
+}
+[StreamingAudioProcessor] Initialized with config: {
+  sampleRate: 8000,
+  audioFormat: 'mulaw',
+  streamingMode: 'bidirectional',
+  optimizations: {
+    noiseReduction: true,
+    echoCancellation: true,
+    voiceActivityDetection: true
+  }
+}
+[ConversationRelay] Initialized with bidirectional streaming
+[PerformanceOrchestrator] Initialized with all optimizations enabled
+[PerformanceOrchestrator] Starting optimized conversation for call call_1756620141133_kyadi92xp
+[ConversationRelay] Starting conversation for call call_1756620141133_kyadi92xp
+[ConversationRelay] Workflow data: {
+  workflowId: 'workflow-1756620139941',
+  nodesCount: 12,
+  edgesCount: 16,
+  hasGlobalPrompt: true
+}
+[ConversationRelay] WebSocket connection setup for call call_1756620141133_kyadi92xp (using TwiML bridge)
+[ConversationRelay] Audio pipeline configured
+[ConversationRelay] Stream initialized for call call_1756620141133_kyadi92xp
+[ConversationRelay] Bidirectional streaming setup complete for call call_1756620141133_kyadi92xp
+[ConversationRelay] Conversation started in 0.6053250001277775ms
+[PerformanceOrchestrator] Optimized conversation started in 0.830951000098139ms
+Performance optimization initialized: {
+  success: true,
+  callSid: 'call_1756620141133_kyadi92xp',
+  optimizations: {
+    conversationRelay: true,
+    predictiveCache: true,
+    languageOptimization: true,
+    providerFailover: true
+  },
+  expectedLatency: '150-250ms'
+}
+Using optimized TwiML endpoint: https://kimiyi-ai.onrender.com/api/twiml-optimized?id=workflow-1756620139941&trackingId=call_1756620141133_kyadi92xp
+Optimized Twilio API call parameters: {
+  To: '+919649770017',
+  From: '+17077433838',
+  Url: 'https://kimiyi-ai.onrender.com/api/twiml-optimized?id=workflow-1756620139941&trackingId=call_1756620141133_kyadi92xp',
+  OptimizationEnabled: true,
+  ExpectedLatency: '150-250ms',
+  TrackingId: 'call_1756620141133_kyadi92xp'
+}
+Twilio call created successfully: {
+  callSid: 'CA4fc1a192231ddba24ee18ba53aecd005',
+  status: 'queued',
+  to: '+919649770017',
+  from: '+17077433838',
+  optimizationEnabled: true,
+  trackingId: 'call_1756620141133_kyadi92xp'
+}
+[TwiML-Optimized] ===== FAST TWIML REQUEST =====
+[TwiML-Optimized] Call: CA4fc1a192231ddba24ee18ba53aecd005, Workflow: workflow-1756620139941, Tracking: call_1756620141133_kyadi92xp
+[generateFastTwiML] ===== CREATING TWIML =====
+[generateFastTwiML] Workflow: workflow-1756620139941, Tracking: call_1756620141133_kyadi92xp
+[generateFastTwiML] WebSocket URL: wss://kimiyi-ai.onrender.com/api/conversationrelay-ws?workflowId=workflow-1756620139941&trackingId=call_1756620141133_kyadi92xp
+[generateFastTwiML] ===== TWIML GENERATED =====
+[generateFastTwiML] TwiML length: 463 chars
+[generateFastTwiML] WebSocket URL encoded: wss://kimiyi-ai.onrender.com/api/conversationrelay-ws?workflowId=workflow-1756620139941&amp;trackingId=call_1756620141133_kyadi92xp
+[generateFastTwiML] ACTUAL TWIML CONTENT:
+<?xml version="1.0" encoding="UTF-8"?>
+<Response>
+    <Connect>
+        <ConversationRelay
+            url="wss://kimiyi-ai.onrender.com/api/conversationrelay-ws?workflowId=workflow-1756620139941&amp;trackingId=call_1756620141133_kyadi92xp"
+            welcomeGreeting="Hello Aditya! I'm your Kimiya. How can I help you today?"
+            ttsProvider="Google"
+            voice="en-US-Journey-O"
+            language="en-US"
+        />
+    </Connect>
+</Response>
+[TwiML-Optimized] FAST TwiML generated in 0.27ms
+[TwiML-Optimized] Background orchestrator ready for call_1756620141133_kyadi92xp
+[ConversationRelay-WS] 🔍 Verifying WebSocket client connection
+[ConversationRelay-WS] 🔍 Origin: undefined
+[ConversationRelay-WS] 🔍 URL: /api/conversationrelay-ws?workflowId=workflow-1756620139941&trackingId=call_1756620141133_kyadi92xp
+[ConversationRelay-WS] 🔍 User-Agent: Jetty/11.0.20
+[ConversationRelay-WS] 🔍 Sec-WebSocket-Protocol: undefined
+[ConversationRelay-WS] ✅ Detected Twilio ConversationRelay connection attempt
+[ConversationRelay-WS] 🎉 ===== NEW WEBSOCKET CONNECTION ESTABLISHED =====
+[ConversationRelay-WS] 🔗 Request URL: /api/conversationrelay-ws?workflowId=workflow-1756620139941&trackingId=call_1756620141133_kyadi92xp
+[ConversationRelay-WS] 🔗 Request method: GET
+[ConversationRelay-WS] 🔗 Connection time: 2025-08-31T06:02:29.694Z
+[ConversationRelay-WS] 🔗 Remote address: ::1
+[ConversationRelay-WS] 🔗 User-Agent: Jetty/11.0.20
+[ConversationRelay-WS] 🔗 Protocol: 
+[ConversationRelay-WS] ===== CONNECTION PARAMETERS =====
+[ConversationRelay-WS] CallSid: call_1756620149694
+[ConversationRelay-WS] TrackingId: call_1756620141133_kyadi92xp
+[ConversationRelay-WS] WorkflowId: workflow-1756620139941
+[ConversationRelay-WS] All URL params: {
+  workflowId: 'workflow-1756620139941',
+  trackingId: 'call_1756620141133_kyadi92xp'
+}
+[ConversationRelay-WS] ===== REQUEST HEADERS =====
+[ConversationRelay-WS] User-Agent: Jetty/11.0.20
+[ConversationRelay-WS] Origin: undefined
+[ConversationRelay-WS] Protocol: undefined
+[ConversationRelay-WS] Host: kimiyi-ai.onrender.com
+[ConversationRelay-WS] All headers: {
+  host: 'kimiyi-ai.onrender.com',
+  'user-agent': 'Jetty/11.0.20',
+  'accept-encoding': 'gzip, br',
+  'cache-control': 'no-cache',
+  'cdn-loop': 'cloudflare; loops=1',
+  'cf-connecting-ip': '52.207.243.62',
+  'cf-ipcountry': 'US',
+  'cf-ray': '977a51be0fa387a9-IAD',
+  'cf-visitor': '{"scheme":"https"}',
+  connection: 'Upgrade',
+  pragma: 'no-cache',
+  'render-cf-start-time-msec': '443',
+  'render-cf-start-time-sec': '1756620149',
+  'render-proxy-ttl': '4',
+  'rndr-id': '9e6393f3-fdc7-45d1',
+  'sec-websocket-key': '9MtOAWhtTGAejUP+upwdmg==',
+  'sec-websocket-version': '13',
+  'true-client-ip': '52.207.243.62',
+  upgrade: 'websocket',
+  'x-forwarded-for': '52.207.243.62, 10.220.242.102',
+  'x-forwarded-proto': 'https',
+  'x-render-as-num': '14618',
+  'x-render-threat-score': '0',
+  'x-twilio-signature': 'xm/wEibEjJ3XLHdyUSbOJCPIQyk='
+}
+[ConversationRelay-WS] 🕐 Started silence timeout for call_1756620149694 (30000ms)
+[ConversationRelay-WS] ✅ ConversationRelay session ready for call_1756620149694 - waiting for setup message
+[ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+[ConversationRelay-WS] CallSid: call_1756620149694
+[ConversationRelay-WS] Event: undefined
+[ConversationRelay-WS] Message count: 1
+[ConversationRelay-WS] Message size: 353 bytes
+[ConversationRelay-WS] Timestamp: 2025-08-31T06:02:29.790Z
+[ConversationRelay-WS] Session active: false
+[ConversationRelay-WS] Full message structure: [
+  'type',             'sessionId',
+  'callSid',          'parentCallSid',
+  'from',             'to',
+  'forwardedFrom',    'callerName',
+  'direction',        'callType',
+  'callStatus',       'accountSid',
+  'customParameters'
+]
+[ConversationRelay-WS] Message preview: {"type":"setup","sessionId":"VX0c366b0547dfef53455107caffb91c15","callSid":"CA4fc1a192231ddba24ee18ba53aecd005","parentCallSid":"","from":"+17077433838","to":"+919649770017","forwardedFrom":"","caller...
+[ConversationRelay-WS] 🔧 Handling SETUP message - ConversationRelay initialization
+[ConversationRelay-WS] 🔧 SETUP message received for call_1756620149694
+[ConversationRelay-WS] Setup details: {
+  "type": "setup",
+  "sessionId": "VX0c366b0547dfef53455107caffb91c15",
+  "callSid": "CA4fc1a192231ddba24ee18ba53aecd005",
+  "parentCallSid": "",
+  "from": "+17077433838",
+  "to": "+919649770017",
+  "forwardedFrom": "",
+  "callerName": "",
+  "direction": "outbound-api",
+  "callType": "PSTN",
+  "callStatus": "IN_PROGRESS",
+  "accountSid": "AC64208c7087a03b475ea7fa9337b692f8",
+  "customParameters": {}
+}
+[ConversationRelay-WS] ✅ Setup complete, waiting for user input for call_1756620149694
+[ConversationRelay-WS] TwiML welcomeGreeting will handle initial greeting automatically
+[ConversationRelay-WS] 💬 Sending follow-up prompt to encourage user interaction
+[ConversationRelay-WS] 📤 Sending text message to call_1756620149694: "How can I help you today?"
+[ConversationRelay-WS] 📤 Sending text message with built-in TTS
+[ConversationRelay-WS] 📋 Full message being sent: {
+  "type": "text",
+  "text": "How can I help you today?"
+}
+[ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+[ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+[ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","text":"How can I help you today?"}
+[ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+[ConversationRelay-WS] ✅ Text message sent successfully to call_1756620149694
+[ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+[ConversationRelay-WS] CallSid: call_1756620149694
+[ConversationRelay-WS] Event: undefined
+[ConversationRelay-WS] Message count: 2
+[ConversationRelay-WS] Message size: 100 bytes
+[ConversationRelay-WS] Timestamp: 2025-08-31T06:02:39.565Z
+[ConversationRelay-WS] Session active: true
+[ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+[ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":"Hello Kimia. What can you help me with?","lang":"en-US","last":true}...
+[ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+[ConversationRelay-WS] 🎤 PROMPT message received for call_1756620149694
+[ConversationRelay-WS] User speech: Hello Kimia. What can you help me with?
+[ConversationRelay-WS] 🕐 Started silence timeout for call_1756620149694 (30000ms)
+[ConversationRelay-WS] 🔄 Reset silence timeout for call_1756620149694
+[ConversationRelay-WS] Processing speech transcript: "Hello Kimia. What can you help me with?"
+[ConversationRelay-WS] No ConversationRelay service for call_1756620149694, using basic processing
+[ConversationRelay-WS] Processing transcript fallback: "Hello Kimia. What can you help me with?"
+[ConversationRelay-WS] Calling Azure OpenAI with 2 messages
+[ConversationRelay-WS] Azure OpenAI response: Hi there! I can help you with a variety of things, like answering questions, providing information, ...
+[ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+[ConversationRelay-WS] CallSid: call_1756620149694
+[ConversationRelay-WS] Response text: "Hi there! I can help you with a variety of things, like answering questions, providing information, or assisting with planning and organization. What do you need help with today?"
+[ConversationRelay-WS] WebSocket state: 1
+[ConversationRelay-WS] Session active: true
+[ConversationRelay-WS] Added to conversation history. Total messages: 1
+[ConversationRelay-WS] 📤 Sending text message to call_1756620149694: "Hi there! I can help you with a variety of things, like answering questions, providing information, or assisting with planning and organization. What do you need help with today?"
+[ConversationRelay-WS] 📤 Sending text message with built-in TTS
+[ConversationRelay-WS] 📋 Full message being sent: {
+  "type": "text",
+  "text": "Hi there! I can help you with a variety of things, like answering questions, providing information, or assisting with planning and organization. What do you need help with today?"
+}
+[ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+[ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+[ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","text":"Hi there! I can help you with a variety of things, like answering questions, providing information, or assisting with planning and organization. What do you need help with today?"}
+[ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+[ConversationRelay-WS] ✅ Text message sent successfully to call_1756620149694
+[ConversationRelay-WS] ✅ AI response sent successfully to call_1756620149694
+[ConversationRelay-WS] Response preview: "Hi there! I can help you with a variety of things, like answering questions, providing information, ..."
+[ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+[ConversationRelay-WS] CallSid: call_1756620149694
+[ConversationRelay-WS] Event: undefined
+[ConversationRelay-WS] Message count: 3
+[ConversationRelay-WS] Message size: 78 bytes
+[ConversationRelay-WS] Timestamp: 2025-08-31T06:02:45.460Z
+[ConversationRelay-WS] Session active: true
+[ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+[ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" Can you hear me?","lang":"en-US","last":true}...
+[ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+[ConversationRelay-WS] 🎤 PROMPT message received for call_1756620149694
+[ConversationRelay-WS] User speech:  Can you hear me?
+[ConversationRelay-WS] 🕐 Started silence timeout for call_1756620149694 (30000ms)
+[ConversationRelay-WS] 🔄 Reset silence timeout for call_1756620149694
+[ConversationRelay-WS] Processing speech transcript: " Can you hear me?"
+[ConversationRelay-WS] Processing transcript fallback: " Can you hear me?"
+[ConversationRelay-WS] No ConversationRelay service for call_1756620149694, using basic processing
+[ConversationRelay-WS] Calling Azure OpenAI with 5 messages
+[ConversationRelay-WS] Azure OpenAI response: I can hear you just fine! What’s on your mind?...
+[ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+[ConversationRelay-WS] CallSid: call_1756620149694
+[ConversationRelay-WS] Response text: "I can hear you just fine! What’s on your mind?"
+[ConversationRelay-WS] WebSocket state: 1
+[ConversationRelay-WS] Session active: true
+[ConversationRelay-WS] Added to conversation history. Total messages: 4
+[ConversationRelay-WS] 📤 Sending text message to call_1756620149694: "I can hear you just fine! What’s on your mind?"
+[ConversationRelay-WS] 📤 Sending text message with built-in TTS
+[ConversationRelay-WS] 📋 Full message being sent: {
+  "type": "text",
+  "text": "I can hear you just fine! What’s on your mind?"
+}
+[ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+[ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+[ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","text":"I can hear you just fine! What’s on your mind?"}
+[ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+[ConversationRelay-WS] ✅ Text message sent successfully to call_1756620149694
+[ConversationRelay-WS] ✅ AI response sent successfully to call_1756620149694
+[ConversationRelay-WS] Response preview: "I can hear you just fine! What’s on your mind?..."
+[ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+[ConversationRelay-WS] CallSid: call_1756620149694
+[ConversationRelay-WS] Event: undefined
+[ConversationRelay-WS] Message count: 4
+[ConversationRelay-WS] Message size: 119 bytes
+[ConversationRelay-WS] Timestamp: 2025-08-31T06:02:52.869Z
+[ConversationRelay-WS] Session active: true
+[ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+[ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" I heard your initial meeting but now you are not Audible.","lang":"en-US","last":true}...
+[ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+[ConversationRelay-WS] 🎤 PROMPT message received for call_1756620149694
+[ConversationRelay-WS] User speech:  I heard your initial meeting but now you are not Audible.
+[ConversationRelay-WS] 🕐 Started silence timeout for call_1756620149694 (30000ms)
+[ConversationRelay-WS] 🔄 Reset silence timeout for call_1756620149694
+[ConversationRelay-WS] No ConversationRelay service for call_1756620149694, using basic processing
+[ConversationRelay-WS] Processing speech transcript: " I heard your initial meeting but now you are not Audible."
+[ConversationRelay-WS] Processing transcript fallback: " I heard your initial meeting but now you are not Audible."
+[ConversationRelay-WS] Calling Azure OpenAI with 7 messages
+[ConversationRelay-WS] Azure OpenAI response: I’m here! Can you hear me now? What would you like to talk about?...
+[ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+[ConversationRelay-WS] CallSid: call_1756620149694
+[ConversationRelay-WS] Response text: "I’m here! Can you hear me now? What would you like to talk about?"
+[ConversationRelay-WS] WebSocket state: 1
+[ConversationRelay-WS] Session active: true
+[ConversationRelay-WS] Added to conversation history. Total messages: 7
+[ConversationRelay-WS] 📤 Sending text message to call_1756620149694: "I’m here! Can you hear me now? What would you like to talk about?"
+[ConversationRelay-WS] 📤 Sending text message with built-in TTS
+[ConversationRelay-WS] 📋 Full message being sent: {
+  "type": "text",
+  "text": "I’m here! Can you hear me now? What would you like to talk about?"
+}
+[ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+[ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+[ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","text":"I’m here! Can you hear me now? What would you like to talk about?"}
+[ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+[ConversationRelay-WS] ✅ Text message sent successfully to call_1756620149694
+[ConversationRelay-WS] ✅ AI response sent successfully to call_1756620149694
+[ConversationRelay-WS] Response preview: "I’m here! Can you hear me now? What would you like to talk about?..."
+[ConversationRelay-WS] 🔌 Connection closed for CallSid=call_1756620149694, Code=1000, Reason=Closing websocket session
+[ConversationRelay-WS] Session duration: 26599ms, State: waiting_for_speech
+[ConversationRelay-WS] 🛑 Cleared silence timeout for closed session call_1756620149694
+[Call Status Optimized] Call CA4fc1a192231ddba24ee18ba53aecd005 status: completed, tracking: call_1756620141133_kyadi92xp
+[PerformanceOrchestrator] Stopping optimized conversation for call CA4fc1a192231ddba24ee18ba53aecd005
+[ConversationRelay] Stopping conversation for call CA4fc1a192231ddba24ee18ba53aecd005
+[PerformanceOrchestrator] Failed to stop optimized conversation: Error: No call data found for CA4fc1a192231ddba24ee18ba53aecd005
+    at PerformanceOrchestrator.stopOptimizedConversation (/opt/render/project/src/backend/services/performanceOrchestrator.js:147:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /opt/render/project/src/backend/routes/optimized-routes.js:50:11
+[Call Status Optimized] Error cleaning up orchestrator: Error [ERR_UNHANDLED_ERROR]: Unhandled error. ({
+  callSid: 'CA4fc1a192231ddba24ee18ba53aecd005',
+  error: Error: No call data found for CA4fc1a192231ddba24ee18ba53aecd005
+      at PerformanceOrchestrator.stopOptimizedConversation (/opt/render/project/src/backend/services/performanceOrchestrator.js:147:15)
+      at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+      at async /opt/render/project/src/backend/routes/optimized-routes.js:50:11,
+  phase: 'cleanup'
+})
+    at PerformanceOrchestrator.emit (node:events:497:17)
+    at PerformanceOrchestrator.stopOptimizedConversation (/opt/render/project/src/backend/services/performanceOrchestrator.js:159:12)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async /opt/render/project/src/backend/routes/optimized-routes.js:50:11 {
+  code: 'ERR_UNHANDLED_ERROR',
+  context: {
+    callSid: 'CA4fc1a192231ddba24ee18ba53aecd005',
+    error: Error: No call data found for CA4fc1a192231ddba24ee18ba53aecd005
+        at PerformanceOrchestrator.stopOptimizedConversation (/opt/render/project/src/backend/services/performanceOrchestrator.js:147:15)
+        at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+        at async /opt/render/project/src/backend/routes/optimized-routes.js:50:11,
+    phase: 'cleanup'
+  }
+}
