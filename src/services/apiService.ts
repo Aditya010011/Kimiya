@@ -1,25 +1,5 @@
 import { WorkflowConfig } from '../types/workflowConfig';
-
-// API Base URL configuration
-const getApiBaseUrl = (): string => {
-  if (typeof window !== 'undefined') {
-    // Browser environment - use current host for VM deployment
-    const hostname = process.env.BACKEND_HOSTNAME || window.location.hostname;
-    const protocol = window.location.protocol;
-
-    // For Use configured backend and fallback to localhost
-    return `${protocol}//${hostname}:${process.env.BACKEND_PORT}` || 'http://localhost:3001';
-
-    // // If running on VM (not localhost), use the same host (nginx will proxy to backend)
-    // if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-    //   return `${protocol}//${hostname}`;
-    // }
-
-    
-  }
-  // Server-side rendering fallback - use local backend
-  return 'http://localhost:3001';
-};
+import { getApiBaseUrl } from '../utils/envConfig';
 
 // API Response interfaces
 export interface OptimizedCallResponse {
