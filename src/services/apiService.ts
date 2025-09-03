@@ -28,9 +28,10 @@ export interface OptimizedCallResponse {
   from?: string;
   optimization?: {
     enabled: boolean;
-    trackingId: string;
-    expectedLatency: string;
-    features: {
+    trackingId?: string;
+    expectedLatency?: string;
+    error?: string;
+    features?: {
       conversationRelay: boolean;
       predictiveCache: boolean;
       languageOptimization: boolean;
@@ -149,7 +150,7 @@ export class CallAPI {
 
       if (!response.ok) {
         const errorText = await response.text();
-        let errorData;
+        let errorData: any;
         try {
           errorData = JSON.parse(errorText);
         } catch (e) {
