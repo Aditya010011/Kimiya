@@ -4,19 +4,21 @@ import { WorkflowConfig } from '../types/workflowConfig';
 const getApiBaseUrl = (): string => {
   if (typeof window !== 'undefined') {
     // Browser environment - use current host for VM deployment
-    const hostname = window.location.hostname;
+    const hostname = process.env.BACKEND_HOSTNAME || window.location.hostname;
     const protocol = window.location.protocol;
 
-    // If running on VM (not localhost), use the same host for API calls
-    if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
-      return `${protocol}//${hostname}`;
-    }
+    // For Use configured backend and fallback to localhost
+    return `${protocol}//${hostname}:${process.env.BACKEND_PORT}` || 'http://localhost:3001';
 
-    // Fallback to Render for localhost development
-    return 'https://kimiyi-ai.onrender.com';
+    // // If running on VM (not localhost), use the same host (nginx will proxy to backend)
+    // if (hostname !== 'localhost' && hostname !== '127.0.0.1') {
+    //   return `${protocol}//${hostname}`;
+    // }
+
+    
   }
-  // Server-side rendering fallback
-  return 'https://kimiyi-ai.onrender.com';
+  // Server-side rendering fallback - use local backend
+  return 'http://localhost:3001';
 };
 
 // API Response interfaces
@@ -130,12 +132,16 @@ export class CallAPI {
     try {
       console.log('Making optimized call to:', `${this.baseUrl}/api/make-call-optimized`);
 
-      // Wake up backend first (important for Render free tier)
+      // Cold start serverless (important for Render free tier)
       await this.wakeUpBackend();
 
       // Create AbortController for timeout handling
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+
+      const timeoutId = setTimeout(() => {
+                            console.log("Timeout after 30 secs Aborting controller");
+                            controller.abort();
+                          }, 30000); // 30 second timeout
 
       const response = await fetch(`${this.baseUrl}/api/make-call-optimized`, {
         method: 'POST',
@@ -145,7 +151,7 @@ export class CallAPI {
         body: JSON.stringify(callData),
         signal: controller.signal
       });
-
+      
       clearTimeout(timeoutId);
 
       if (!response.ok) {

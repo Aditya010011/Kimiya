@@ -1,6 +1,14 @@
 const express = require('express');
 const cors = require('cors');
 
+
+const envFile = process.env.NODE_ENV === "production"
+  ? "" // 
+  : ".env.development";
+
+if (envFile) {
+  require("dotenv").config({ path: envFile });
+}
 // Always load .env file first, then environment variables can override
 require('dotenv').config();
 console.log('🔧 Loading .env file for configuration');
