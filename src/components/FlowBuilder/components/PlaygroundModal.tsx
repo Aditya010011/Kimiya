@@ -15,6 +15,7 @@ import { ConditionalEdge } from '../../../types/flowTypes';
 import { WorkflowConfig } from '../../../types/workflowConfig';
 import { toast } from 'sonner';
 import { defaultTwilioService, TwilioService, CallResponse } from '../../../services/twilioService';
+import { getApiBaseUrl } from '../../../utils/envConfig';
 
 interface PlaygroundModalProps {
   isOpen: boolean;
@@ -73,9 +74,9 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
   const [isLoadingTwilioConfig, setIsLoadingTwilioConfig] = useState(false);
   const [configLoadFailed, setConfigLoadFailed] = useState(false);
   const [twilioConfig, setTwilioConfig] = useState({
-    accountSid: workflowConfig?.twilio?.accountSid || 'AC64208c7087a03b475ea7fa9337b692f8',
-    authToken: workflowConfig?.twilio?.authToken || '587e27a4553570edb09656c15a03d0e8',
-    phoneNumber: workflowConfig?.twilio?.phoneNumber || '+17077433838',
+    accountSid: workflowConfig?.twilio?.accountSid || '',
+    authToken: workflowConfig?.twilio?.authToken || '',
+    phoneNumber: workflowConfig?.twilio?.phoneNumber || '',
     recordCalls: workflowConfig?.twilio?.recordCalls ?? true,
     callTimeout: workflowConfig?.twilio?.callTimeout ?? 30
   });
@@ -154,9 +155,9 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
   useEffect(() => {
     if (!isEditingTwilio) {
       setTwilioConfig({
-        accountSid: workflowConfig?.twilio?.accountSid || 'AC64208c7087a03b475ea7fa9337b692f8',
-        authToken: workflowConfig?.twilio?.authToken || '587e27a4553570edb09656c15a03d0e8',
-        phoneNumber: workflowConfig?.twilio?.phoneNumber || '+17077433838',
+        accountSid: workflowConfig?.twilio?.accountSid || '',
+        authToken: workflowConfig?.twilio?.authToken || '',
+        phoneNumber: workflowConfig?.twilio?.phoneNumber || '',
         recordCalls: workflowConfig?.twilio?.recordCalls ?? true,
         callTimeout: workflowConfig?.twilio?.callTimeout ?? 30
       });
@@ -633,24 +634,8 @@ Conversation turns in this node: ${conversationTurns}`
   const isBackendAvailable = () => {
     if (typeof window === 'undefined') return false;
 
-    // Backend is always available since we're using Render deployment
+    // Backend is always available since we're using ubundu deployment
     return true;
-  };
-
-  // Get API base URL (same logic as TwilioService)
-  const getApiBaseUrl = (): string => {
-    if (typeof window !== 'undefined') {
-      const hostname = window.location.hostname;
-      const protocol = window.location.protocol;
-
-      if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        return 'https://kimiyi-ai.onrender.com';
-      } else {
-        // VM deployment - use current host
-        return `${protocol}//${hostname}`;
-      }
-    }
-    return 'https://kimiyi-ai.onrender.com';
   };
 
   // Fetch Twilio configuration from backend
@@ -669,21 +654,21 @@ Conversation turns in this node: ${conversationTurns}`
       const API_BASE_URL = getApiBaseUrl();
       console.log('Fetching from:', `${API_BASE_URL}/api/twilio-config`);
 
-      // Wake up backend first (important for Render free tier)
+      // Check backend health before fetching config
       try {
-        console.log('Waking up backend...');
+        console.log('Checking backend health...');
         await fetch(`${API_BASE_URL}/health`, {
           method: 'GET',
-          signal: AbortSignal.timeout(8000) // 8 second timeout for wake-up
+          signal: AbortSignal.timeout(8000) // 8 second timeout for health check
         });
-        console.log('Backend is awake');
-      } catch (wakeUpError) {
-        console.warn('Backend wake-up failed, but continuing:', wakeUpError);
+        console.log('Backend is healthy');
+      } catch (healthError) {
+        console.warn('Backend health check failed, but continuing:', healthError);
       }
 
       const response = await fetch(`${API_BASE_URL}/api/twilio-config`, {
         method: 'GET',
-        signal: AbortSignal.timeout(15000) // 15 second timeout (increased for cold starts)
+        signal: AbortSignal.timeout(15000) // 15 second timeout
       });
       console.log('Response status:', response.status);
 
@@ -695,9 +680,9 @@ Conversation turns in this node: ${conversationTurns}`
           // Always use backend config when available (it has the real environment variables)
           console.log('Updating Twilio config with backend data (overriding any workflow config)');
           setTwilioConfig({
-            accountSid: data.config.accountSid || 'AC64208c7087a03b475ea7fa9337b692f8',
-            authToken: data.config.authToken || '587e27a4553570edb09656c15a03d0e8',
-            phoneNumber: data.config.phoneNumber || '+17077433838',
+            accountSid: data.config.accountSid || '',
+            authToken: data.config.authToken || '',
+            phoneNumber: data.config.phoneNumber || '',
             recordCalls: data.config.recordCalls ?? true,
             callTimeout: data.config.callTimeout ?? 30
           });
@@ -805,9 +790,9 @@ Conversation turns in this node: ${conversationTurns}`
   const handleCancelTwilioEdit = () => {
     // Reset to original values
     setTwilioConfig({
-      accountSid: workflowConfig?.twilio?.accountSid || 'AC64208c7087a03b475ea7fa9337b692f8',
-      authToken: workflowConfig?.twilio?.authToken || '587e27a4553570edb09656c15a03d0e8',
-      phoneNumber: workflowConfig?.twilio?.phoneNumber || '+17077433838',
+      accountSid: workflowConfig?.twilio?.accountSid || '',
+      authToken: workflowConfig?.twilio?.authToken || '',
+      phoneNumber: workflowConfig?.twilio?.phoneNumber || '',
       recordCalls: workflowConfig?.twilio?.recordCalls ?? true,
       callTimeout: workflowConfig?.twilio?.callTimeout ?? 30
     });

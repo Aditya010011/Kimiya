@@ -5,10 +5,13 @@
 
 const twilio = require('twilio');
 
+// Load centralized CORS configuration
+const { setDynamicCorsHeaders } = require('../utils/cors-config');
+
 // Get credentials from environment (same as working backend)
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;
-const fromNumber = process.env.TWILIO_PHONE_NUMBER || '+17077433838';
+const fromNumber = process.env.TWILIO_PHONE_NUMBER;
 
 async function testTTSEndpoint(req, res) {
   console.log('[TTS-Test] Starting TTS diagnostic tests...');
@@ -16,10 +19,9 @@ async function testTTSEndpoint(req, res) {
   console.log('[TTS-Test] Request body:', req.body);
   console.log('[TTS-Test] Request query:', req.query);
 
-  // Set CORS headers
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  // Set dynamic CORS headers using centralized utility
+  const environment = process.env.NODE_ENV || 'development';
+  setDynamicCorsHeaders(req, res, environment);
 
   // Handle preflight requests
   if (req.method === 'OPTIONS') {

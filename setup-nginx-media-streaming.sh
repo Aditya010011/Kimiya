@@ -166,7 +166,7 @@ cat > test-media-streaming.html << 'EOF'
 </html>
 EOF
 
-sudo mv test-media-streaming.html /var/www/kimiya-voice/dist/
+sudo mv test-media-streaming.html /var/www/kimiya-voice-devdist/
 
 echo ""
 echo "🎉 Nginx Media Streaming Setup Complete!"

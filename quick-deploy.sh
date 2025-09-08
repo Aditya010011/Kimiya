@@ -58,7 +58,7 @@ else
 fi
 
 # Create application directory
-APP_DIR="/var/www/kimiya-voice"
+APP_DIR="/var/www/kimiya-voice-dev
 print_status "Setting up application directory: $APP_DIR"
 sudo mkdir -p $APP_DIR
 sudo chown -R $USER:$USER $APP_DIR
@@ -95,10 +95,10 @@ if [[ ! -f "backend/.env" ]]; then
 NODE_ENV=production
 PORT=3001
 
-# Twilio Configuration (replace with your values)
-TWILIO_ACCOUNT_SID=AC64208c7087a03b475ea7fa9337b692f8
-TWILIO_AUTH_TOKEN=ab39243ee151ff74a03075d53070cf67
-TWILIO_PHONE_NUMBER=+17077433838
+# Twilio Configuration (replace with your actual values)
+TWILIO_ACCOUNT_SID=your_twilio_account_sid_here
+TWILIO_AUTH_TOKEN=your_twilio_auth_token_here
+TWILIO_PHONE_NUMBER=your_twilio_phone_number_here
 
 # Azure OpenAI Configuration
 AZURE_OPENAI_ENDPOINT=https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview
@@ -124,99 +124,35 @@ fi
 print_status "Building frontend for production..."
 npm run build
 
-# Create PM2 ecosystem file (ES module compatible)
-print_status "Creating PM2 configuration..."
-cat > ecosystem.config.cjs << EOF
-module.exports = {
-  apps: [{
-    name: 'kimiya-voice-backend',
-    script: './backend/server.js',
-    cwd: '$APP_DIR',
-    instances: 1,
-    exec_mode: 'fork',
-    env: {
-      NODE_ENV: 'production',
-      PORT: 3001
-    },
-    error_file: './backend/logs/err.log',
-    out_file: './backend/logs/out.log',
-    log_file: './backend/logs/combined.log',
-    time: true,
-    watch: false,
-    max_memory_restart: '1G'
-  }]
-};
-EOF
+# Use centralized PM2 configuration
+print_status "Using centralized PM2 configuration for production..."
+if [ ! -f "config/pm2/production.config.cjs" ]; then
+    print_error "Production PM2 configuration not found. Please run setup first."
+    exit 1
+fi
+
+# Display port configuration
+print_status "Validating port configuration..."
+node -e "const { validatePortConfig, displayPortConfig } = require('./config/ports.js'); if (!validatePortConfig('production')) process.exit(1); displayPortConfig('production');"
 
 # Create logs directory
 mkdir -p backend/logs
 
-# Start backend with PM2
+# Start backend with PM2 using centralized configuration
 print_status "Starting backend with PM2..."
-pm2 start ecosystem.config.cjs
+NODE_ENV=production pm2 start config/pm2/production.config.cjs
 pm2 save
 pm2 startup
 
-# Configure Nginx
-print_status "Configuring Nginx..."
-sudo tee /etc/nginx/sites-available/kimiya-voice << EOF
-server {
-    listen 80;
-    server_name _;  # Accept any domain name
-    
-    # Frontend (React app)
-    location / {
-        root $APP_DIR/dist;
-        index index.html;
-        try_files \$uri \$uri/ /index.html;
-        
-        # Security headers
-        add_header X-Frame-Options "SAMEORIGIN" always;
-        add_header X-XSS-Protection "1; mode=block" always;
-        add_header X-Content-Type-Options "nosniff" always;
-    }
-    
-    # Backend API
-    location /api/ {
-        proxy_pass http://localhost:3001/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection 'upgrade';
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-        proxy_cache_bypass \$http_upgrade;
-        proxy_read_timeout 300s;
-        proxy_connect_timeout 75s;
-    }
-    
-    # WebSocket support
-    location /ws {
-        proxy_pass http://localhost:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade \$http_upgrade;
-        proxy_set_header Connection "upgrade";
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
-    }
-    
-    # Static assets caching
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-        root $APP_DIR/dist;
-        expires 1y;
-        add_header Cache-Control "public, immutable";
-    }
-}
-EOF
+# Generate and configure Nginx
+print_status "Generating Nginx configuration..."
+./config/nginx/generate-nginx-config.sh production ai-phone-call.kimiyi.ai 20.255.99.49
 
-# Enable the site
-sudo ln -sf /etc/nginx/sites-available/kimiya-voice /etc/nginx/sites-enabled/
-sudo rm -f /etc/nginx/sites-enabled/default
-sudo nginx -t
-sudo systemctl reload nginx
+print_status "Deploying Nginx configuration..."
+if ! ./config/nginx/deploy-nginx-production.sh; then
+    print_error "Failed to deploy nginx configuration"
+    exit 1
+fi
 
 # Configure firewall
 print_status "Configuring firewall..."

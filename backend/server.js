@@ -1,54 +1,53 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 
+// Load centralized port configuration
+const { getPort, displayPortConfig, validatePortConfig } = require('../config/ports.cjs');
 
+// Load centralized CORS configuration
+const { createCorsOptions, setDynamicCorsHeaders } = require('./utils/cors-config');
+
+// Load environment configuration
 const envFile = process.env.NODE_ENV === "production"
-  ? "" // 
-  : ".env.development";
+  ? "" //
+  : path.join(__dirname, ".env.development");
 
 if (envFile) {
   require("dotenv").config({ path: envFile });
 }
 // Always load .env file first, then environment variables can override
 require('dotenv').config();
-console.log('🔧 Loading .env file for configuration');
 
-if (process.env.NODE_ENV === 'production') {
-  console.log('🚀 Production mode: Environment variables will override .env values');
-} else {
-  console.log('🔧 Development mode: Using .env file configuration');
+const environment = process.env.NODE_ENV || 'development';
+console.log(`🔧 Loading configuration for ${environment} environment`);
+
+// Validate port configuration
+if (!validatePortConfig(environment)) {
+  console.error('❌ Invalid port configuration. Exiting...');
+  process.exit(1);
 }
 
+// Display port configuration for debugging
+displayPortConfig(environment);
+
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// CORS configuration to allow multiple frontends - Enhanced for better compatibility
-const corsOptions = {
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+// Get port from centralized configuration with fallback
+let PORT;
+try {
+  PORT = getPort('backend.api', environment);
+} catch (error) {
+  console.warn(`⚠️  ${error.message}. Using environment variable or fallback.`);
+  PORT = process.env.PORT || 3001; // Safer fallback than 3000
+}
 
-    const allowedOrigins = [
-      'http://localhost:8080',
-      'http://localhost:3000',
-      'https://ai-phone-call.kimiyi.ai',
-      'http://20.255.99.49',
-      'http://20.255.99.49:8080'
-    ];
+console.log(`🚀 Backend server will start on port ${PORT}`);
 
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  optionsSuccessStatus: 200,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-  preflightContinue: false
-};
+// CORS configuration using centralized utility - Enhanced for dual environment setup
+const corsOptions = createCorsOptions(environment);
+
+console.log(`🔧 CORS configured for ${environment} environment with comprehensive port support`);
 
 // Middleware
 app.use(cors(corsOptions));
@@ -58,12 +57,10 @@ app.use(express.urlencoded({ extended: true }));
 // Handle preflight requests explicitly
 app.options('*', cors(corsOptions));
 
-// Health check endpoint with explicit CORS
+// Health check endpoint with dynamic CORS
 app.get('/health', (req, res) => {
-  // Set CORS headers explicitly
-  res.header('Access-Control-Allow-Origin', 'https://ai-phone-call.kimiyi.ai');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  // Set dynamic CORS headers using centralized utility
+  setDynamicCorsHeaders(req, res, environment);
 
   // Check ConversationRelay WebSocket status
   const conversationRelayStatus = global.conversationRelayWS ? 'active' : 'not_initialized';
@@ -120,12 +117,10 @@ app.get('/health', (req, res) => {
   res.json(healthStatus);
 });
 
-// Quick ping endpoint for fast wake-up with CORS
+// Quick ping endpoint for fast wake-up with dynamic CORS
 app.get('/ping', (req, res) => {
-  // Set CORS headers explicitly
-  res.header('Access-Control-Allow-Origin', 'https://ai-phone-call.kimiyi.ai');
-  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type');
+  // Set dynamic CORS headers using centralized utility
+  setDynamicCorsHeaders(req, res, environment);
 
   res.json({ pong: true, timestamp: Date.now(), status: 'awake' });
 });
@@ -278,16 +273,23 @@ app.use('*', (req, res) => {
 });
 
 const server = app.listen(PORT, () => {
-  console.log(`🚀 Kimiya-ai Backend running on port ${PORT}`);
+  console.log('\n🎉 Kimiya Voice Backend Server Started Successfully!');
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+  console.log(`🚀 Environment: ${environment.toUpperCase()}`);
+  console.log(`🔌 Backend API Server: http://localhost:${PORT}`);
   console.log(`📞 TwiML endpoints ready for Twilio webhooks`);
   console.log(`🔗 Health check: http://localhost:${PORT}/health`);
   console.log(`⚡ Performance optimization system loaded`);
   console.log(`🎯 Expected response time: 150-250ms (92% faster than traditional)`);
-  console.log(`🔥 Optimized endpoints:`);
-  console.log(`   • POST /api/make-call-optimized`);
-  console.log(`   • POST /api/twiml-optimized`);
-  console.log(`   • GET  /api/performance-metrics`);
-  console.log(`   • GET  /api/health-optimized`);
+  console.log('\n🔥 Available Endpoints:');
+  console.log(`   • GET  /health - Health check`);
+  console.log(`   • GET  /ping - Quick ping`);
+  console.log(`   • POST /api/make-call-optimized - Optimized call creation`);
+  console.log(`   • POST /api/twiml-optimized - Optimized TwiML processing`);
+  console.log(`   • GET  /api/performance-metrics - Performance metrics`);
+  console.log(`   • GET  /api/health-optimized - Optimized health check`);
+  console.log(`   • WS   /api/conversationrelay-ws - WebSocket for real-time audio`);
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
 });
 
 // Initialize ConversationRelay WebSocket server

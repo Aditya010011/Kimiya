@@ -62,11 +62,13 @@ interface FlowState {
   registerComponent: (definition: ComponentDefinition) => void;
   getComponent: (type: string) => ComponentDefinition | undefined;
   getAllComponents: () => ComponentDefinition[];
-  
+
   // Flow operations
   saveFlow: () => void;
   loadFlow: (flowData: any) => void;
+  importFlow: (flowData: any) => void;
   newFlow: (config?: WorkflowConfig) => void;
+  initializeFromStorage: () => void;
 }
 
 let nodeIdCounter = 0;
@@ -85,8 +87,8 @@ const loadSavedWorkflow = () => {
   return null;
 };
 
-// Initialize with saved workflow if available
-const savedWorkflow = loadSavedWorkflow();
+// Don't load saved workflow immediately - wait for components to be registered
+// const savedWorkflow = loadSavedWorkflow();
 
 // Auto-save function with debouncing
 let autoSaveTimeout: NodeJS.Timeout | null = null;
@@ -95,6 +97,7 @@ const autoSave = (store: any) => {
     clearTimeout(autoSaveTimeout);
   }
   autoSaveTimeout = setTimeout(() => {
+    console.log('💾 Auto-save triggered');
     store.saveFlow();
   }, 2000); // Auto-save after 2 seconds of inactivity
 };
@@ -102,14 +105,14 @@ const autoSave = (store: any) => {
 export const useFlowStore = create<FlowState>()(
   devtools(
     subscribeWithSelector((set, get) => ({
-      // Initial state - load from localStorage if available
-      nodes: savedWorkflow?.nodes || [],
-      edges: savedWorkflow?.edges || [],
-      workflowName: savedWorkflow?.name || 'New Workflow',
-      workflowConfig: savedWorkflow?.config || null,
+      // Initial state - empty until components are registered and storage is loaded
+      nodes: [],
+      edges: [],
+      workflowName: 'New Workflow',
+      workflowConfig: null,
       workflowContext: {
-        variables: savedWorkflow?.variables ? new Map(savedWorkflow.variables) : new Map(),
-        executionPath: savedWorkflow?.executionPath || []
+        variables: new Map(),
+        executionPath: []
       },
       selectedNodeId: null,
       isConfigPanelOpen: false,
@@ -346,6 +349,8 @@ export const useFlowStore = create<FlowState>()(
       // Flow operations
       saveFlow: () => {
         const { nodes, edges, workflowName, workflowConfig, workflowContext } = get();
+        console.log('💾 saveFlow: Saving workflow with', nodes.length, 'nodes and', edges.length, 'edges');
+
         const flowData = {
           name: workflowName,
           config: workflowConfig,
@@ -366,7 +371,11 @@ export const useFlowStore = create<FlowState>()(
 
         // Save to localStorage
         localStorage.setItem('langflow_workflow', JSON.stringify(flowData));
-        console.log('Flow saved:', flowData);
+        console.log('✅ saveFlow: Flow saved successfully:', {
+          name: flowData.name,
+          nodes: flowData.nodes.length,
+          edges: flowData.edges.length
+        });
       },
       
       loadFlow: (flowData) => {
@@ -402,8 +411,28 @@ export const useFlowStore = create<FlowState>()(
           }
         }
 
+        // Restore component references to loaded nodes
+        console.log('🔄 loadFlow: Restoring component references...');
+        const restoredNodes = (flowData.nodes || []).map((node: any) => {
+          const componentDef = get().getComponent(node.type);
+          if (componentDef) {
+            console.log(`✅ loadFlow: Restored component for ${node.type}`);
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                component: componentDef
+              }
+            };
+          } else {
+            console.warn(`⚠️ loadFlow: Component definition not found for node type: ${node.type}`);
+            return node;
+          }
+        });
+
+        console.log('📝 loadFlow: Setting state with restored nodes:', restoredNodes.length);
         set({
-          nodes: flowData.nodes || [],
+          nodes: restoredNodes,
           edges: flowData.edges || [],
           workflowName: flowData.name || 'Loaded Workflow',
           workflowConfig: flowData.config || null,
@@ -412,6 +441,95 @@ export const useFlowStore = create<FlowState>()(
             executionPath: flowData.executionPath || []
           }
         });
+        console.log('✅ loadFlow: State updated successfully');
+      },
+
+      importFlow: (flowData) => {
+        console.log('📥 importFlow: Starting import process...');
+
+        try {
+          // Validate the imported data
+          if (!flowData || typeof flowData !== 'object') {
+            throw new Error('Invalid workflow data format');
+          }
+
+          if (!flowData.nodes || !Array.isArray(flowData.nodes)) {
+            console.warn('⚠️ importFlow: No valid nodes found, creating empty workflow');
+            flowData.nodes = [];
+          }
+
+          if (!flowData.edges || !Array.isArray(flowData.edges)) {
+            console.warn('⚠️ importFlow: No valid edges found, creating empty edges');
+            flowData.edges = [];
+          }
+
+          console.log('📊 importFlow: Importing workflow with', flowData.nodes.length, 'nodes and', flowData.edges.length, 'edges');
+
+          // Restore component references for imported nodes
+          const restoredNodes = flowData.nodes.map((node: any) => {
+            const componentDef = get().getComponent(node.type);
+            if (componentDef) {
+              console.log(`✅ importFlow: Restored component for ${node.type}`);
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  component: componentDef
+                }
+              };
+            } else {
+              console.warn(`⚠️ importFlow: Component not found for type: ${node.type}`);
+              return node;
+            }
+          });
+
+          // Handle variables
+          let variablesMap = new Map();
+          if (flowData.variables) {
+            try {
+              if (Array.isArray(flowData.variables)) {
+                if (flowData.variables.length > 0 && Array.isArray(flowData.variables[0])) {
+                  variablesMap = new Map(flowData.variables);
+                } else {
+                  flowData.variables.forEach((variable: any) => {
+                    if (variable && variable.name) {
+                      variablesMap.set(variable.name, variable);
+                    }
+                  });
+                }
+              }
+            } catch (error) {
+              console.warn('⚠️ importFlow: Failed to load variables:', error);
+            }
+          }
+
+          // Set the imported workflow state
+          set({
+            nodes: restoredNodes,
+            edges: flowData.edges,
+            workflowName: flowData.name || 'Imported Workflow',
+            workflowConfig: flowData.config || null,
+            workflowContext: {
+              variables: variablesMap,
+              executionPath: flowData.executionPath || []
+            }
+          });
+
+          // Save to localStorage for persistence
+          const savedData = {
+            ...flowData,
+            nodes: restoredNodes,
+            savedAt: new Date().toISOString(),
+            importedAt: new Date().toISOString()
+          };
+          localStorage.setItem('langflow_workflow', JSON.stringify(savedData));
+
+          console.log('✅ importFlow: Import completed successfully');
+
+        } catch (error) {
+          console.error('❌ importFlow: Import failed:', error);
+          throw error;
+        }
       },
 
       newFlow: (config) => {
@@ -427,6 +545,67 @@ export const useFlowStore = create<FlowState>()(
           selectedNodeId: null,
           isConfigPanelOpen: false
         });
+      },
+
+      initializeFromStorage: () => {
+        console.log('🔍 initializeFromStorage: Starting...');
+
+        try {
+          const savedWorkflow = loadSavedWorkflow();
+          if (!savedWorkflow) {
+            console.log('📭 initializeFromStorage: No saved workflow found');
+            return;
+          }
+
+          console.log('📂 initializeFromStorage: Found saved workflow:', savedWorkflow.name);
+
+          // Basic validation
+          if (!savedWorkflow.nodes || !Array.isArray(savedWorkflow.nodes)) {
+            console.warn('⚠️ Invalid workflow: nodes is not an array');
+            return;
+          }
+
+          // Load the workflow directly using set() instead of loadFlow()
+          console.log('🔄 initializeFromStorage: Setting state directly...');
+
+          // Restore component references
+          const restoredNodes = savedWorkflow.nodes.map((node: any) => {
+            const componentDef = get().getComponent(node.type);
+            if (componentDef) {
+              return {
+                ...node,
+                data: {
+                  ...node.data,
+                  component: componentDef
+                }
+              };
+            }
+            console.warn(`⚠️ Component not found for type: ${node.type}`);
+            return node;
+          });
+
+          // Set the state
+          set({
+            nodes: restoredNodes,
+            edges: savedWorkflow.edges || [],
+            workflowName: savedWorkflow.name || 'Loaded Workflow',
+            workflowConfig: savedWorkflow.config || null,
+            workflowContext: {
+              variables: new Map(),
+              executionPath: savedWorkflow.executionPath || []
+            }
+          });
+
+          console.log('✅ initializeFromStorage: State set successfully');
+          console.log('📊 Final state:', {
+            nodes: restoredNodes.length,
+            edges: (savedWorkflow.edges || []).length,
+            name: savedWorkflow.name
+          });
+
+        } catch (error) {
+          console.error('❌ Error in initializeFromStorage:', error);
+        }
       }
     })),
     { name: 'flow-store' }

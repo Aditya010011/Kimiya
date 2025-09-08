@@ -56,7 +56,7 @@ function generateFastTwiML(workflowId, trackingId) {
   console.log(`[generateFastTwiML] Workflow: ${workflowId}, Tracking: ${trackingId}`);
 
   // Get host for WebSocket URL
-  const host = process.env.WEBHOOK_BASE_URL || 'https://kimiyi-ai.onrender.com';
+  const host = process.env.WEBHOOK_BASE_URL || 'https://ai-phone-call.kimiyi.ai';
   const wsUrl = host.replace('https://', 'wss://').replace('http://', 'ws://');
 
   // CRITICAL: Include all necessary parameters for ConversationRelay
@@ -103,7 +103,7 @@ function generateFastFallbackTwiML(req, res) {
   res.setHeader('Cache-Control', 'no-cache');
 
   // Generate emergency ConversationRelay TwiML
-  const host = process.env.WEBHOOK_BASE_URL || 'https://kimiyi-ai.onrender.com';
+  const host = process.env.WEBHOOK_BASE_URL || 'https://ai-phone-call.kimiyi.ai';
   const wsUrl = host.replace('https://', 'wss://').replace('http://', 'ws://');
   const websocketUrl = `${wsUrl}/api/conversationrelay-ws?workflowId=${workflowId}&trackingId=${trackingId}`;
 

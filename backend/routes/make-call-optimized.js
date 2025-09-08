@@ -1,5 +1,8 @@
 const PerformanceOrchestrator = require('../services/performanceOrchestrator');
 
+// Load centralized CORS configuration
+const { setDynamicCorsHeaders } = require('../utils/cors-config');
+
 // Store active performance orchestrators by call SID
 const activeOrchestrators = new Map();
 
@@ -25,11 +28,9 @@ function normalizePhoneNumber(phoneNumber) {
 
 module.exports = async function makeCallOptimizedHandler(req, res) {
   try {
-    // Set CORS headers explicitly for this endpoint
-    res.header('Access-Control-Allow-Origin', 'https://kimiya-ai.vercel.app');
-    res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
-    res.header('Access-Control-Allow-Credentials', 'true');
+    // Set dynamic CORS headers using centralized utility
+    const environment = process.env.NODE_ENV || 'development';
+    setDynamicCorsHeaders(req, res, environment);
 
     // Handle preflight requests
     if (req.method === 'OPTIONS') {

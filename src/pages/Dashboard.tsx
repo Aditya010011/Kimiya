@@ -33,7 +33,7 @@ interface Workflow {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { loadFlow, setWorkflowName } = useFlowStore();
+  const { importFlow } = useFlowStore();
   const [workflows] = useState<Workflow[]>([
     {
       id: '1',
@@ -101,17 +101,14 @@ const Dashboard: React.FC = () => {
               throw new Error('Invalid edges data format');
             }
 
-            // Load the flow data
+            // Use the dedicated import method for proper handling
             try {
-              loadFlow(flowData);
-
-              // Update workflow name if provided
-              if (flowData.name) {
-                setWorkflowName(flowData.name);
-              }
+              console.log('📥 Dashboard: Importing workflow...');
+              importFlow(flowData);
+              console.log('✅ Dashboard: Import completed successfully');
             } catch (loadError) {
-              console.error('Flow loading error:', loadError);
-              throw new Error(`Failed to load workflow data: ${loadError instanceof Error ? loadError.message : 'Unknown loading error'}`);
+              console.error('❌ Dashboard: Import failed:', loadError);
+              throw new Error(`Failed to import workflow: ${loadError instanceof Error ? loadError.message : 'Unknown import error'}`);
             }
 
             // Navigate to the builder with the imported workflow

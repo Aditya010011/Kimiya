@@ -2,8 +2,6 @@ import {
   WorkflowConfig,
   TwilioConfig,
   OpenAIConfig,
-  ElevenLabsConfig,
-  DeepgramConfig,
   ConfigValidationResult,
   LLMProvider,
   VoiceProvider,

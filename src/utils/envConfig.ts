@@ -191,6 +191,44 @@ export const logConfigStatus = (config: EnvConfig): void => {
   console.log(`  Voice Services: ConversationRelay Native TTS/STT`);
 };
 
+/**
+ * Get API base URL (used for backend API calls)
+ * Uses centralized port configuration and environment-aware URL generation
+ */
+export const getApiBaseUrl = (): string => {
+  const environment = import.meta.env.MODE || 'development';
+
+  if (typeof window !== 'undefined') {
+    // Browser environment
+    if (environment === 'development') {
+      // Development: Direct connection to backend API server
+      const backendPort = import.meta.env.VITE_BACKEND_PORT || "3001";
+      return `http://localhost:${backendPort}`;
+    } else {
+      // Production/Staging: Use current host (proxied through Nginx)
+      const protocol = window.location.protocol;
+      const hostname = window.location.hostname;
+
+      // Check if we're on a custom domain or IP
+      if (hostname === 'localhost' || hostname.startsWith('192.168') || hostname.startsWith('10.') || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+        // Local/IP access - include port for backend
+        const backendPort = import.meta.env.VITE_BACKEND_PORT || "3001";
+        return `${protocol}//${hostname}:${backendPort}`;
+      } else {
+        // Custom domain - backend is proxied through Nginx
+        return `${protocol}//${hostname}`;
+      }
+    }
+  }
+
+  // Server-side rendering fallback
+  if (environment === 'development') {
+    return 'http://localhost:3001';
+  } else {
+    return import.meta.env.VITE_BACKEND_URL || 'https://ai-phone-call.kimiyi.ai';
+  }
+};
+
 // Export singleton instance
 export const envConfig = getEnvConfig();
 export const { config: validatedConfig, validation: configValidation } = getValidatedEnvConfig();

@@ -9,7 +9,7 @@ set -e
 SERVER_IP="20.255.99.49"
 SERVER_USER="azureuser"
 SSH_KEY_PATH="C:\Users\ahada\Desktop\Kimiyi\AI-Phone_key.pem"
-REMOTE_DIR="/var/www/kimiya-voice"
+REMOTE_DIR="/var/www/kimiya-voice-dev
 
 # Colors for output
 RED='\033[0;31m'

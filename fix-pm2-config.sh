@@ -19,7 +19,7 @@ module.exports = {
   apps: [{
     name: 'kimiya-voice-backend',
     script: './backend/server.js',
-    cwd: '/var/www/kimiya-voice',
+    cwd: '/var/www/kimiya-voice-dev,
     instances: 1,
     exec_mode: 'fork',
     env: {
@@ -54,7 +54,7 @@ server {
     
     # Frontend (React app)
     location / {
-        root /var/www/kimiya-voice/dist;
+        root /var/www/kimiya-voice-devdist;
         index index.html;
         try_files $uri $uri/ /index.html;
         
@@ -93,7 +93,7 @@ server {
     
     # Static assets caching
     location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
-        root /var/www/kimiya-voice/dist;
+        root /var/www/kimiya-voice-devdist;
         expires 1y;
         add_header Cache-Control "public, immutable";
     }

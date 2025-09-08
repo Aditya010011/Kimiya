@@ -33,6 +33,7 @@ const FlowToolbar: React.FC = () => {
     setWorkflowName,
     saveFlow,
     loadFlow,
+    importFlow,
     newFlow,
     nodes,
     edges,
@@ -40,7 +41,8 @@ const FlowToolbar: React.FC = () => {
     setWorkflowConfig,
     getAvailableVariables,
     updateNode,
-    addDefaultVariables
+    addDefaultVariables,
+    getComponent
   } = useFlowStore();
 
   const [isExecuting, setIsExecuting] = useState(false);
@@ -57,6 +59,7 @@ const FlowToolbar: React.FC = () => {
   const [isWorkflowSetupOpen, setIsWorkflowSetupOpen] = useState(false);
   const [isPlaygroundOpen, setIsPlaygroundOpen] = useState(false);
   const [lastSavedTime, setLastSavedTime] = useState<Date | null>(null);
+  const [loadedFromStorage, setLoadedFromStorage] = useState(false);
 
   // Check for existing saved data on component mount
   useEffect(() => {
@@ -67,11 +70,15 @@ const FlowToolbar: React.FC = () => {
         if (parsed.savedAt) {
           setLastSavedTime(new Date(parsed.savedAt));
         }
+        // Check if we have nodes loaded (indicating successful restoration)
+        if (nodes.length > 0) {
+          setLoadedFromStorage(true);
+        }
       }
     } catch (error) {
       console.error('Error checking saved workflow:', error);
     }
-  }, []);
+  }, [nodes]);
 
   const handleSave = () => {
     try {
@@ -191,17 +198,14 @@ const FlowToolbar: React.FC = () => {
               }
             }
 
-            // Load the flow data
+            // Use the dedicated import method for proper handling
             try {
-              loadFlow(flowData);
-
-              // Update workflow name if provided
-              if (flowData.name) {
-                setWorkflowName(flowData.name);
-              }
+              console.log('📥 FlowToolbar: Importing workflow...');
+              importFlow(flowData);
+              console.log('✅ FlowToolbar: Import completed successfully');
             } catch (loadError) {
-              console.error('Flow loading error:', loadError);
-              throw new Error(`Failed to load workflow data: ${loadError instanceof Error ? loadError.message : 'Unknown loading error'}`);
+              console.error('❌ FlowToolbar: Import failed:', loadError);
+              throw new Error(`Failed to import workflow: ${loadError instanceof Error ? loadError.message : 'Unknown import error'}`);
             }
 
             // Import variables if they exist
@@ -332,6 +336,19 @@ const FlowToolbar: React.FC = () => {
           <Save className="h-4 w-4" />
           <span>Save</span>
         </Button>
+
+        {/* Debug indicator */}
+        {loadedFromStorage && (
+          <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
+            Loaded from storage
+          </div>
+        )}
+
+        {!loadedFromStorage && nodes.length === 0 && (
+          <div className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
+            No workflow loaded
+          </div>
+        )}
         
         <Button
           onClick={handleImport}

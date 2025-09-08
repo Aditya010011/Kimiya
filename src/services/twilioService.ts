@@ -1,6 +1,7 @@
 // Twilio Service for making phone calls
 import { TwilioConfig } from '../types/workflowConfig';
 import { CallAPI, OptimizedCallResponse } from './apiService';
+import { getApiBaseUrl } from '../utils/envConfig';
 
 export interface CallOptions {
   to: string; // Phone number to call
@@ -121,7 +122,7 @@ export class TwilioService {
         const API_BASE_URL = this.getApiBaseUrl();
 
         // If we have a backend API available, use real calls
-        if (API_BASE_URL.includes('kimiyi-ai.onrender.com') || API_BASE_URL.includes('localhost')) {
+        if (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1') || API_BASE_URL.startsWith('http')) {
           return this.makeRealCall(normalizedNumber, options);
         } else {
           // Demo mode - simulate a successful call for testing purposes
@@ -158,20 +159,20 @@ export class TwilioService {
   }
 
   /**
-   * Wake up the backend (for Render free tier)
+   * Check backend health and ensure it's ready
    */
-  private async wakeUpBackend(): Promise<void> {
+  private async checkBackendHealth(): Promise<void> {
     try {
       const API_BASE_URL = this.getApiBaseUrl();
-      console.log('Waking up backend... (this may take up to 60 seconds on free tier)');
+      console.log('Checking backend health...');
       await fetch(`${API_BASE_URL}/health`, {
         method: 'GET',
-        signal: AbortSignal.timeout(60000) // 60 second timeout for Render wake-up
+        signal: AbortSignal.timeout(10000) // 10 second timeout for health check
       });
-      console.log('Backend is awake and ready');
+      console.log('Backend is healthy and ready');
     } catch (error) {
-      console.warn('Failed to wake up backend:', error);
-      throw new Error('Backend wake-up failed. Please try again in a moment.');
+      console.warn('Backend health check failed:', error);
+      throw new Error('Backend health check failed. Please ensure the backend is running.');
     }
   }
 
@@ -188,8 +189,8 @@ export class TwilioService {
    */
   private async makeRealCall(normalizedNumber: string, options: CallOptions): Promise<CallResponse> {
     try {
-      // Wake up backend first (important for Render free tier)
-      await this.wakeUpBackend();
+      // Check backend health before making the call
+      await this.checkBackendHealth();
 
       // Check if we have placeholder credentials - if so, send empty values to let backend use environment variables
       const accountSid = this.isPlaceholder(this.config.accountSid) ? undefined : this.config.accountSid;
@@ -318,24 +319,8 @@ export class TwilioService {
       return (window as any).CALL_FLOW_API_URL;
     }
 
-    // Default URLs based on environment
-    if (typeof window !== 'undefined') {
-      // Browser environment
-      const hostname = window.location.hostname;
-      const protocol = window.location.protocol;
-
-      if (hostname === 'localhost' || hostname === '127.0.0.1') {
-        // Local development - use Render backend for reliable TwiML endpoints
-        // (You can change this to 'http://localhost:3000' if running backend locally)
-        return 'https://kimiyi-ai.onrender.com';
-      } else {
-        // VM deployment - use current host for API calls
-        return `${protocol}//${hostname}`;
-      }
-    }
-
-    // Server environment fallback
-    return process.env.API_BASE_URL || 'https://kimiyi-ai.onrender.com';
+    // Use the centralized API base URL configuration
+    return getApiBaseUrl();
   }
 
 
@@ -394,7 +379,7 @@ export class TwilioService {
         // Check if we should use real API or demo mode
         const API_BASE_URL = this.getApiBaseUrl();
 
-        if (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('vercel.app')) {
+        if (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1') || API_BASE_URL.startsWith('http')) {
           // Use real backend API
           const response = await fetch(`${API_BASE_URL}/api/call-status?callSid=${callSid}`);
 
@@ -435,7 +420,7 @@ export class TwilioService {
       if (typeof window !== 'undefined') {
         const API_BASE_URL = this.getApiBaseUrl();
 
-        if (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('vercel.app')) {
+        if (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1') || API_BASE_URL.startsWith('http')) {
           // Use real backend API
           const response = await fetch(`${API_BASE_URL}/api/end-call?callSid=${callSid}`, {
             method: 'POST',
@@ -482,14 +467,11 @@ export class TwilioService {
   }
 }
 
-// Default Twilio configuration - these should be overridden by environment variables or UI input
-export const DEFAULT_TWILIO_CONFIG: TwilioConfig = {
-  accountSid: 'AC64208c7087a03b475ea7fa9337b692f8',
-  authToken: '587e27a4553570edb09656c15a03d0e8', // Fallback token - should be overridden by backend config
-  phoneNumber: '+17077433838',
+// Create a Twilio service instance with empty config - will be populated from environment or UI
+export const defaultTwilioService = new TwilioService({
+  accountSid: '',
+  authToken: '',
+  phoneNumber: '',
   recordCalls: true,
   callTimeout: 30
-};
-
-// Create a default Twilio service instance
-export const defaultTwilioService = new TwilioService(DEFAULT_TWILIO_CONFIG);
+});

@@ -6,7 +6,7 @@
     "twilio": {
       "accountSid": "",
       "authToken": "",
-      "phoneNumber": "+17077433838",
+      "phoneNumber": "",
       "recordCalls": true,
       "callTimeout": 2400
     },
