@@ -151,12 +151,37 @@ router.post('/login',
       const accessToken = tokenUtils.generateAccessToken(user);
       const refreshToken = tokenUtils.generateRefreshToken(user);
 
+      // Create user session record
+      const sessionToken = require('crypto').randomBytes(32).toString('hex');
+      const expiresAt = new Date();
+      expiresAt.setHours(expiresAt.getHours() + 24); // 24 hours from now
+
+      // Get client info
+      const ipAddress = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
+      const userAgent = req.get('User-Agent') || 'unknown';
+
+      await databaseService.query(`
+        INSERT INTO tblUserSessions (
+          user_id, session_token, expires_at, created_at, last_accessed_at,
+          ip_address, user_agent, is_active
+        ) VALUES (
+          @userId, @sessionToken, @expiresAt, GETDATE(), GETDATE(),
+          @ipAddress, @userAgent, 1
+        )
+      `, {
+        userId: user.id,
+        sessionToken: sessionToken,
+        expiresAt: expiresAt,
+        ipAddress: ipAddress,
+        userAgent: userAgent
+      });
+
       // Log successful login
       await databaseService.query(`
         INSERT INTO tblLogs (message, level, source, created_at)
         VALUES (@message, 'INFO', 'AUTH', GETDATE())
       `, {
-        message: `User logged in: ${email}`
+        message: `User logged in: ${email} (Session: ${sessionToken.substring(0, 8)}...)`
       });
 
       res.json({
@@ -192,6 +217,17 @@ router.post('/logout',
   authenticateToken,
   async (req, res) => {
     try {
+      // Mark user sessions as inactive
+      const updateResult = await databaseService.query(`
+        UPDATE tblUserSessions
+        SET is_active = 0, last_accessed_at = GETDATE()
+        WHERE user_id = @userId AND is_active = 1
+      `, {
+        userId: req.user.id
+      });
+
+      console.log(`Logout: Deactivated ${updateResult.rowsAffected[0]} sessions for user ${req.user.email}`);
+
       // Log logout
       await databaseService.query(`
         INSERT INTO tblLogs (message, level, source, created_at)
@@ -436,6 +472,259 @@ router.put('/change-password',
         success: false,
         error: 'Password change failed',
         message: 'An error occurred while changing password'
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/auth/admin/users
+ * Get all users with activity metrics (admin only)
+ */
+router.get('/admin/users',
+  authenticateToken,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      // Get all users with basic info
+      const usersResult = await databaseService.query(`
+        SELECT
+          u.id,
+          u.email,
+          u.first_name,
+          u.last_name,
+          u.role,
+          u.is_active,
+          u.created_at,
+          u.updated_at,
+          -- Count of workflow templates created by user
+          (SELECT COUNT(*) FROM tblWorkflowTemplates wt WHERE wt.created_by = u.id) as workflow_count,
+          -- Count of active sessions
+          (SELECT COUNT(*) FROM tblUserSessions us WHERE us.user_id = u.id AND us.is_active = 1 AND us.expires_at > GETDATE()) as active_sessions,
+          -- Last login (most recent session)
+          (SELECT TOP 1 us.created_at FROM tblUserSessions us WHERE us.user_id = u.id ORDER BY us.created_at DESC) as last_login,
+          -- Total login count (total sessions)
+          (SELECT COUNT(*) FROM tblUserSessions us WHERE us.user_id = u.id) as total_logins
+        FROM tblUsers u
+        ORDER BY u.created_at DESC
+      `);
+
+      // Get call activity for each user (if call logs exist)
+      // Note: tblCallLogs doesn't have user_id yet, so we'll return empty stats for now
+      const callStatsResult = { recordset: [] };
+
+      // Create a map of call stats by user ID
+      const callStatsMap = {};
+      if (callStatsResult.recordset) {
+        callStatsResult.recordset.forEach(stat => {
+          callStatsMap[stat.user_id] = {
+            total_calls: stat.total_calls || 0,
+            successful_calls: stat.successful_calls || 0,
+            total_call_duration: stat.total_call_duration || 0
+          };
+        });
+      }
+
+      // Combine user data with call stats
+      const usersWithStats = usersResult.recordset.map(user => ({
+        ...sanitizeUser(user),
+        activity_metrics: {
+          workflow_count: user.workflow_count || 0,
+          active_sessions: user.active_sessions || 0,
+          last_login: user.last_login,
+          total_logins: user.total_logins || 0,
+          call_stats: callStatsMap[user.id] || {
+            total_calls: 0,
+            successful_calls: 0,
+            total_call_duration: 0
+          }
+        }
+      }));
+
+      res.json({
+        success: true,
+        message: 'Users retrieved successfully',
+        data: {
+          users: usersWithStats,
+          total_count: usersWithStats.length,
+          active_count: usersWithStats.filter(u => u.is_active).length,
+          admin_count: usersWithStats.filter(u => u.role === 'admin').length
+        }
+      });
+
+    } catch (error) {
+      console.error('Admin users fetch error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch users',
+        message: 'An error occurred while retrieving user data'
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/auth/admin/users/:id
+ * Get detailed user information (admin only)
+ */
+router.get('/admin/users/:id',
+  authenticateToken,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+
+      if (!userId || isNaN(userId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid user ID',
+          message: 'Please provide a valid user ID'
+        });
+      }
+
+      // Get user details
+      const userResult = await databaseService.query(`
+        SELECT
+          id, email, first_name, last_name, role, is_active, created_at, updated_at
+        FROM tblUsers
+        WHERE id = @userId
+      `, { userId });
+
+      if (!userResult.recordset || userResult.recordset.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'User not found',
+          message: 'No user found with the specified ID'
+        });
+      }
+
+      const user = userResult.recordset[0];
+
+      // Get user sessions
+      const sessionsResult = await databaseService.query(`
+        SELECT
+          id, session_token, expires_at, created_at, last_accessed_at,
+          ip_address, user_agent, is_active
+        FROM tblUserSessions
+        WHERE user_id = @userId
+        ORDER BY created_at DESC
+      `, { userId });
+
+      // Get user workflows
+      const workflowsResult = await databaseService.query(`
+        SELECT
+          id, name, description, category, is_active, created_at, updated_at
+        FROM tblWorkflowTemplates
+        WHERE created_by = @userId
+        ORDER BY created_at DESC
+      `, { userId });
+
+      // Get user call logs (if exists)
+      // Note: tblCallLogs doesn't have user_id yet, so we'll return empty logs for now
+      const callLogsResult = { recordset: [] };
+
+      res.json({
+        success: true,
+        message: 'User details retrieved successfully',
+        data: {
+          user: sanitizeUser(user),
+          sessions: sessionsResult.recordset || [],
+          workflows: workflowsResult.recordset || [],
+          call_logs: callLogsResult.recordset || []
+        }
+      });
+
+    } catch (error) {
+      console.error('Admin user detail fetch error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to fetch user details',
+        message: 'An error occurred while retrieving user details'
+      });
+    }
+  }
+);
+
+/**
+ * PUT /api/auth/admin/users/:id/status
+ * Update user active status (admin only)
+ */
+router.put('/admin/users/:id/status',
+  authenticateToken,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const userId = parseInt(req.params.id);
+      const { is_active } = req.body;
+
+      if (!userId || isNaN(userId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid user ID',
+          message: 'Please provide a valid user ID'
+        });
+      }
+
+      if (typeof is_active !== 'boolean') {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid status',
+          message: 'Status must be true or false'
+        });
+      }
+
+      // Prevent admin from deactivating themselves
+      if (req.user.id === userId && !is_active) {
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot deactivate own account',
+          message: 'You cannot deactivate your own account'
+        });
+      }
+
+      // Update user status
+      const updateResult = await databaseService.query(`
+        UPDATE tblUsers
+        SET is_active = @isActive, updated_at = GETDATE()
+        OUTPUT INSERTED.*
+        WHERE id = @userId
+      `, {
+        userId,
+        isActive: is_active
+      });
+
+      if (!updateResult.recordset || updateResult.recordset.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'User not found',
+          message: 'No user found with the specified ID'
+        });
+      }
+
+      const updatedUser = updateResult.recordset[0];
+
+      // Log the action
+      await databaseService.query(`
+        INSERT INTO tblLogs (message, level, source, created_at)
+        VALUES (@message, 'INFO', 'ADMIN', GETDATE())
+      `, {
+        message: `Admin ${req.user.email} ${is_active ? 'activated' : 'deactivated'} user ${updatedUser.email}`
+      });
+
+      res.json({
+        success: true,
+        message: `User ${is_active ? 'activated' : 'deactivated'} successfully`,
+        data: {
+          user: sanitizeUser(updatedUser)
+        }
+      });
+
+    } catch (error) {
+      console.error('Admin user status update error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to update user status',
+        message: 'An error occurred while updating user status'
       });
     }
   }

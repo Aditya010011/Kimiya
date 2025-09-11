@@ -48,6 +48,8 @@ const Dashboard: React.FC = () => {
   const { importFlow } = useFlowStore();
   const { user, logout } = useAuthStore();
 
+
+
   const handleLogout = async () => {
     await logout();
     toast.success('Logged out successfully');
@@ -270,6 +272,12 @@ const Dashboard: React.FC = () => {
                   <Settings className="mr-2 h-4 w-4" />
                   <span>Workflow Builder</span>
                 </DropdownMenuItem>
+                {user?.role === 'admin' && (
+                  <DropdownMenuItem onClick={() => navigate('/admin/users')}>
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>Users</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
                   <LogOut className="mr-2 h-4 w-4" />

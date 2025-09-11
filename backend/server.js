@@ -338,6 +338,24 @@ const server = app.listen(PORT, () => {
   console.log('\n🔥 Available Endpoints:');
   console.log(`   • GET  /health - Health check`);
   console.log(`   • GET  /ping - Quick ping`);
+
+  // Start session cleanup job (every 30 minutes)
+  setInterval(async () => {
+    try {
+      await databaseService.cleanupExpiredSessions();
+    } catch (error) {
+      console.error('Session cleanup job failed:', error.message);
+    }
+  }, 30 * 60 * 1000); // 30 minutes
+
+  // Run initial cleanup
+  setTimeout(async () => {
+    try {
+      await databaseService.cleanupExpiredSessions();
+    } catch (error) {
+      console.error('Initial session cleanup failed:', error.message);
+    }
+  }, 5000); // 5 seconds after startup
   console.log(`   • POST /api/make-call-optimized - Optimized call creation`);
   console.log(`   • POST /api/twiml-optimized - Optimized TwiML processing`);
   console.log(`   • GET  /api/performance-metrics - Performance metrics`);

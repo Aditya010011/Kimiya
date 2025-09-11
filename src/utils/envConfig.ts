@@ -5,6 +5,9 @@
  */
 
 export interface EnvConfig {
+  // Backend API
+  backendUrl: string;
+
   // Azure OpenAI
   azureOpenAI: {
     apiKey: string;
@@ -83,7 +86,54 @@ export const getEnvConfig = (): EnvConfig => {
     return isNaN(parsed) ? defaultValue : parsed;
   };
 
+  const backendUrl = (() => {
+    const environment = typeof import.meta !== 'undefined' && import.meta.env ? import.meta.env.MODE : 'development';
+
+    if (typeof window !== 'undefined') {
+      // Browser environment
+      const protocol = window.location.protocol;
+      const hostname = window.location.hostname;
+
+      // Check if we're accessing through the development domain
+      if (hostname === 'dev-ai-phone-call.kimiyi.ai') {
+        // Development domain - backend is proxied through Nginx
+        return `${protocol}//${hostname}`;
+      }
+
+      if (environment === 'development') {
+        // Local development: Direct connection to backend API server
+        if (hostname === 'localhost' || hostname.startsWith('192.168') || hostname.startsWith('10.') || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+          const backendPort = getEnvVar('VITE_BACKEND_PORT') || "3010";
+          return `http://localhost:${backendPort}`;
+        } else {
+          // Fallback to development domain
+          return 'https://dev-ai-phone-call.kimiyi.ai';
+        }
+      } else {
+        // Production/Staging: Use current host (proxied through Nginx)
+        // Check if we're on a custom domain or IP
+        if (hostname === 'localhost' || hostname.startsWith('192.168') || hostname.startsWith('10.') || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+          // Local/IP access - include port for backend
+          const backendPort = getEnvVar('VITE_BACKEND_PORT') || "3010";
+          return `${protocol}//${hostname}:${backendPort}`;
+        } else {
+          // Custom domain - backend is proxied through Nginx
+          return `${protocol}//${hostname}`;
+        }
+      }
+    }
+
+    // Server-side rendering fallback
+    if (environment === 'development') {
+      return getEnvVar('VITE_BACKEND_URL') || 'https://dev-ai-phone-call.kimiyi.ai';
+    } else {
+      return getEnvVar('VITE_BACKEND_URL') || 'https://ai-phone-call.kimiyi.ai';
+    }
+  })();
+
   return {
+    backendUrl,
+
     azureOpenAI: {
       apiKey: getEnvVar('AZURE_OPENAI_API_KEY') || '',
       endpoint: getEnvVar('AZURE_OPENAI_ENDPOINT') || 'https://your-resource.openai.azure.com',

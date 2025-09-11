@@ -207,6 +207,28 @@ class DatabaseService {
       connected: !!this.pool
     };
   }
+
+  /**
+   * Clean up expired sessions
+   */
+  async cleanupExpiredSessions() {
+    try {
+      const result = await this.query(`
+        UPDATE tblUserSessions
+        SET is_active = 0, last_accessed_at = GETDATE()
+        WHERE is_active = 1 AND expires_at <= GETDATE()
+      `);
+
+      if (result.rowsAffected[0] > 0) {
+        console.log(`🧹 Cleaned up ${result.rowsAffected[0]} expired sessions`);
+      }
+
+      return result.rowsAffected[0];
+    } catch (error) {
+      console.error('❌ Failed to cleanup expired sessions:', error.message);
+      return 0;
+    }
+  }
 }
 
 // Create singleton instance
