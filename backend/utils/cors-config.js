@@ -59,6 +59,8 @@ function getAllowedOrigins(environment = process.env.NODE_ENV || 'development') 
   // Add environment-specific origins
   if (environment === 'development') {
     baseOrigins.push(
+      'http://dev-ai-phone-call.kimiyi.ai',
+      'https://dev-ai-phone-call.kimiyi.ai',
       'http://dev.ai-phone-call.kimiyi.ai',
       'https://dev.ai-phone-call.kimiyi.ai'
     );

@@ -22,6 +22,9 @@ require('dotenv').config();
 const environment = process.env.NODE_ENV || 'development';
 console.log(`🔧 Loading configuration for ${environment} environment`);
 
+// Load database service after environment variables are loaded
+const databaseService = require('./services/database');
+
 // Validate port configuration
 if (!validatePortConfig(environment)) {
   console.error('❌ Invalid port configuration. Exiting...');
@@ -88,7 +91,9 @@ app.get('/health', (req, res) => {
       hasAzureEndpoint: !!process.env.AZURE_OPENAI_ENDPOINT,
       hasTwilioConfig: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN),
       hasAzureConfig: !!(process.env.AZURE_OPENAI_API_KEY && process.env.AZURE_OPENAI_ENDPOINT),
-      webhookBaseUrl: process.env.WEBHOOK_BASE_URL || 'https://ai-phone-call.kimiyi.ai'
+      webhookBaseUrl: process.env.WEBHOOK_BASE_URL || 'https://ai-phone-call.kimiyi.ai',
+      hasDatabaseConfig: !!(process.env.DB_SERVER && process.env.DB_DATABASE && process.env.DB_USER && process.env.DB_PASSWORD),
+      hasJwtConfig: !!process.env.JWT_SECRET
     },
     memory: {
       used: Math.round(process.memoryUsage().heapUsed / 1024 / 1024) + ' MB',
@@ -152,6 +157,14 @@ app.all('/api/test-tts', testTTSEndpoint);
 // Mount additional optimized routes (includes call-status-optimized and performance endpoints)
 app.use('/api', optimizedRoutes);
 
+// Database operations routes
+const databaseRoutes = require('./routes/database-operations');
+app.use('/api/database', databaseRoutes);
+
+// Authentication routes
+const authRoutes = require('./routes/auth');
+app.use('/api/auth', authRoutes);
+
 // ConversationRelay test endpoint
 app.get('/api/conversationrelay-test', (req, res) => {
   res.json({
@@ -182,6 +195,31 @@ app.get('/api/websocket-test', (req, res) => {
     testConnection: 'Use WebSocket client to connect to the above URL',
     expectedProtocol: 'Twilio ConversationRelay Media Stream'
   });
+});
+
+// Database health check endpoint
+app.get('/api/database-health', async (req, res) => {
+  try {
+    const healthStatus = await databaseService.getHealthStatus();
+    const connectionInfo = databaseService.getConnectionInfo();
+
+    res.json({
+      success: true,
+      database: {
+        ...healthStatus,
+        connection: connectionInfo
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message,
+      database: {
+        status: 'error',
+        connection: databaseService.getConnectionInfo()
+      }
+    });
+  }
 });
 
 // Health check endpoint for optimized system
@@ -237,7 +275,23 @@ app.get('/', (req, res) => {
     endpoints: [
       'GET /health',
       'GET /api/twilio-config',
+      'GET /api/database-health',
       'POST /api/chat',
+      '--- AUTHENTICATION ENDPOINTS ---',
+      'POST /api/auth/register',
+      'POST /api/auth/login',
+      'POST /api/auth/logout (protected)',
+      'GET /api/auth/profile (protected)',
+      'PUT /api/auth/profile (protected)',
+      'PUT /api/auth/change-password (protected)',
+      '--- DATABASE ENDPOINTS ---',
+      'GET /api/database/test-connection',
+      'GET /api/database/test-query',
+      'GET /api/database/tables',
+      'POST /api/database/create-logs-table',
+      'POST /api/database/create-users-table',
+      'POST /api/database/log-entry',
+      'GET /api/database/logs',
       '--- CONVERSATIONRELAY ENDPOINTS (150-300ms) ---',
       'GET /api/health-optimized',
       'POST /api/make-call-optimized',

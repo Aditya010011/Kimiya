@@ -13,7 +13,7 @@ export interface EnvConfig {
     deploymentName: string;
     apiVersion: string;
   };
-  
+
   // Twilio
   twilio: {
     accountSid: string;
@@ -21,7 +21,9 @@ export interface EnvConfig {
     phoneNumber: string;
     webhookBaseUrl: string;
   };
-  
+
+
+
   // Performance
   performance: {
     targetLatency: number;
@@ -30,7 +32,7 @@ export interface EnvConfig {
     languageOptimization: boolean;
     failoverEnabled: boolean;
   };
-  
+
   // Optional API Keys
   optional: {
     openaiApiKey?: string;
@@ -200,19 +202,30 @@ export const getApiBaseUrl = (): string => {
 
   if (typeof window !== 'undefined') {
     // Browser environment
+    const protocol = window.location.protocol;
+    const hostname = window.location.hostname;
+
+    // Check if we're accessing through the development domain
+    if (hostname === 'dev-ai-phone-call.kimiyi.ai') {
+      // Development domain - backend is proxied through Nginx
+      return `${protocol}//${hostname}`;
+    }
+
     if (environment === 'development') {
-      // Development: Direct connection to backend API server
-      const backendPort = import.meta.env.VITE_BACKEND_PORT || "3001";
-      return `http://localhost:${backendPort}`;
+      // Local development: Direct connection to backend API server
+      if (hostname === 'localhost' || hostname.startsWith('192.168') || hostname.startsWith('10.') || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+        const backendPort = import.meta.env.VITE_BACKEND_PORT || "3010";
+        return `http://localhost:${backendPort}`;
+      } else {
+        // Fallback to development domain
+        return 'https://dev-ai-phone-call.kimiyi.ai';
+      }
     } else {
       // Production/Staging: Use current host (proxied through Nginx)
-      const protocol = window.location.protocol;
-      const hostname = window.location.hostname;
-
       // Check if we're on a custom domain or IP
       if (hostname === 'localhost' || hostname.startsWith('192.168') || hostname.startsWith('10.') || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
         // Local/IP access - include port for backend
-        const backendPort = import.meta.env.VITE_BACKEND_PORT || "3001";
+        const backendPort = import.meta.env.VITE_BACKEND_PORT || "3010";
         return `${protocol}//${hostname}:${backendPort}`;
       } else {
         // Custom domain - backend is proxied through Nginx
@@ -223,7 +236,7 @@ export const getApiBaseUrl = (): string => {
 
   // Server-side rendering fallback
   if (environment === 'development') {
-    return 'http://localhost:3001';
+    return import.meta.env.VITE_BACKEND_URL || 'https://dev-ai-phone-call.kimiyi.ai';
   } else {
     return import.meta.env.VITE_BACKEND_URL || 'https://ai-phone-call.kimiyi.ai';
   }
