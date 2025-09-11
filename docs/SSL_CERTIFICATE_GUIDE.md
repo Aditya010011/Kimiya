@@ -12,23 +12,20 @@ Your Kimiya Voice setup now uses **different SSL certificates for different envi
 - **Access**: `https://ai-phone-call.kimiyi.ai`
 
 ### **Development Environment**
-- **Certificate**: Self-Signed Certificate
-- **Domain**: `localhost`
-- **Location**: `/etc/ssl/localhost/localhost.crt`
-- **Valid Until**: 365 days from creation
-- **Access**: `https://localhost:8443`
+- **Certificate**: CloudFlare Origin Certificate
+- **Domain**: `dev-ai-phone-call.kimiyi.ai`
+- **Location**: `/etc/ssl/kimiya-ai/dev-ai-phone-call-new.crt`
+- **Valid Until**: September 5, 2027
+- **Access**: `https://dev-ai-phone-call.kimiyi.ai:8443`
 
 ## 🎯 **Why Different Certificates?**
 
-### **The Problem**
-The CloudFlare Origin Certificate is only valid for `ai-phone-call.kimiyi.ai`, not for `localhost`. When you access `https://localhost:8443`, the browser sees a certificate mismatch and shows "Not Secure".
-
 ### **The Solution**
-We created a **self-signed certificate specifically for localhost** that includes:
-- ✅ `CN=localhost`
-- ✅ `DNS:localhost`
-- ✅ `DNS:127.0.0.1`
-- ✅ `IP:127.0.0.1`
+Both environments now use **CloudFlare Origin Certificates** with proper domain validation:
+- ✅ Production: `ai-phone-call.kimiyi.ai` (port 443)
+- ✅ Development: `dev-ai-phone-call.kimiyi.ai` (port 8443)
+- ✅ Both certificates are trusted by CloudFlare
+- ✅ No browser warnings when accessing via proper domains
 
 ## 🔧 **Current SSL Configuration**
 

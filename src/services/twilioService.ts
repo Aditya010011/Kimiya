@@ -119,7 +119,7 @@ export class TwilioService {
 
       // Check if we're in a browser environment
       if (typeof window !== 'undefined') {
-        const API_BASE_URL = this.getApiBaseUrl();
+        const API_BASE_URL = getApiBaseUrl();
 
         // If we have a backend API available, use real calls
         if (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1') || API_BASE_URL.startsWith('http')) {
@@ -163,7 +163,7 @@ export class TwilioService {
    */
   private async checkBackendHealth(): Promise<void> {
     try {
-      const API_BASE_URL = this.getApiBaseUrl();
+      const API_BASE_URL = getApiBaseUrl();
       console.log('Checking backend health...');
       await fetch(`${API_BASE_URL}/health`, {
         method: 'GET',
@@ -263,7 +263,7 @@ export class TwilioService {
       }
 
       // Use traditional API endpoint
-      const API_BASE_URL = this.getApiBaseUrl();
+      const API_BASE_URL = getApiBaseUrl();
       const response = await fetch(`${API_BASE_URL}/api/make-call`, {
         method: 'POST',
         headers: {
@@ -310,18 +310,7 @@ export class TwilioService {
     }
   }
 
-  /**
-   * Get the API base URL based on environment
-   */
-  private getApiBaseUrl(): string {
-    // Check if we have a custom API URL set
-    if (typeof window !== 'undefined' && (window as any).CALL_FLOW_API_URL) {
-      return (window as any).CALL_FLOW_API_URL;
-    }
 
-    // Use the centralized API base URL configuration
-    return getApiBaseUrl();
-  }
 
 
 
@@ -377,7 +366,7 @@ export class TwilioService {
       // Check if we're in a browser environment
       if (typeof window !== 'undefined') {
         // Check if we should use real API or demo mode
-        const API_BASE_URL = this.getApiBaseUrl();
+        const API_BASE_URL = getApiBaseUrl();
 
         if (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1') || API_BASE_URL.startsWith('http')) {
           // Use real backend API
@@ -418,7 +407,7 @@ export class TwilioService {
     try {
       // Check if we're in a browser environment
       if (typeof window !== 'undefined') {
-        const API_BASE_URL = this.getApiBaseUrl();
+        const API_BASE_URL = getApiBaseUrl();
 
         if (API_BASE_URL.includes('localhost') || API_BASE_URL.includes('127.0.0.1') || API_BASE_URL.startsWith('http')) {
           // Use real backend API
