@@ -151,6 +151,34 @@ class DatabaseService {
   }
 
   /**
+   * Commit a transaction
+   */
+  async commitTransaction(transaction) {
+    try {
+      if (transaction) {
+        await transaction.commit();
+      }
+    } catch (error) {
+      console.error('❌ Failed to commit transaction:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Rollback a transaction
+   */
+  async rollbackTransaction(transaction) {
+    try {
+      if (transaction) {
+        await transaction.rollback();
+      }
+    } catch (error) {
+      console.error('❌ Failed to rollback transaction:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * Get database health status
    */
   async getHealthStatus() {

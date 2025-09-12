@@ -165,6 +165,10 @@ app.use('/api/database', databaseRoutes);
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
 
+// Workflow management routes
+const workflowRoutes = require('./routes/workflows');
+app.use('/api/workflows', workflowRoutes);
+
 // ConversationRelay test endpoint
 app.get('/api/conversationrelay-test', (req, res) => {
   res.json({

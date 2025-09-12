@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,11 +17,13 @@ import {
   Download,
   Upload,
   User,
-  LogOut
+  LogOut,
+  Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useFlowStore } from '../stores/flowStore';
 import { useAuthStore } from '../stores/authStore';
+import { WorkflowService, Workflow } from '../services/workflowService';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,21 +34,15 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
-interface Workflow {
-  id: string;
-  name: string;
-  description: string;
-  status: 'active' | 'draft' | 'archived';
-  lastModified: string;
-  callsCount: number;
-  successRate: number;
-  nodes: number;
-}
-
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { importFlow } = useFlowStore();
+  const { importFlow, createWorkflow } = useFlowStore();
   const { user, logout } = useAuthStore();
+
+  // State for workflows
+  const [workflows, setWorkflows] = useState<Workflow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isCreating, setIsCreating] = useState(false);
 
 
 
@@ -75,41 +71,39 @@ const Dashboard: React.FC = () => {
     }
     return user?.email || 'User';
   };
-  const [workflows] = useState<Workflow[]>([
-    {
-      id: '1',
-      name: 'Customer Support Flow',
-      description: 'Automated customer support with AI routing',
-      status: 'active',
-      lastModified: '2024-01-15',
-      callsCount: 1247,
-      successRate: 94.2,
-      nodes: 8
-    },
-    {
-      id: '2',
-      name: 'Sales Qualification',
-      description: 'Lead qualification and appointment booking',
-      status: 'active',
-      lastModified: '2024-01-14',
-      callsCount: 856,
-      successRate: 87.5,
-      nodes: 12
-    },
-    {
-      id: '3',
-      name: 'Survey Collection',
-      description: 'Customer feedback and survey collection',
-      status: 'draft',
-      lastModified: '2024-01-13',
-      callsCount: 0,
-      successRate: 0,
-      nodes: 6
-    }
-  ]);
+  // Load workflows from database
+  useEffect(() => {
+    loadWorkflows();
+  }, []);
 
-  const handleNewWorkflow = () => {
-    navigate('/builder');
+  const loadWorkflows = async () => {
+    try {
+      setIsLoading(true);
+      const data = await WorkflowService.getWorkflows();
+      setWorkflows(data.workflows);
+    } catch (error) {
+      console.error('Failed to load workflows:', error);
+      toast.error('Failed to load workflows');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleNewWorkflow = async () => {
+    try {
+      setIsCreating(true);
+      const workflowName = `New Workflow ${new Date().toLocaleDateString()}`;
+      await createWorkflow(workflowName, 'A new workflow created from the dashboard');
+      toast.success('New workflow created successfully!');
+      navigate('/builder');
+      // Refresh workflows list
+      loadWorkflows();
+    } catch (error) {
+      console.error('Failed to create workflow:', error);
+      toast.error('Failed to create workflow');
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleImportWorkflow = () => {
@@ -175,25 +169,78 @@ const Dashboard: React.FC = () => {
     input.click();
   };
 
-  const handleEditWorkflow = (workflowId: string) => {
+  const handleEditWorkflow = (workflowId: number) => {
     navigate(`/builder?workflow=${workflowId}`);
   };
 
-  const handleDeleteWorkflow = (workflowId: string) => {
-    toast.success(`Workflow deleted successfully`);
-  };
-
-  const handleExportWorkflow = (workflowId: string) => {
-    toast.success(`Workflow exported successfully`);
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active': return 'bg-green-100 text-green-800';
-      case 'draft': return 'bg-yellow-100 text-yellow-800';
-      case 'archived': return 'bg-gray-100 text-gray-800';
-      default: return 'bg-gray-100 text-gray-800';
+  const handleDeleteWorkflow = async (workflowId: number, workflowName: string) => {
+    if (!confirm(`Are you sure you want to delete "${workflowName}"? This action cannot be undone.`)) {
+      return;
     }
+
+    try {
+      await WorkflowService.deleteWorkflow(workflowId);
+      toast.success(`Workflow "${workflowName}" deleted successfully`);
+      // Refresh workflows list
+      loadWorkflows();
+    } catch (error) {
+      console.error('Failed to delete workflow:', error);
+      toast.error('Failed to delete workflow');
+    }
+  };
+
+  const handleExportWorkflow = async (workflowId: number, workflowName: string) => {
+    try {
+      const flowData = await WorkflowService.getWorkflowFlow(workflowId);
+      const workflow = await WorkflowService.getWorkflow(workflowId);
+
+      const exportData = {
+        name: workflow.name,
+        description: workflow.description,
+        nodes: flowData.nodes,
+        edges: flowData.edges,
+        configs: workflow.configs,
+        exportedAt: new Date().toISOString(),
+        version: '1.0'
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${workflowName.replace(/[^a-z0-9]/gi, '_').toLowerCase()}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success(`Workflow "${workflowName}" exported successfully`);
+    } catch (error) {
+      console.error('Failed to export workflow:', error);
+      toast.error('Failed to export workflow');
+    }
+  };
+
+  const getStatusColor = (isActive: boolean) => {
+    return isActive
+      ? 'bg-green-100 text-green-800'
+      : 'bg-gray-100 text-gray-800';
+  };
+
+  const getStatusText = (isActive: boolean) => {
+    return isActive ? 'Active' : 'Inactive';
+  };
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffTime = Math.abs(now.getTime() - date.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    if (diffDays < 30) return `${Math.ceil(diffDays / 7)} weeks ago`;
+    return date.toLocaleDateString();
   };
 
   const stats = [
@@ -201,25 +248,25 @@ const Dashboard: React.FC = () => {
       title: 'Total Workflows',
       value: workflows.length.toString(),
       icon: FileText,
-      description: 'Active and draft workflows'
-    },
-    {
-      title: 'Total Calls',
-      value: workflows.reduce((sum, w) => sum + w.callsCount, 0).toLocaleString(),
-      icon: Phone,
-      description: 'Calls processed this month'
-    },
-    {
-      title: 'Average Success Rate',
-      value: `${(workflows.reduce((sum, w) => sum + w.successRate, 0) / workflows.length).toFixed(1)}%`,
-      icon: TrendingUp,
-      description: 'Across all active workflows'
+      description: 'All workflows in your account'
     },
     {
       title: 'Active Workflows',
-      value: workflows.filter(w => w.status === 'active').length.toString(),
+      value: workflows.filter(w => w.is_active).length.toString(),
       icon: Play,
-      description: 'Currently running workflows'
+      description: 'Currently active workflows'
+    },
+    {
+      title: 'Total Nodes',
+      value: workflows.reduce((sum, w) => sum + (w.node_count || 0), 0).toString(),
+      icon: TrendingUp,
+      description: 'Across all workflows'
+    },
+    {
+      title: 'Total Edges',
+      value: workflows.reduce((sum, w) => sum + (w.edge_count || 0), 0).toString(),
+      icon: Users,
+      description: 'Connections between nodes'
     }
   ];
 
@@ -236,9 +283,17 @@ const Dashboard: React.FC = () => {
             </div>
           </div>
           <div className="flex items-center space-x-3">
-            <Button onClick={handleNewWorkflow} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="h-4 w-4 mr-2" />
-              New Workflow
+            <Button
+              onClick={handleNewWorkflow}
+              disabled={isCreating}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isCreating ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4 mr-2" />
+              )}
+              {isCreating ? 'Creating...' : 'New Workflow'}
             </Button>
 
             {/* User Menu */}
@@ -351,67 +406,88 @@ const Dashboard: React.FC = () => {
             <CardDescription>Manage and monitor your voice agent workflows</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-4">
-              {workflows.map((workflow) => (
-                <div key={workflow.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-lg font-semibold text-gray-900">{workflow.name}</h3>
-                        <Badge className={getStatusColor(workflow.status)}>
-                          {workflow.status}
-                        </Badge>
+            {isLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+                <span className="ml-2 text-gray-500">Loading workflows...</span>
+              </div>
+            ) : workflows.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No workflows yet</h3>
+                <p className="text-gray-500 mb-4">Create your first workflow to get started</p>
+                <Button onClick={handleNewWorkflow} disabled={isCreating}>
+                  {isCreating ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Plus className="h-4 w-4 mr-2" />
+                  )}
+                  {isCreating ? 'Creating...' : 'Create Workflow'}
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {workflows.map((workflow) => (
+                  <div key={workflow.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">{workflow.name}</h3>
+                          <Badge className={getStatusColor(workflow.is_active)}>
+                            {getStatusText(workflow.is_active)}
+                          </Badge>
+                        </div>
+                        <p className="text-gray-600 mb-3">{workflow.description || 'No description'}</p>
+                        <div className="flex items-center space-x-6 text-sm text-gray-500">
+                          <div className="flex items-center">
+                            <Clock className="h-4 w-4 mr-1" />
+                            Modified {formatDate(workflow.updated_at)}
+                          </div>
+                          <div className="flex items-center">
+                            <FileText className="h-4 w-4 mr-1" />
+                            {workflow.node_count || 0} nodes
+                          </div>
+                          <div className="flex items-center">
+                            <TrendingUp className="h-4 w-4 mr-1" />
+                            {workflow.edge_count || 0} edges
+                          </div>
+                          <div className="flex items-center">
+                            <User className="h-4 w-4 mr-1" />
+                            {workflow.created_by_email}
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-gray-600 mb-3">{workflow.description}</p>
-                      <div className="flex items-center space-x-6 text-sm text-gray-500">
-                        <div className="flex items-center">
-                          <Clock className="h-4 w-4 mr-1" />
-                          Modified {workflow.lastModified}
-                        </div>
-                        <div className="flex items-center">
-                          <Phone className="h-4 w-4 mr-1" />
-                          {workflow.callsCount.toLocaleString()} calls
-                        </div>
-                        <div className="flex items-center">
-                          <TrendingUp className="h-4 w-4 mr-1" />
-                          {workflow.successRate}% success
-                        </div>
-                        <div className="flex items-center">
-                          <Users className="h-4 w-4 mr-1" />
-                          {workflow.nodes} nodes
-                        </div>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleEditWorkflow(workflow.id)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleExportWorkflow(workflow.id, workflow.name)}
+                        >
+                          <Download className="h-4 w-4 mr-1" />
+                          Export
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteWorkflow(workflow.id, workflow.name)}
+                          className="text-red-600 hover:text-red-700"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleEditWorkflow(workflow.id)}
-                      >
-                        <Edit className="h-4 w-4 mr-1" />
-                        Edit
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleExportWorkflow(workflow.id)}
-                      >
-                        <Download className="h-4 w-4 mr-1" />
-                        Export
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteWorkflow(workflow.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
                     </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

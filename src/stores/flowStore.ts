@@ -4,12 +4,21 @@ import { Node, Edge, Connection, addEdge } from '@xyflow/react';
 import { ComponentDefinition, FlowComponent } from '../types/componentTypes';
 import { ConditionalEdge, ExtractedVariable, ConditionType, WorkflowContext } from '../types/flowTypes';
 import { WorkflowConfig } from '../types/workflowConfig';
+import { WorkflowService, Workflow, WorkflowNode, WorkflowEdge } from '../services/workflowService';
 
 interface FlowState {
   // Flow data
   nodes: Node[];
   edges: ConditionalEdge[];
   workflowName: string;
+
+  // Workflow database integration
+  currentWorkflowId: number | null;
+  currentWorkflow: Workflow | null;
+  isLoading: boolean;
+  isSaving: boolean;
+  lastSaved: Date | null;
+  hasUnsavedChanges: boolean;
 
   // Workflow configuration
   workflowConfig: WorkflowConfig | null;
@@ -69,6 +78,15 @@ interface FlowState {
   importFlow: (flowData: any) => void;
   newFlow: (config?: WorkflowConfig) => void;
   initializeFromStorage: () => void;
+
+  // Database workflow operations
+  createWorkflow: (name: string, description?: string) => Promise<void>;
+  loadWorkflow: (workflowId: number) => Promise<void>;
+  saveWorkflowToDatabase: () => Promise<void>;
+  autoSaveToDatabase: () => void;
+  setCurrentWorkflow: (workflow: Workflow | null) => void;
+  markUnsavedChanges: () => void;
+  clearUnsavedChanges: () => void;
 }
 
 let nodeIdCounter = 0;
@@ -98,7 +116,12 @@ const autoSave = (store: any) => {
   }
   autoSaveTimeout = setTimeout(() => {
     console.log('💾 Auto-save triggered');
-    store.saveFlow();
+    // Use database auto-save if workflow ID exists, otherwise use localStorage
+    if (store.currentWorkflowId) {
+      store.autoSaveToDatabase();
+    } else {
+      store.saveFlow();
+    }
   }, 2000); // Auto-save after 2 seconds of inactivity
 };
 
@@ -109,6 +132,15 @@ export const useFlowStore = create<FlowState>()(
       nodes: [],
       edges: [],
       workflowName: 'New Workflow',
+
+      // Workflow database integration
+      currentWorkflowId: null,
+      currentWorkflow: null,
+      isLoading: false,
+      isSaving: false,
+      lastSaved: null,
+      hasUnsavedChanges: false,
+
       workflowConfig: null,
       workflowContext: {
         variables: new Map(),
@@ -163,7 +195,8 @@ export const useFlowStore = create<FlowState>()(
         };
         
         set((state) => ({
-          nodes: [...state.nodes, newNode]
+          nodes: [...state.nodes, newNode],
+          hasUnsavedChanges: true
         }));
 
         // Trigger auto-save
@@ -176,7 +209,8 @@ export const useFlowStore = create<FlowState>()(
             node.id === nodeId
               ? { ...node, data: { ...node.data, ...data } }
               : node
-          )
+          ),
+          hasUnsavedChanges: true
         }));
 
         // Trigger auto-save
@@ -189,7 +223,8 @@ export const useFlowStore = create<FlowState>()(
           edges: state.edges.filter(edge =>
             edge.source !== nodeId && edge.target !== nodeId
           ),
-          selectedNodeId: state.selectedNodeId === nodeId ? null : state.selectedNodeId
+          selectedNodeId: state.selectedNodeId === nodeId ? null : state.selectedNodeId,
+          hasUnsavedChanges: true
         }));
 
         // Trigger auto-save
@@ -209,7 +244,8 @@ export const useFlowStore = create<FlowState>()(
         };
 
         set((state) => ({
-          edges: [...state.edges, newEdge]
+          edges: [...state.edges, newEdge],
+          hasUnsavedChanges: true
         }));
 
         // Trigger auto-save
@@ -218,7 +254,8 @@ export const useFlowStore = create<FlowState>()(
 
       deleteEdge: (edgeId) => {
         set((state) => ({
-          edges: state.edges.filter(edge => edge.id !== edgeId)
+          edges: state.edges.filter(edge => edge.id !== edgeId),
+          hasUnsavedChanges: true
         }));
 
         // Trigger auto-save
@@ -231,7 +268,8 @@ export const useFlowStore = create<FlowState>()(
             edge.id === edgeId
               ? { ...edge, data: conditionData }
               : edge
-          )
+          ),
+          hasUnsavedChanges: true
         }));
 
         // Trigger auto-save
@@ -606,6 +644,154 @@ export const useFlowStore = create<FlowState>()(
         } catch (error) {
           console.error('❌ Error in initializeFromStorage:', error);
         }
+      },
+
+      // Database workflow operations
+      createWorkflow: async (name: string, description?: string) => {
+        set({ isLoading: true });
+        try {
+          const workflow = await WorkflowService.createWorkflow({ name, description });
+          set({
+            currentWorkflowId: workflow.id,
+            currentWorkflow: workflow,
+            workflowName: workflow.name,
+            hasUnsavedChanges: false,
+            lastSaved: new Date(),
+            isLoading: false
+          });
+          console.log('✅ Workflow created:', workflow.name);
+        } catch (error) {
+          console.error('❌ Failed to create workflow:', error);
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      loadWorkflow: async (workflowId: number) => {
+        set({ isLoading: true });
+        try {
+          // Load workflow metadata
+          const workflow = await WorkflowService.getWorkflow(workflowId);
+
+          // Load workflow flow data
+          const flowData = await WorkflowService.getWorkflowFlow(workflowId);
+
+          // Convert database format to React Flow format
+          const nodes = flowData.nodes.map(node => ({
+            ...node,
+            data: {
+              ...node.data,
+              component: get().getComponent(node.type)
+            }
+          }));
+
+          set({
+            currentWorkflowId: workflow.id,
+            currentWorkflow: workflow,
+            workflowName: workflow.name,
+            nodes,
+            edges: flowData.edges as ConditionalEdge[],
+            hasUnsavedChanges: false,
+            lastSaved: new Date(workflow.updated_at),
+            isLoading: false
+          });
+
+          console.log('✅ Workflow loaded:', workflow.name);
+        } catch (error) {
+          console.error('❌ Failed to load workflow:', error);
+          set({ isLoading: false });
+          throw error;
+        }
+      },
+
+      saveWorkflowToDatabase: async () => {
+        const { currentWorkflowId, nodes, edges } = get();
+        if (!currentWorkflowId) {
+          throw new Error('No current workflow to save');
+        }
+
+        set({ isSaving: true });
+        try {
+          // Convert React Flow format to database format
+          const workflowNodes: WorkflowNode[] = nodes.map(node => ({
+            id: node.id,
+            type: node.type,
+            position: node.position,
+            data: { ...node.data }
+          }));
+
+          const workflowEdges: WorkflowEdge[] = edges.map(edge => ({
+            id: edge.id,
+            source: edge.source,
+            target: edge.target,
+            type: edge.type,
+            ...edge.data
+          }));
+
+          await WorkflowService.saveWorkflowFlow(currentWorkflowId, {
+            nodes: workflowNodes,
+            edges: workflowEdges
+          });
+
+          set({
+            hasUnsavedChanges: false,
+            lastSaved: new Date(),
+            isSaving: false
+          });
+
+          console.log('✅ Workflow saved to database');
+        } catch (error) {
+          console.error('❌ Failed to save workflow:', error);
+          set({ isSaving: false });
+          throw error;
+        }
+      },
+
+      autoSaveToDatabase: () => {
+        const { currentWorkflowId, hasUnsavedChanges, isSaving } = get();
+        if (!currentWorkflowId || !hasUnsavedChanges || isSaving) {
+          return;
+        }
+
+        WorkflowService.autoSaveWorkflowFlow(
+          currentWorkflowId,
+          {
+            nodes: get().nodes.map(node => ({
+              id: node.id,
+              type: node.type,
+              position: node.position,
+              data: { ...node.data }
+            })),
+            edges: get().edges.map(edge => ({
+              id: edge.id,
+              source: edge.source,
+              target: edge.target,
+              type: edge.type,
+              ...edge.data
+            }))
+          }
+        );
+
+        set({
+          hasUnsavedChanges: false,
+          lastSaved: new Date()
+        });
+      },
+
+      setCurrentWorkflow: (workflow: Workflow | null) => {
+        set({
+          currentWorkflow: workflow,
+          currentWorkflowId: workflow?.id || null,
+          workflowName: workflow?.name || 'New Workflow'
+        });
+      },
+
+      markUnsavedChanges: () => {
+        set({ hasUnsavedChanges: true });
+      },
+
+      clearUnsavedChanges: () => {
+        set({ hasUnsavedChanges: false, lastSaved: new Date() });
       }
     })),
     { name: 'flow-store' }
