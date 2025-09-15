@@ -19,6 +19,24 @@ if (envFile) {
 // Always load .env file first, then environment variables can override
 require('dotenv').config();
 
+/**
+ * Apply argv overrides to process.env (highest priority)
+ * Example: --port=XXXX will set process.env.PORT
+ */
+function applyArgvEnvOverrides() {
+  process.argv.forEach(arg => {
+    if (arg.startsWith('--port=')) {
+      const port = arg.split('=')[1];
+      if (port) process.env.PORT = port;
+    }
+    // Add more overrides as needed, e.g. --webhook_base_url=...
+    // if (arg.startsWith('--webhook_base_url=')) {
+    //   process.env.WEBHOOK_BASE_URL = arg.split('=')[1];
+    // }
+  });
+}
+applyArgvEnvOverrides();
+
 const environment = process.env.NODE_ENV || 'development';
 console.log(`🔧 Loading configuration for ${environment} environment`);
 

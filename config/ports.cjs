@@ -68,57 +68,59 @@ const PORT_CONFIG = {
     nginx_https: 443
   }
 };
+function applyOverrides(config, environment = process.env.NODE_ENV || "development") {
+  const envConfig = config[environment];
+  if (!envConfig) return;
 
-/**
- * VSCode Command Line Port Override Logic
- * Parses process.argv for flags like --backend.api=4000 and applies them to PORT_CONFIG.
- * Also supports --backend.url=... to override backend server URL for frontend.
- */
-let OVERRIDDEN_BACKEND_URL = null;
+  // 1) Apply environment variables
+  for (const [envKey, envVal] of Object.entries(process.env)) {
+    if (!/^\d+$/.test(envVal)) continue; // only numeric ports
+    // Convert BACKEND_API → backend.api
+    const keyPath = envKey.toLowerCase().split("_");
+    let target = envConfig;
+    for (let i = 0; i < keyPath.length - 1; i++) {
+      if (typeof target[keyPath[i]] === "object" && target[keyPath[i]] !== null) {
+        target = target[keyPath[i]];
+      } else {
+        target = null;
+        break;
+      }
+    }
+    if (target) {
+      const lastKey = keyPath.at(-1);
+      if (Object.prototype.hasOwnProperty.call(target, lastKey)) {
+        console.log(`🔄 ENV override ${envKey} → ${envVal}`);
+        target[lastKey] = parseInt(envVal, 10);
+      }
+    }
+  }
 
-function applyPortOverrides() {
-  const environment = process.env.NODE_ENV || 'development';
-  const config = PORT_CONFIG[environment];
-  if (!config) return;
-
+  // 2) Apply CLI args (take precedence)
   process.argv.forEach(arg => {
-    // Match --service.path=value (port override)
-    const portMatch = arg.match(/^--([a-zA-Z0-9_.]+)=(\d+)$/);
-    if (portMatch) {
-      const keyPath = portMatch[1].split('.');
-      const value = parseInt(portMatch[2], 10);
+    const match = arg.match(/^--([a-zA-Z0-9_.]+)=(\d+)$/);
+    if (match) {
+      const keyPath = match[1].split(".");
+      const value = parseInt(match[2], 10);
 
-      // Traverse config to set the value
-      let target = config;
+      let target = envConfig;
       for (let i = 0; i < keyPath.length - 1; i++) {
-        if (typeof target[keyPath[i]] === 'object' && target[keyPath[i]] !== null) {
+        if (typeof target[keyPath[i]] === "object" && target[keyPath[i]] !== null) {
           target = target[keyPath[i]];
         } else {
-          console.warn(`⚠️  Invalid override path: ${keyPath.join('.')}`);
+          console.warn(`⚠️ Invalid override path: ${keyPath.join(".")}`);
           return;
         }
       }
-      const lastKey = keyPath[keyPath.length - 1];
-      if (target.hasOwnProperty(lastKey)) {
-        target[lastKey] = value;
-        console.log(`🔄 Overrode port for ${keyPath.join('.')} in ${environment}: ${value}`);
-      } else {
-        console.warn(`⚠️  Invalid override key: ${keyPath.join('.')}`);
-      }
-    }
 
-    // Match --backend.url=... (backend URL override)
-    const urlMatch = arg.match(/^--backend\.url=(.+)$/);
-    if (urlMatch) {
-      OVERRIDDEN_BACKEND_URL = urlMatch[1];
-      console.log(`🔄 Overrode backend URL for frontend: ${OVERRIDDEN_BACKEND_URL}`);
+      const lastKey = keyPath[keyPath.length - 1];
+      if (Object.prototype.hasOwnProperty.call(target, lastKey)) {
+        console.log(`🔄 CLI override ${environment}.${keyPath.join(".")} → ${value}`);
+        target[lastKey] = value;
+      }
     }
   });
 }
-
-// Apply overrides on startup
-applyPortOverrides();
-
+applyOverrides(PORT_CONFIG);
 /**
  * Get port configuration for current environment
  * @param {string} environment - Environment name (development, staging, production)
