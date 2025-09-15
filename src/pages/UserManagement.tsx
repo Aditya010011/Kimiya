@@ -62,6 +62,7 @@ const UserManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<'all' | 'user' | 'admin'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
+  const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
 
   // Create AdminService instance
   const adminService = new AdminService();
@@ -155,6 +156,44 @@ const UserManagement: React.FC = () => {
     }
   }, [location.pathname]);
 
+  // Real-time polling for user status updates
+  useEffect(() => {
+    const POLLING_INTERVAL = 30000; // Poll every 30 seconds
+
+    const pollForUpdates = async () => {
+      try {
+        await loadUsers(true); // Silent refresh
+        setLastUpdated(new Date());
+      } catch (error) {
+        console.warn('Polling update failed:', error);
+      }
+    };
+
+    // Start polling when component mounts
+    const intervalId = setInterval(pollForUpdates, POLLING_INTERVAL);
+
+    // Cleanup interval on unmount
+    return () => {
+      clearInterval(intervalId);
+    };
+  }, []);
+
+  // Enhanced visibility change handler for better real-time updates
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        // When page becomes visible, immediately refresh data
+        loadUsers(true);
+        setLastUpdated(new Date());
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, []);
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -163,6 +202,25 @@ const UserManagement: React.FC = () => {
       hour: '2-digit',
       minute: '2-digit'
     });
+  };
+
+  const getUserOnlineStatus = (user: AdminUser) => {
+    // User is online if they have active sessions
+    if (user.activity_metrics.active_sessions > 0) {
+      return { isOnline: true, status: 'Online', color: 'bg-green-500' };
+    }
+
+    // Check if user was recently active (within last 5 minutes)
+    if (user.activity_metrics.last_activity) {
+      const lastActivity = new Date(user.activity_metrics.last_activity);
+      const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+
+      if (lastActivity > fiveMinutesAgo) {
+        return { isOnline: false, status: 'Recently active', color: 'bg-yellow-500' };
+      }
+    }
+
+    return { isOnline: false, status: 'Offline', color: 'bg-gray-400' };
   };
 
   if (isLoading) {
@@ -194,11 +252,20 @@ const UserManagement: React.FC = () => {
               <p className="text-gray-600 mt-2">
                 Manage user accounts, roles, and activity
               </p>
+              <p className="text-xs text-gray-500 mt-1">
+                Last updated: {lastUpdated.toLocaleTimeString()} • Auto-refreshes every 30s
+              </p>
             </div>
-            <Button onClick={() => loadUsers(false)} variant="outline" className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
-              Refresh
-            </Button>
+            <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                Live
+              </div>
+              <Button onClick={() => loadUsers(false)} variant="outline" className="flex items-center gap-2">
+                <RefreshCw className="h-4 w-4" />
+                Refresh
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -330,14 +397,15 @@ const UserManagement: React.FC = () => {
                               </AvatarFallback>
                             </Avatar>
                             {/* Online/Offline indicator dot */}
-                            <div
-                              className={`absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${
-                                user.activity_metrics.active_sessions > 0
-                                  ? 'bg-green-500'
-                                  : 'bg-gray-400'
-                              }`}
-                              title={user.activity_metrics.active_sessions > 0 ? 'Online' : 'Offline'}
-                            />
+                            {(() => {
+                              const status = getUserOnlineStatus(user);
+                              return (
+                                <div
+                                  className={`absolute -top-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-white ${status.color}`}
+                                  title={`${status.status}${user.activity_metrics.active_sessions > 0 ? ` (${user.activity_metrics.active_sessions} active sessions)` : ''}`}
+                                />
+                              );
+                            })()}
                           </div>
                           <div>
                             <div className="font-medium">
@@ -365,11 +433,20 @@ const UserManagement: React.FC = () => {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <div className="text-sm">
-                          {user.activity_metrics.last_login
-                            ? formatRelativeTime(user.activity_metrics.last_login)
-                            : 'Never'
-                          }
+                        <div className="text-sm space-y-1">
+                          <div>
+                            <span className="font-medium">Login:</span>{' '}
+                            {user.activity_metrics.last_login
+                              ? formatRelativeTime(user.activity_metrics.last_login)
+                              : 'Never'
+                            }
+                          </div>
+                          {user.activity_metrics.last_activity && (
+                            <div className="text-xs text-gray-500">
+                              <span className="font-medium">Activity:</span>{' '}
+                              {formatRelativeTime(user.activity_metrics.last_activity)}
+                            </div>
+                          )}
                         </div>
                       </TableCell>
                       <TableCell>

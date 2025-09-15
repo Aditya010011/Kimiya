@@ -6,6 +6,7 @@ export interface UserActivityMetrics {
   workflow_count: number;
   active_sessions: number;
   last_login: string | null;
+  last_activity: string | null;
   total_logins: number;
   call_stats: {
     total_calls: number;

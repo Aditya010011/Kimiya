@@ -21,7 +21,7 @@ module.exports = {
   apps: [{
     name: 'kimiya-voice-backend-dev',
     script: './backend/server.js',
-    cwd: '/var/www/kimiya-voice-dev,
+    cwd: '/var/www/kimiya-voice-dev',
     instances: 1,
     exec_mode: 'fork',
     env: {

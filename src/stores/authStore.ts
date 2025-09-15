@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { devtools, subscribeWithSelector } from 'zustand/middleware';
 import { AuthService, User, RegisterData, LoginData, UpdateProfileData, ChangePasswordData } from '../services/authService';
+import sessionService from '@/services/sessionService';
 
 interface AuthState {
   // State
@@ -43,6 +44,9 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
               error: null,
             });
+
+            // Start session monitoring
+            sessionService.start();
 
             return { success: true };
           } else {
@@ -124,6 +128,9 @@ export const useAuthStore = create<AuthState>()(
         set({ isLoading: true });
 
         try {
+          // Stop session monitoring
+          sessionService.stop();
+
           await AuthService.logout();
         } catch (error) {
           console.error('Logout error:', error);
@@ -267,6 +274,9 @@ export const useAuthStore = create<AuthState>()(
               isLoading: false,
               error: null,
             });
+
+            // Start session monitoring for existing session
+            sessionService.start();
 
             // Optionally refresh user profile from server
             get().getProfile();

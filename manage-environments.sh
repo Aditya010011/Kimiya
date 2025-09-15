@@ -14,7 +14,7 @@ CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
 # Directories
-PROD_DIR="/var/www/kimiya-voice-dev
+PROD_DIR="/var/www/kimiya-voice"
 DEV_DIR="/var/www/kimiya-voice-dev"
 
 # Function to print colored output

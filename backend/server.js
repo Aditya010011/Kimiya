@@ -25,6 +25,9 @@ console.log(`🔧 Loading configuration for ${environment} environment`);
 // Load database service after environment variables are loaded
 const databaseService = require('./services/database');
 
+// Load session manager
+const sessionManager = require('./services/sessionManager');
+
 // Validate port configuration
 if (!validatePortConfig(environment)) {
   console.error('❌ Invalid port configuration. Exiting...');
@@ -343,23 +346,15 @@ const server = app.listen(PORT, () => {
   console.log(`   • GET  /health - Health check`);
   console.log(`   • GET  /ping - Quick ping`);
 
-  // Start session cleanup job (every 30 minutes)
-  setInterval(async () => {
-    try {
-      await databaseService.cleanupExpiredSessions();
-    } catch (error) {
-      console.error('Session cleanup job failed:', error.message);
-    }
-  }, 30 * 60 * 1000); // 30 minutes
-
-  // Run initial cleanup
+  // Initialize session manager
   setTimeout(async () => {
     try {
-      await databaseService.cleanupExpiredSessions();
+      await sessionManager.initialize();
+      console.log(`   • Session Manager: Active with heartbeat monitoring`);
     } catch (error) {
-      console.error('Initial session cleanup failed:', error.message);
+      console.error('Session manager initialization failed:', error.message);
     }
-  }, 5000); // 5 seconds after startup
+  }, 2000); // 2 seconds after startup
   console.log(`   • POST /api/make-call-optimized - Optimized call creation`);
   console.log(`   • POST /api/twiml-optimized - Optimized TwiML processing`);
   console.log(`   • GET  /api/performance-metrics - Performance metrics`);

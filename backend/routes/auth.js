@@ -1,12 +1,13 @@
 const express = require('express');
 const databaseService = require('../services/database');
+const sessionManager = require('../services/sessionManager');
 const { authenticateToken, requireAdmin, rateLimit } = require('../middleware/auth');
-const { 
-  passwordUtils, 
-  tokenUtils, 
-  validationRules, 
-  handleValidationErrors, 
-  sanitizeUser 
+const {
+  passwordUtils,
+  tokenUtils,
+  validationRules,
+  handleValidationErrors,
+  sanitizeUser
 } = require('../utils/auth-utils');
 
 const router = express.Router();
@@ -176,6 +177,9 @@ router.post('/login',
         userAgent: userAgent
       });
 
+      // Register session with session manager
+      await sessionManager.createSession(user.id, sessionToken, expiresAt, ipAddress, userAgent);
+
       // Log successful login
       await databaseService.query(`
         INSERT INTO tblLogs (message, level, source, created_at)
@@ -217,16 +221,10 @@ router.post('/logout',
   authenticateToken,
   async (req, res) => {
     try {
-      // Mark user sessions as inactive
-      const updateResult = await databaseService.query(`
-        UPDATE tblUserSessions
-        SET is_active = 0, last_accessed_at = GETDATE()
-        WHERE user_id = @userId AND is_active = 1
-      `, {
-        userId: req.user.id
-      });
+      // Use session manager to expire all user sessions
+      const expiredCount = await sessionManager.expireUserSessions(req.user.id, 'manual_logout');
 
-      console.log(`Logout: Deactivated ${updateResult.rowsAffected[0]} sessions for user ${req.user.email}`);
+      console.log(`Logout: Deactivated ${expiredCount} sessions for user ${req.user.email}`);
 
       // Log logout
       await databaseService.query(`
@@ -486,7 +484,7 @@ router.get('/admin/users',
   requireAdmin,
   async (req, res) => {
     try {
-      // Get all users with basic info
+      // Get all users with enhanced activity metrics
       const usersResult = await databaseService.query(`
         SELECT
           u.id,
@@ -498,13 +496,24 @@ router.get('/admin/users',
           u.created_at,
           u.updated_at,
           -- Count of workflow templates created by user
-          (SELECT COUNT(*) FROM tblWorkflowTemplates wt WHERE wt.created_by = u.id) as workflow_count,
-          -- Count of active sessions
-          (SELECT COUNT(*) FROM tblUserSessions us WHERE us.user_id = u.id AND us.is_active = 1 AND us.expires_at > GETDATE()) as active_sessions,
-          -- Last login (most recent session)
-          (SELECT TOP 1 us.created_at FROM tblUserSessions us WHERE us.user_id = u.id ORDER BY us.created_at DESC) as last_login,
-          -- Total login count (total sessions)
-          (SELECT COUNT(*) FROM tblUserSessions us WHERE us.user_id = u.id) as total_logins
+          ISNULL((SELECT COUNT(*) FROM tblWorkflowTemplates wt WHERE wt.created_by = u.id), 0) as workflow_count,
+          -- Count of active sessions (not expired and still active)
+          ISNULL((SELECT COUNT(*) FROM tblUserSessions us
+                  WHERE us.user_id = u.id
+                  AND us.is_active = 1
+                  AND us.expires_at > GETDATE()), 0) as active_sessions,
+          -- Last login (most recent session creation)
+          (SELECT TOP 1 us.created_at
+           FROM tblUserSessions us
+           WHERE us.user_id = u.id
+           ORDER BY us.created_at DESC) as last_login,
+          -- Last activity (most recent session access)
+          (SELECT TOP 1 us.last_accessed_at
+           FROM tblUserSessions us
+           WHERE us.user_id = u.id
+           ORDER BY us.last_accessed_at DESC) as last_activity,
+          -- Total login count (total sessions created)
+          ISNULL((SELECT COUNT(*) FROM tblUserSessions us WHERE us.user_id = u.id), 0) as total_logins
         FROM tblUsers u
         ORDER BY u.created_at DESC
       `);
@@ -532,6 +541,7 @@ router.get('/admin/users',
           workflow_count: user.workflow_count || 0,
           active_sessions: user.active_sessions || 0,
           last_login: user.last_login,
+          last_activity: user.last_activity,
           total_logins: user.total_logins || 0,
           call_stats: callStatsMap[user.id] || {
             total_calls: 0,
@@ -725,6 +735,109 @@ router.put('/admin/users/:id/status',
         success: false,
         error: 'Failed to update user status',
         message: 'An error occurred while updating user status'
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/auth/heartbeat
+ * Record session heartbeat to keep user online
+ */
+router.post('/heartbeat',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const sessionToken = req.token;
+      const userId = req.user.id;
+
+      // Record heartbeat in session manager
+      const success = await sessionManager.recordHeartbeat(sessionToken, userId);
+
+      if (success) {
+        res.json({
+          success: true,
+          message: 'Heartbeat recorded',
+          timestamp: new Date().toISOString()
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          error: 'Failed to record heartbeat'
+        });
+      }
+    } catch (error) {
+      console.error('Heartbeat error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to record heartbeat',
+        message: error.message
+      });
+    }
+  }
+);
+
+/**
+ * POST /api/auth/logout-tab
+ * Mark user offline when closing browser tab
+ */
+router.post('/logout-tab',
+  authenticateToken,
+  async (req, res) => {
+    try {
+      const sessionToken = req.token;
+
+      // Expire the specific session
+      await sessionManager.expireSession(sessionToken, 'tab_closed');
+
+      res.json({
+        success: true,
+        message: 'Session marked offline'
+      });
+    } catch (error) {
+      console.error('Tab logout error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to mark session offline',
+        message: error.message
+      });
+    }
+  }
+);
+
+/**
+ * GET /api/auth/session-stats
+ * Get session statistics (admin only)
+ */
+router.get('/session-stats',
+  authenticateToken,
+  requireAdmin,
+  async (req, res) => {
+    try {
+      const stats = sessionManager.getSessionStats();
+
+      // Get additional database stats
+      const dbStats = await databaseService.query(`
+        SELECT
+          COUNT(*) as total_sessions,
+          COUNT(CASE WHEN is_active = 1 THEN 1 END) as active_sessions,
+          COUNT(CASE WHEN is_active = 1 AND expires_at > GETDATE() THEN 1 END) as valid_sessions
+        FROM tblUserSessions
+      `);
+
+      res.json({
+        success: true,
+        data: {
+          memory: stats,
+          database: dbStats.recordset[0]
+        }
+      });
+    } catch (error) {
+      console.error('Session stats error:', error);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to get session statistics',
+        message: error.message
       });
     }
   }
