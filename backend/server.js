@@ -36,13 +36,31 @@ displayPortConfig(environment);
 
 const app = express();
 
-// Get port from centralized configuration with fallback
+/**
+ * Get port override from command line argument (--port=XXXX)
+ */
+function getPortArg() {
+  const portArg = process.argv.find(arg => arg.startsWith('--port='));
+  if (portArg) {
+    const port = parseInt(portArg.split('=')[1], 10);
+    if (!isNaN(port)) return port;
+  }
+  return null;
+}
+
+// Get port from command line, env, or centralized configuration
 let PORT;
-try {
-  PORT = getPort('backend.api', environment);
-} catch (error) {
-  console.warn(`⚠️  ${error.message}. Using environment variable or fallback.`);
-  PORT = process.env.PORT || 3001; // Safer fallback than 3000
+const portOverride = getPortArg();
+if (portOverride) {
+  PORT = portOverride;
+  console.log(`🚀 Overriding port from command line: ${PORT}`);
+} else {
+  try {
+    PORT = getPort('backend.api', environment);
+  } catch (error) {
+    console.warn(`⚠️  ${error.message}. Using environment variable or fallback.`);
+    PORT = process.env.PORT || 3001; // Safer fallback than 3000
+  }
 }
 
 console.log(`🚀 Backend server will start on port ${PORT}`);

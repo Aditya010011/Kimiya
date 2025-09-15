@@ -70,6 +70,56 @@ const PORT_CONFIG = {
 };
 
 /**
+ * VSCode Command Line Port Override Logic
+ * Parses process.argv for flags like --backend.api=4000 and applies them to PORT_CONFIG.
+ * Also supports --backend.url=... to override backend server URL for frontend.
+ */
+let OVERRIDDEN_BACKEND_URL = null;
+
+function applyPortOverrides() {
+  const environment = process.env.NODE_ENV || 'development';
+  const config = PORT_CONFIG[environment];
+  if (!config) return;
+
+  process.argv.forEach(arg => {
+    // Match --service.path=value (port override)
+    const portMatch = arg.match(/^--([a-zA-Z0-9_.]+)=(\d+)$/);
+    if (portMatch) {
+      const keyPath = portMatch[1].split('.');
+      const value = parseInt(portMatch[2], 10);
+
+      // Traverse config to set the value
+      let target = config;
+      for (let i = 0; i < keyPath.length - 1; i++) {
+        if (typeof target[keyPath[i]] === 'object' && target[keyPath[i]] !== null) {
+          target = target[keyPath[i]];
+        } else {
+          console.warn(`⚠️  Invalid override path: ${keyPath.join('.')}`);
+          return;
+        }
+      }
+      const lastKey = keyPath[keyPath.length - 1];
+      if (target.hasOwnProperty(lastKey)) {
+        target[lastKey] = value;
+        console.log(`🔄 Overrode port for ${keyPath.join('.')} in ${environment}: ${value}`);
+      } else {
+        console.warn(`⚠️  Invalid override key: ${keyPath.join('.')}`);
+      }
+    }
+
+    // Match --backend.url=... (backend URL override)
+    const urlMatch = arg.match(/^--backend\.url=(.+)$/);
+    if (urlMatch) {
+      OVERRIDDEN_BACKEND_URL = urlMatch[1];
+      console.log(`🔄 Overrode backend URL for frontend: ${OVERRIDDEN_BACKEND_URL}`);
+    }
+  });
+}
+
+// Apply overrides on startup
+applyPortOverrides();
+
+/**
  * Get port configuration for current environment
  * @param {string} environment - Environment name (development, staging, production)
  * @returns {object} Port configuration for the environment
@@ -111,7 +161,12 @@ function getPort(service, environment = process.env.NODE_ENV || 'development') {
  */
 function getBackendUrl(environment = process.env.NODE_ENV || 'development') {
   const config = getPortConfig(environment);
-  
+
+  // If overridden via sys arg, use that
+  if (OVERRIDDEN_BACKEND_URL) {
+    return OVERRIDDEN_BACKEND_URL;
+  }
+
   if (environment === 'development') {
     return `http://localhost:${config.backend.api}`;
   } else {
