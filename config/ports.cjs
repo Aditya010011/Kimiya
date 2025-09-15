@@ -68,7 +68,59 @@ const PORT_CONFIG = {
     nginx_https: 443
   }
 };
+function applyOverrides(config, environment = process.env.NODE_ENV || "development") {
+  const envConfig = config[environment];
+  if (!envConfig) return;
 
+  // 1) Apply environment variables
+  for (const [envKey, envVal] of Object.entries(process.env)) {
+    if (!/^\d+$/.test(envVal)) continue; // only numeric ports
+    // Convert BACKEND_API → backend.api
+    const keyPath = envKey.toLowerCase().split("_");
+    let target = envConfig;
+    for (let i = 0; i < keyPath.length - 1; i++) {
+      if (typeof target[keyPath[i]] === "object" && target[keyPath[i]] !== null) {
+        target = target[keyPath[i]];
+      } else {
+        target = null;
+        break;
+      }
+    }
+    if (target) {
+      const lastKey = keyPath.at(-1);
+      if (Object.prototype.hasOwnProperty.call(target, lastKey)) {
+        console.log(`🔄 ENV override ${envKey} → ${envVal}`);
+        target[lastKey] = parseInt(envVal, 10);
+      }
+    }
+  }
+
+  // 2) Apply CLI args (take precedence)
+  process.argv.forEach(arg => {
+    const match = arg.match(/^--([a-zA-Z0-9_.]+)=(\d+)$/);
+    if (match) {
+      const keyPath = match[1].split(".");
+      const value = parseInt(match[2], 10);
+
+      let target = envConfig;
+      for (let i = 0; i < keyPath.length - 1; i++) {
+        if (typeof target[keyPath[i]] === "object" && target[keyPath[i]] !== null) {
+          target = target[keyPath[i]];
+        } else {
+          console.warn(`⚠️ Invalid override path: ${keyPath.join(".")}`);
+          return;
+        }
+      }
+
+      const lastKey = keyPath[keyPath.length - 1];
+      if (Object.prototype.hasOwnProperty.call(target, lastKey)) {
+        console.log(`🔄 CLI override ${environment}.${keyPath.join(".")} → ${value}`);
+        target[lastKey] = value;
+      }
+    }
+  });
+}
+applyOverrides(PORT_CONFIG);
 /**
  * Get port configuration for current environment
  * @param {string} environment - Environment name (development, staging, production)
@@ -111,7 +163,12 @@ function getPort(service, environment = process.env.NODE_ENV || 'development') {
  */
 function getBackendUrl(environment = process.env.NODE_ENV || 'development') {
   const config = getPortConfig(environment);
-  
+
+  // If overridden via sys arg, use that
+  if (OVERRIDDEN_BACKEND_URL) {
+    return OVERRIDDEN_BACKEND_URL;
+  }
+
   if (environment === 'development') {
     return `http://localhost:${config.backend.api}`;
   } else {

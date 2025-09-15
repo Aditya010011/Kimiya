@@ -1,0 +1,68 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Backend (Custom Port Override)",
+      "program": "${workspaceFolder}/backend/server.js",
+      "env": {
+        "NODE_ENV": "development"
+      },
+      "args": [
+        "--backend.api=5000"
+      ]
+      // You can add more overrides, e.g. "--frontend.dev=1234"
+    },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Backend (Default Config)",
+      "program": "${workspaceFolder}/backend/server.js",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    // {
+    //   "type": "node",
+    //   "request": "launch",
+    //   "name": "Launch Frontend (Custom Port & Backend URL Override)",
+    //   "program": "${workspaceFolder}/node_modules/vite/bin/vite.js",
+    //   "env": {
+    //     "NODE_ENV": "development",
+    //     "backend.api": "5000"
+    //   },
+    //   "args": [
+    //     "--frontend.dev=3001",
+    //     "--backend.api=http://localhost:5000"
+    //   ]
+    //   // You can override both frontend port and backend server URL here
+    // },
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Launch Frontend (Default Config)",
+      "program": "${workspaceFolder}/node_modules/vite/bin/vite.js",
+      "env": {
+        "NODE_ENV": "development"
+      }
+    },
+    {
+            "type": "node",
+            "request": "launch",
+            "name": "Launch via NPM env override",
+            "runtimeExecutable": "npm",
+            "runtimeArgs": ["run", "dev", "--inspect", "--frontend.dev=3001"],
+            "env": {
+              // "TEST" : "test-value",
+              "FRONTEND_DEV": "3020",
+              "BACKEND_API": "5000"
+            },
+            "console": "integratedTerminal",
+            "restart": true,
+            "skipFiles": ["<node_internals>/**"]
+        }
+    
+  ]
+}
