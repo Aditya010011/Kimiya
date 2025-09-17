@@ -32,6 +32,8 @@ const ConditionalEdgeComponent: React.FC<ConditionalEdgeProps> = ({
   const { setEdges } = useReactFlow();
   const { getAvailableVariables } = useFlowStore();
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+
   const [edgePath, labelX, labelY] = getSmoothStepPath({
     sourceX,
     sourceY,

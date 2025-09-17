@@ -43,15 +43,10 @@ const authenticateToken = async (req, res, next) => {
     req.user = userResult.recordset[0];
     req.token = token;
 
-    // Update last_accessed_at for active sessions (async, don't wait)
-    databaseService.query(`
-      UPDATE tblUserSessions
-      SET last_accessed_at = GETDATE()
-      WHERE user_id = @userId AND is_active = 1 AND expires_at > GETDATE()
-    `, {
-      userId: decoded.userId
-    }).catch(error => {
-      console.warn('Failed to update session last_accessed_at:', error.message);
+    // Update session activity with session manager (async, don't wait)
+    const sessionManager = require('../services/sessionManager');
+    sessionManager.recordHeartbeat(token, decoded.userId).catch(err => {
+      console.warn('Failed to record session heartbeat:', err.message);
     });
 
     next();

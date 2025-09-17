@@ -101,6 +101,8 @@ const NewFlowCanvas: React.FC = () => {
 
   const onNodesChange = useCallback(
     (changes: any) => {
+      console.log('🔄 onNodesChange: Received changes:', changes.map((c: any) => ({ type: c.type, id: c.id })));
+
       // Handle selection changes
       changes.forEach((change: any) => {
         if (change.type === 'select' && change.selected) {
@@ -108,7 +110,22 @@ const NewFlowCanvas: React.FC = () => {
         }
       });
 
-      setNodes((nds) => applyNodeChanges(changes, nds));
+      setNodes((nds) => {
+        const newNodes = applyNodeChanges(changes, nds);
+        console.log(`🔄 onNodesChange: Node count ${nds.length} → ${newNodes.length}`);
+
+        // Check for duplicates after React Flow changes
+        const nodeIds = newNodes.map(n => n.id);
+        const uniqueNodeIds = [...new Set(nodeIds)];
+        if (nodeIds.length !== uniqueNodeIds.length) {
+          console.error('❌ onNodesChange: DUPLICATES CREATED BY REACT FLOW!');
+          const duplicates = nodeIds.filter((id, index) => nodeIds.indexOf(id) !== index);
+          console.error('   Duplicate node IDs:', [...new Set(duplicates)]);
+          console.error('   Changes that caused duplicates:', changes);
+        }
+
+        return newNodes;
+      });
     },
     [setNodes, selectNode]
   );

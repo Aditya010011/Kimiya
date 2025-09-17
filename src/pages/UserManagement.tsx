@@ -1,23 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { 
-  Users, 
-  Search, 
-  Filter, 
-  RefreshCw, 
-  MoreHorizontal, 
-  Eye, 
-  UserCheck, 
+import {
+  Users,
+  Search,
+  RefreshCw,
+  MoreHorizontal,
+  Eye,
+  UserCheck,
   UserX,
-  Calendar,
   Activity,
-  Phone,
   Settings,
   AlertCircle,
   CheckCircle,
-  XCircle,
   Loader2
 } from 'lucide-react';
+import DashboardHeader from '@/components/layout/DashboardHeader';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -225,8 +222,15 @@ const UserManagement: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-4">
+      <div className="min-h-screen bg-gray-50">
+        {/* Dashboard Header */}
+        <DashboardHeader
+          title="User Management"
+          subtitle="Manage user accounts, roles, and activity"
+          showNewWorkflowButton={false}
+        />
+
+        <div className="p-6 max-w-7xl mx-auto">
           <div className="flex items-center justify-center min-h-[400px]">
             <div className="text-center">
               <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
@@ -239,22 +243,28 @@ const UserManagement: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="container mx-auto px-4">
-        {/* Header */}
+    <div className="min-h-screen bg-gray-50">
+      {/* Dashboard Header */}
+      <DashboardHeader
+        title="User Management"
+        subtitle="Manage user accounts, roles, and activity"
+        showNewWorkflowButton={false}
+      />
+
+      <div className="p-6 max-w-7xl mx-auto">
+        {/* Page Header with Live Status and Refresh */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                <Users className="h-8 w-8" />
-                User Management
-              </h1>
-              <p className="text-gray-600 mt-2">
-                Manage user accounts, roles, and activity
-              </p>
-              <p className="text-xs text-gray-500 mt-1">
-                Last updated: {lastUpdated.toLocaleTimeString()} • Auto-refreshes every 30s
-              </p>
+              <div className="flex items-center gap-3 mb-2">
+                <Users className="h-8 w-8 text-blue-600" />
+                <div>
+                  <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
+                  <p className="text-xs text-gray-500">
+                    Last updated: {lastUpdated.toLocaleTimeString()} • Auto-refreshes every 30s
+                  </p>
+                </div>
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <div className="flex items-center gap-1 text-xs text-gray-500">
@@ -498,7 +508,7 @@ const UserManagement: React.FC = () => {
                   ))}
                 </TableBody>
               </Table>
-              
+
               {filteredUsers.length === 0 && (
                 <div className="text-center py-8">
                   <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
@@ -508,7 +518,7 @@ const UserManagement: React.FC = () => {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
     </div>
   );
 };

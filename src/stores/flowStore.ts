@@ -19,6 +19,7 @@ interface FlowState {
   isSaving: boolean;
   lastSaved: Date | null;
   hasUnsavedChanges: boolean;
+  workflowConfigs: Record<string, any>;
 
   // Workflow configuration
   workflowConfig: WorkflowConfig | null;
@@ -80,17 +81,52 @@ interface FlowState {
   initializeFromStorage: () => void;
 
   // Database workflow operations
-  createWorkflow: (name: string, description?: string) => Promise<void>;
+  createWorkflow: (name: string, description?: string) => Promise<Workflow>;
   loadWorkflow: (workflowId: number) => Promise<void>;
   saveWorkflowToDatabase: () => Promise<void>;
   autoSaveToDatabase: () => void;
   setCurrentWorkflow: (workflow: Workflow | null) => void;
   markUnsavedChanges: () => void;
   clearUnsavedChanges: () => void;
+
+  // Import/Export operations
+  importWorkflowFromFile: (file: File, overwriteExisting?: boolean) => Promise<void>;
+  exportWorkflowToFile: (includeMetadata?: boolean) => Promise<void>;
+  importWorkflowFromData: (workflowData: any, overwriteExisting?: boolean) => Promise<void>;
+
+  // Configuration management
+  setWorkflowConfigValue: (key: string, value: any) => void;
+  getWorkflowConfig: (key: string) => any;
+  updateWorkflowConfigs: (configs: Record<string, any>) => void;
 }
 
 let nodeIdCounter = 0;
-const generateNodeId = () => `node_${++nodeIdCounter}`;
+const generateNodeId = (existingNodes: Node[] = []) => {
+  const existingIds = new Set(existingNodes.map(node => node.id));
+
+  // Find the highest existing node number to avoid conflicts
+  let maxNodeNumber = 0;
+  existingIds.forEach(id => {
+    const match = id.match(/^node_(\d+)$/);
+    if (match) {
+      maxNodeNumber = Math.max(maxNodeNumber, parseInt(match[1], 10));
+    }
+  });
+
+  // Start counter from the highest existing number + 1
+  if (nodeIdCounter <= maxNodeNumber) {
+    nodeIdCounter = maxNodeNumber;
+  }
+
+  // Generate unique ID
+  let newId: string;
+  do {
+    newId = `node_${++nodeIdCounter}`;
+  } while (existingIds.has(newId));
+
+  console.log(`🆔 generateNodeId: Generated unique ID "${newId}" (existing nodes: ${existingNodes.length})`);
+  return newId;
+};
 
 // Function to load saved workflow from localStorage
 const loadSavedWorkflow = () => {
@@ -140,6 +176,7 @@ export const useFlowStore = create<FlowState>()(
       isSaving: false,
       lastSaved: null,
       hasUnsavedChanges: false,
+      workflowConfigs: {},
 
       workflowConfig: null,
       workflowContext: {
@@ -152,9 +189,30 @@ export const useFlowStore = create<FlowState>()(
       componentRegistry: new Map(),
       
       // Node operations
-      setNodes: (nodes) => set((state) => ({
-        nodes: typeof nodes === 'function' ? nodes(state.nodes) : nodes
-      })),
+      setNodes: (nodes) => {
+        const newNodes = typeof nodes === 'function' ? nodes(get().nodes) : nodes;
+
+        // Debug logging for node changes
+        const currentNodes = get().nodes;
+        if (currentNodes.length !== newNodes.length) {
+          console.log(`🔄 setNodes: Node count changed from ${currentNodes.length} to ${newNodes.length}`);
+
+          // Check for duplicates in new nodes
+          const nodeIds = newNodes.map(n => n.id);
+          const uniqueNodeIds = [...new Set(nodeIds)];
+          if (nodeIds.length !== uniqueNodeIds.length) {
+            console.error('❌ setNodes: DUPLICATE NODES DETECTED!');
+            const duplicates = nodeIds.filter((id, index) => nodeIds.indexOf(id) !== index);
+            console.error('   Duplicate node IDs:', [...new Set(duplicates)]);
+            console.error('   Call stack:', new Error().stack?.split('\n').slice(1, 6).join('\n'));
+          }
+        }
+
+        set({ nodes: newNodes, hasUnsavedChanges: true });
+
+        // Trigger auto-save
+        autoSave(get());
+      },
       
       setEdges: (edges) => set((state) => ({
         edges: typeof edges === 'function' ? edges(state.edges) : edges
@@ -183,8 +241,9 @@ export const useFlowStore = create<FlowState>()(
       },
       
       addNode: (component, position) => {
+        const currentNodes = get().nodes;
         const newNode: Node = {
-          id: generateNodeId(),
+          id: generateNodeId(currentNodes),
           type: component.type,
           position,
           data: {
@@ -193,42 +252,43 @@ export const useFlowStore = create<FlowState>()(
             component: component
           }
         };
-        
-        set((state) => ({
-          nodes: [...state.nodes, newNode],
-          hasUnsavedChanges: true
-        }));
 
-        // Trigger auto-save
-        autoSave(get());
+        console.log(`➕ addNode: Adding ${component.type} node with ID ${newNode.id}`);
+
+        // Use setNodes to go through our debug logging
+        get().setNodes([...currentNodes, newNode]);
       },
       
       updateNode: (nodeId, data) => {
-        set((state) => ({
-          nodes: state.nodes.map(node =>
-            node.id === nodeId
-              ? { ...node, data: { ...node.data, ...data } }
-              : node
-          ),
-          hasUnsavedChanges: true
-        }));
+        console.log(`🔄 updateNode: Updating node ${nodeId}`);
 
-        // Trigger auto-save
-        autoSave(get());
+        // Use setNodes to go through our debug logging
+        const currentNodes = get().nodes;
+        const updatedNodes = currentNodes.map(node =>
+          node.id === nodeId
+            ? { ...node, data: { ...node.data, ...data } }
+            : node
+        );
+        get().setNodes(updatedNodes);
       },
       
       deleteNode: (nodeId) => {
-        set((state) => ({
-          nodes: state.nodes.filter(node => node.id !== nodeId),
-          edges: state.edges.filter(edge =>
-            edge.source !== nodeId && edge.target !== nodeId
-          ),
-          selectedNodeId: state.selectedNodeId === nodeId ? null : state.selectedNodeId,
-          hasUnsavedChanges: true
-        }));
+        console.log(`🗑️ deleteNode: Deleting node ${nodeId}`);
 
-        // Trigger auto-save
-        autoSave(get());
+        // Use setNodes and setEdges to go through our debug logging
+        const currentState = get();
+        const filteredNodes = currentState.nodes.filter(node => node.id !== nodeId);
+        const filteredEdges = currentState.edges.filter(edge =>
+          edge.source !== nodeId && edge.target !== nodeId
+        );
+
+        currentState.setNodes(filteredNodes);
+        currentState.setEdges(filteredEdges);
+
+        // Update selection if needed
+        if (currentState.selectedNodeId === nodeId) {
+          set({ selectedNodeId: null });
+        }
       },
       
       // Edge operations
@@ -242,6 +302,8 @@ export const useFlowStore = create<FlowState>()(
           },
           type: 'conditional'
         };
+
+
 
         set((state) => ({
           edges: [...state.edges, newEdge],
@@ -407,13 +469,18 @@ export const useFlowStore = create<FlowState>()(
           savedAt: new Date().toISOString()
         };
 
-        // Save to localStorage
-        localStorage.setItem('langflow_workflow', JSON.stringify(flowData));
-        console.log('✅ saveFlow: Flow saved successfully:', {
-          name: flowData.name,
-          nodes: flowData.nodes.length,
-          edges: flowData.edges.length
-        });
+        // Only save to localStorage if not using database workflow
+        const currentState = get();
+        if (!currentState.currentWorkflowId) {
+          localStorage.setItem('langflow_workflow', JSON.stringify(flowData));
+          console.log('✅ saveFlow: Flow saved to localStorage:', {
+            name: flowData.name,
+            nodes: flowData.nodes.length,
+            edges: flowData.edges.length
+          });
+        } else {
+          console.log('ℹ️ saveFlow: Skipping localStorage save (using database workflow)');
+        }
       },
       
       loadFlow: (flowData) => {
@@ -587,6 +654,16 @@ export const useFlowStore = create<FlowState>()(
 
       initializeFromStorage: () => {
         console.log('🔍 initializeFromStorage: Starting...');
+        console.log('📍 initializeFromStorage: Call stack:', new Error().stack?.split('\n').slice(1, 4).join('\n'));
+
+        // Check if we have a current workflow from database first
+        const currentState = get();
+        if (currentState.currentWorkflowId && currentState.currentWorkflow) {
+          console.log('📊 initializeFromStorage: Database workflow already loaded, skipping localStorage');
+          console.log(`   Current workflow: ${currentState.currentWorkflow.name} (ID: ${currentState.currentWorkflowId})`);
+          console.log(`   Current nodes: ${currentState.nodes.length}, edges: ${currentState.edges.length}`);
+          return;
+        }
 
         try {
           const savedWorkflow = loadSavedWorkflow();
@@ -596,6 +673,7 @@ export const useFlowStore = create<FlowState>()(
           }
 
           console.log('📂 initializeFromStorage: Found saved workflow:', savedWorkflow.name);
+          console.log('⚠️  Loading from localStorage as fallback (no database workflow loaded)');
 
           // Basic validation
           if (!savedWorkflow.nodes || !Array.isArray(savedWorkflow.nodes)) {
@@ -651,15 +729,50 @@ export const useFlowStore = create<FlowState>()(
         set({ isLoading: true });
         try {
           const workflow = await WorkflowService.createWorkflow({ name, description });
+
+          // Clear all previous workflow data and start fresh
+          console.log('🧹 createWorkflow: Clearing all previous state...');
+          const previousState = get();
+          console.log(`   Previous nodes: ${previousState.nodes.length}, edges: ${previousState.edges.length}`);
+          console.log(`   Previous workflow: ${previousState.currentWorkflowId} (${previousState.currentWorkflow?.name})`);
+
           set({
+            // Clear flow data
+            nodes: [],
+            edges: [],
+
+            // Set new workflow info
             currentWorkflowId: workflow.id,
             currentWorkflow: workflow,
             workflowName: workflow.name,
+
+            // Reset state
             hasUnsavedChanges: false,
             lastSaved: new Date(),
-            isLoading: false
+            isLoading: false,
+
+            // Clear any previous configs
+            workflowConfigs: {},
+
+            // Reset other state
+            selectedNodeId: null,
+            isConfigPanelOpen: false,
+            workflowContext: {
+              variables: new Map(),
+              executionPath: []
+            }
           });
-          console.log('✅ Workflow created:', workflow.name);
+
+          const newState = get();
+          console.log(`✅ createWorkflow: State cleared. New nodes: ${newState.nodes.length}, edges: ${newState.edges.length}`);
+          console.log(`   New workflow: ${newState.currentWorkflowId} (${newState.currentWorkflow?.name})`);
+
+          // Clear localStorage to prevent conflicts
+          console.log('🧹 Clearing localStorage for new workflow');
+          localStorage.removeItem('langflow_workflow');
+
+          console.log('✅ New workflow created and state cleared:', workflow.name);
+          return workflow; // Return the created workflow
         } catch (error) {
           console.error('❌ Failed to create workflow:', error);
           set({ isLoading: false });
@@ -670,6 +783,8 @@ export const useFlowStore = create<FlowState>()(
       loadWorkflow: async (workflowId: number) => {
         set({ isLoading: true });
         try {
+          console.log(`🔄 Loading workflow ${workflowId} from database...`);
+
           // Load workflow metadata
           const workflow = await WorkflowService.getWorkflow(workflowId);
 
@@ -677,13 +792,28 @@ export const useFlowStore = create<FlowState>()(
           const flowData = await WorkflowService.getWorkflowFlow(workflowId);
 
           // Convert database format to React Flow format
-          const nodes = flowData.nodes.map(node => ({
-            ...node,
-            data: {
-              ...node.data,
-              component: get().getComponent(node.type)
+          console.log('🔄 loadWorkflow: Converting nodes and restoring component references...');
+          const nodes = flowData.nodes.map(node => {
+            const componentDef = get().getComponent(node.type);
+            if (!componentDef) {
+              console.warn(`⚠️ loadWorkflow: Component not found for type: ${node.type}`);
+            } else {
+              console.log(`✅ loadWorkflow: Restored component for ${node.type}`);
             }
-          }));
+            return {
+              ...node,
+              data: {
+                ...node.data,
+                component: componentDef
+              }
+            };
+          });
+
+          // Clear localStorage to prevent conflicts
+          console.log('🧹 Clearing localStorage to prevent conflicts with database workflow');
+          localStorage.removeItem('langflow_workflow');
+
+
 
           set({
             currentWorkflowId: workflow.id,
@@ -691,10 +821,14 @@ export const useFlowStore = create<FlowState>()(
             workflowName: workflow.name,
             nodes,
             edges: flowData.edges as ConditionalEdge[],
+            workflowConfigs: flowData.configs || {},
             hasUnsavedChanges: false,
             lastSaved: new Date(workflow.updated_at),
             isLoading: false
           });
+
+          console.log(`✅ Workflow loaded successfully: ${workflow.name} (ID: ${workflow.id})`);
+          console.log(`📊 Loaded: ${nodes.length} nodes, ${flowData.edges.length} edges, ${Object.keys(flowData.configs || {}).length} configs`);
 
           console.log('✅ Workflow loaded:', workflow.name);
         } catch (error) {
@@ -705,7 +839,7 @@ export const useFlowStore = create<FlowState>()(
       },
 
       saveWorkflowToDatabase: async () => {
-        const { currentWorkflowId, nodes, edges } = get();
+        const { currentWorkflowId, nodes, edges, workflowConfigs } = get();
         if (!currentWorkflowId) {
           throw new Error('No current workflow to save');
         }
@@ -725,12 +859,13 @@ export const useFlowStore = create<FlowState>()(
             source: edge.source,
             target: edge.target,
             type: edge.type,
-            ...edge.data
+            data: edge.data
           }));
 
           await WorkflowService.saveWorkflowFlow(currentWorkflowId, {
             nodes: workflowNodes,
-            edges: workflowEdges
+            edges: workflowEdges,
+            configs: workflowConfigs
           });
 
           set({
@@ -748,26 +883,38 @@ export const useFlowStore = create<FlowState>()(
       },
 
       autoSaveToDatabase: () => {
-        const { currentWorkflowId, hasUnsavedChanges, isSaving } = get();
+        const { currentWorkflowId, hasUnsavedChanges, isSaving, nodes, edges } = get();
         if (!currentWorkflowId || !hasUnsavedChanges || isSaving) {
           return;
+        }
+
+        console.log(`💾 autoSaveToDatabase: Saving ${nodes.length} nodes, ${edges.length} edges`);
+
+        // Check for duplicate node IDs before saving
+        const nodeIds = nodes.map(n => n.id);
+        const uniqueNodeIds = [...new Set(nodeIds)];
+        if (nodeIds.length !== uniqueNodeIds.length) {
+          console.error('❌ autoSaveToDatabase: DUPLICATE NODES DETECTED BEFORE SAVE!');
+          const duplicates = nodeIds.filter((id, index) => nodeIds.indexOf(id) !== index);
+          console.error('   Duplicate node IDs:', [...new Set(duplicates)]);
+          return; // Don't save if there are duplicates
         }
 
         WorkflowService.autoSaveWorkflowFlow(
           currentWorkflowId,
           {
-            nodes: get().nodes.map(node => ({
+            nodes: nodes.map(node => ({
               id: node.id,
               type: node.type,
               position: node.position,
               data: { ...node.data }
             })),
-            edges: get().edges.map(edge => ({
+            edges: edges.map(edge => ({
               id: edge.id,
               source: edge.source,
               target: edge.target,
               type: edge.type,
-              ...edge.data
+              data: edge.data
             }))
           }
         );
@@ -792,6 +939,89 @@ export const useFlowStore = create<FlowState>()(
 
       clearUnsavedChanges: () => {
         set({ hasUnsavedChanges: false, lastSaved: new Date() });
+      },
+
+      // Import/Export operations
+      importWorkflowFromFile: async (file: File, overwriteExisting: boolean = false) => {
+        set({ isLoading: true });
+        try {
+          const currentState = get();
+          const currentWorkflowId = overwriteExisting ? currentState.currentWorkflowId : null;
+
+          const result = await WorkflowService.importWorkflowFromFile(file, overwriteExisting, currentWorkflowId);
+
+          // Load the imported workflow
+          await get().loadWorkflow(result.workflow.id);
+
+          console.log(`✅ Imported workflow: ${result.workflow.name} (${result.imported.nodeCount} nodes, ${result.imported.edgeCount} edges, ${result.imported.configCount} configs)`);
+        } catch (error) {
+          set({ isLoading: false });
+          console.error('❌ Failed to import workflow:', error);
+          throw error;
+        }
+      },
+
+      exportWorkflowToFile: async (includeMetadata: boolean = true) => {
+        const { currentWorkflowId, workflowName } = get();
+        if (!currentWorkflowId) {
+          throw new Error('No current workflow to export');
+        }
+
+        try {
+          await WorkflowService.exportWorkflowToFile(currentWorkflowId, workflowName, includeMetadata);
+          console.log(`✅ Exported workflow: ${workflowName}`);
+        } catch (error) {
+          console.error('❌ Failed to export workflow:', error);
+          throw error;
+        }
+      },
+
+      importWorkflowFromData: async (workflowData: any, overwriteExisting: boolean = false) => {
+        set({ isLoading: true });
+        try {
+          const currentState = get();
+          const currentWorkflowId = overwriteExisting ? currentState.currentWorkflowId : null;
+
+          const result = await WorkflowService.importWorkflow({
+            workflowData,
+            overwriteExisting,
+            currentWorkflowId
+          });
+
+          // Load the imported workflow
+          await get().loadWorkflow(result.workflow.id);
+
+          console.log(`✅ Imported workflow from data: ${result.workflow.name}`);
+        } catch (error) {
+          set({ isLoading: false });
+          console.error('❌ Failed to import workflow from data:', error);
+          throw error;
+        }
+      },
+
+      // Configuration management
+      setWorkflowConfigValue: (key: string, value: any) => {
+        set(state => ({
+          workflowConfigs: {
+            ...state.workflowConfigs,
+            [key]: value
+          },
+          hasUnsavedChanges: true
+        }));
+      },
+
+      getWorkflowConfig: (key: string) => {
+        return get().workflowConfigs[key];
+      },
+
+      updateWorkflowConfigs: (configs: Record<string, any>) => {
+        set(state => ({
+          workflowConfigs: {
+            ...state.workflowConfigs,
+            ...configs
+          },
+          hasUnsavedChanges: true
+        }));
       }
     })),
     { name: 'flow-store' }

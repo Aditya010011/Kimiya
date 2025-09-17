@@ -19,24 +19,6 @@ if (envFile) {
 // Always load .env file first, then environment variables can override
 require('dotenv').config();
 
-/**
- * Apply argv overrides to process.env (highest priority)
- * Example: --port=XXXX will set process.env.PORT
- */
-function applyArgvEnvOverrides() {
-  process.argv.forEach(arg => {
-    if (arg.startsWith('--port=')) {
-      const port = arg.split('=')[1];
-      if (port) process.env.PORT = port;
-    }
-    // Add more overrides as needed, e.g. --webhook_base_url=...
-    // if (arg.startsWith('--webhook_base_url=')) {
-    //   process.env.WEBHOOK_BASE_URL = arg.split('=')[1];
-    // }
-  });
-}
-applyArgvEnvOverrides();
-
 const environment = process.env.NODE_ENV || 'development';
 console.log(`🔧 Loading configuration for ${environment} environment`);
 
@@ -57,31 +39,13 @@ displayPortConfig(environment);
 
 const app = express();
 
-/**
- * Get port override from command line argument (--port=XXXX)
- */
-function getPortArg() {
-  const portArg = process.argv.find(arg => arg.startsWith('--port='));
-  if (portArg) {
-    const port = parseInt(portArg.split('=')[1], 10);
-    if (!isNaN(port)) return port;
-  }
-  return null;
-}
-
-// Get port from command line, env, or centralized configuration
+// Get port from centralized configuration with fallback
 let PORT;
-const portOverride = getPortArg();
-if (portOverride) {
-  PORT = portOverride;
-  console.log(`🚀 Overriding port from command line: ${PORT}`);
-} else {
-  try {
-    PORT = getPort('backend.api', environment);
-  } catch (error) {
-    console.warn(`⚠️  ${error.message}. Using environment variable or fallback.`);
-    PORT = process.env.PORT || 3001; // Safer fallback than 3000
-  }
+try {
+  PORT = getPort('backend.api', environment);
+} catch (error) {
+  console.warn(`⚠️  ${error.message}. Using environment variable or fallback.`);
+  PORT = process.env.PORT || 3001; // Safer fallback than 3000
 }
 
 console.log(`🚀 Backend server will start on port ${PORT}`);

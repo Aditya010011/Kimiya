@@ -5,87 +5,156 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import {
   Plus,
-  Phone,
   Clock,
-  Users,
   TrendingUp,
   FileText,
-  Settings,
   Play,
   Edit,
   Trash2,
   Download,
   Upload,
   User,
-  LogOut,
   Loader2
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useFlowStore } from '../stores/flowStore';
-import { useAuthStore } from '../stores/authStore';
 import { WorkflowService, Workflow } from '../services/workflowService';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import DashboardHeader from '@/components/layout/DashboardHeader';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { importFlow, createWorkflow } = useFlowStore();
-  const { user, logout } = useAuthStore();
+  const { createWorkflow } = useFlowStore();
 
   // State for workflows
-  const [workflows, setWorkflows] = useState<Workflow[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [allWorkflows, setAllWorkflows] = useState<Workflow[]>([]);
+  const [myWorkflows, setMyWorkflows] = useState<Workflow[]>([]);
+  const [isLoadingAll, setIsLoadingAll] = useState(true);
+  const [isLoadingMy, setIsLoadingMy] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
 
 
 
-  const handleLogout = async () => {
-    await logout();
-    toast.success('Logged out successfully');
-    navigate('/login');
-  };
 
-  const getUserInitials = (user: any) => {
-    if (user?.first_name && user?.last_name) {
-      return `${user.first_name[0]}${user.last_name[0]}`.toUpperCase();
-    }
-    if (user?.email) {
-      return user.email[0].toUpperCase();
-    }
-    return 'U';
-  };
 
-  const getUserDisplayName = (user: any) => {
-    if (user?.first_name && user?.last_name) {
-      return `${user.first_name} ${user.last_name}`;
+  // Helper function to render workflow list
+  const renderWorkflowList = (workflows: Workflow[], isLoading: boolean, emptyMessage: string) => {
+    if (isLoading) {
+      return (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
+          <span className="ml-2 text-gray-500">Loading workflows...</span>
+        </div>
+      );
     }
-    if (user?.first_name) {
-      return user.first_name;
+
+    if (workflows.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No workflows yet</h3>
+          <p className="text-gray-500 mb-4">{emptyMessage}</p>
+          <Button onClick={handleNewWorkflow} disabled={isCreating}>
+            <Plus className="h-4 w-4 mr-2" />
+            {isCreating ? 'Creating...' : 'Create Workflow'}
+          </Button>
+        </div>
+      );
     }
-    return user?.email || 'User';
+
+    return (
+      <div className="space-y-4">
+        {workflows.map((workflow) => (
+          <div key={workflow.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <div className="flex items-center space-x-3 mb-2">
+                  <h3 className="text-lg font-semibold text-gray-900">{workflow.name}</h3>
+                  <Badge className={getStatusColor(workflow.is_active)}>
+                    {getStatusText(workflow.is_active)}
+                  </Badge>
+                </div>
+                <p className="text-gray-600 mb-3">{workflow.description || 'No description'}</p>
+                <div className="flex items-center space-x-6 text-sm text-gray-500">
+                  <div className="flex items-center">
+                    <Clock className="h-4 w-4 mr-1" />
+                    Modified {formatDate(workflow.updated_at)}
+                  </div>
+                  <div className="flex items-center">
+                    <FileText className="h-4 w-4 mr-1" />
+                    {workflow.node_count || 0} nodes
+                  </div>
+                  <div className="flex items-center">
+                    <TrendingUp className="h-4 w-4 mr-1" />
+                    {workflow.edge_count || 0} edges
+                  </div>
+                  <div className="flex items-center">
+                    <User className="h-4 w-4 mr-1" />
+                    {workflow.created_by_email}
+                  </div>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleEditWorkflow(workflow.id)}
+                >
+                  <Edit className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleExportWorkflow(workflow.id, workflow.name)}
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  Export
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleDeleteWorkflow(workflow.id, workflow.name)}
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4 mr-1" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
   };
   // Load workflows from database
   useEffect(() => {
-    loadWorkflows();
+    loadAllWorkflows();
+    loadMyWorkflows();
   }, []);
 
-  const loadWorkflows = async () => {
+  const loadAllWorkflows = async () => {
     try {
-      setIsLoading(true);
+      setIsLoadingAll(true);
       const data = await WorkflowService.getWorkflows();
-      setWorkflows(data.workflows);
+      setAllWorkflows(data.workflows);
     } catch (error) {
-      console.error('Failed to load workflows:', error);
-      toast.error('Failed to load workflows');
+      console.error('Failed to load all workflows:', error);
+      toast.error('Failed to load all workflows');
     } finally {
-      setIsLoading(false);
+      setIsLoadingAll(false);
+    }
+  };
+
+  const loadMyWorkflows = async () => {
+    try {
+      setIsLoadingMy(true);
+      const data = await WorkflowService.getMyWorkflows();
+      setMyWorkflows(data.workflows);
+    } catch (error) {
+      console.error('Failed to load my workflows:', error);
+      toast.error('Failed to load my workflows');
+    } finally {
+      setIsLoadingMy(false);
     }
   };
 
@@ -93,14 +162,24 @@ const Dashboard: React.FC = () => {
     try {
       setIsCreating(true);
       const workflowName = `New Workflow ${new Date().toLocaleDateString()}`;
-      await createWorkflow(workflowName, 'A new workflow created from the dashboard');
+      console.log('🔧 Creating workflow with name:', workflowName);
+
+      const newWorkflow = await createWorkflow(workflowName, 'A new workflow created from the dashboard');
+      console.log('✅ Workflow created:', newWorkflow);
+
+      if (!newWorkflow || !newWorkflow.id) {
+        throw new Error('Created workflow is missing ID');
+      }
+
       toast.success('New workflow created successfully!');
-      navigate('/builder');
-      // Refresh workflows list
-      loadWorkflows();
+      // Navigate to builder with the new workflow ID
+      navigate(`/builder?workflowId=${newWorkflow.id}`);
+      // Refresh workflows lists
+      loadAllWorkflows();
+      loadMyWorkflows();
     } catch (error) {
       console.error('Failed to create workflow:', error);
-      toast.error('Failed to create workflow');
+      toast.error(`Failed to create workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsCreating(false);
     }
@@ -110,67 +189,45 @@ const Dashboard: React.FC = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const flowData = JSON.parse(e.target?.result as string);
+        try {
+          console.log('📥 Dashboard: Starting workflow import to database...');
 
-            // Validate the imported data structure
-            if (!flowData || typeof flowData !== 'object') {
-              throw new Error('Invalid file format');
-            }
+          // Import workflow to database (same as flow builder)
+          const result = await WorkflowService.importWorkflowFromFile(file, false, null);
 
-            // Check if it has the expected structure
-            if (!flowData.nodes && !flowData.edges && !flowData.name) {
-              throw new Error('File does not contain valid workflow data');
-            }
+          console.log('✅ Dashboard: Workflow imported to database successfully');
+          console.log('📊 Import result:', result);
 
-            // Ensure nodes and edges are arrays
-            if (flowData.nodes && !Array.isArray(flowData.nodes)) {
-              throw new Error('Invalid nodes data format');
-            }
-            if (flowData.edges && !Array.isArray(flowData.edges)) {
-              throw new Error('Invalid edges data format');
-            }
+          // Show success message
+          const importedItems = [];
+          if (result.imported.nodeCount > 0) importedItems.push(`${result.imported.nodeCount} nodes`);
+          if (result.imported.edgeCount > 0) importedItems.push(`${result.imported.edgeCount} edges`);
+          if (result.imported.configCount > 0) importedItems.push(`${result.imported.configCount} configs`);
 
-            // Use the dedicated import method for proper handling
-            try {
-              console.log('📥 Dashboard: Importing workflow...');
-              importFlow(flowData);
-              console.log('✅ Dashboard: Import completed successfully');
-            } catch (loadError) {
-              console.error('❌ Dashboard: Import failed:', loadError);
-              throw new Error(`Failed to import workflow: ${loadError instanceof Error ? loadError.message : 'Unknown import error'}`);
-            }
+          const itemsText = importedItems.length > 0 ? ` (${importedItems.join(', ')})` : '';
+          toast.success(`Workflow "${result.workflow.name}" imported and saved to database!${itemsText}`);
 
-            // Navigate to the builder with the imported workflow
-            navigate('/builder');
+          // Refresh workflows lists to show the new imported workflow
+          loadAllWorkflows();
+          loadMyWorkflows();
 
-            // Show success message
-            const importedItems = [];
-            if (flowData.nodes?.length) importedItems.push(`${flowData.nodes.length} nodes`);
-            if (flowData.edges?.length) importedItems.push(`${flowData.edges.length} edges`);
-            if (flowData.variables?.length) importedItems.push(`${flowData.variables.length} variables`);
-            if (flowData.config) importedItems.push('configuration');
+          // Navigate to the builder with the imported workflow
+          navigate(`/builder?workflowId=${result.workflow.id}`);
 
-            const itemsText = importedItems.length > 0 ? ` (${importedItems.join(', ')})` : '';
-            toast.success(`Workflow "${flowData.name || 'Untitled'}" imported successfully!${itemsText}`);
-          } catch (error) {
-            console.error('Import error:', error);
-            toast.error(`Failed to import workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
-          }
-        };
-        reader.readAsText(file);
+        } catch (error) {
+          console.error('Dashboard import error:', error);
+          toast.error(`Failed to import workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
       }
     };
     input.click();
   };
 
   const handleEditWorkflow = (workflowId: number) => {
-    navigate(`/builder?workflow=${workflowId}`);
+    navigate(`/builder?workflowId=${workflowId}`);
   };
 
   const handleDeleteWorkflow = async (workflowId: number, workflowName: string) => {
@@ -181,8 +238,9 @@ const Dashboard: React.FC = () => {
     try {
       await WorkflowService.deleteWorkflow(workflowId);
       toast.success(`Workflow "${workflowName}" deleted successfully`);
-      // Refresh workflows list
-      loadWorkflows();
+      // Refresh workflows lists
+      loadAllWorkflows();
+      loadMyWorkflows();
     } catch (error) {
       console.error('Failed to delete workflow:', error);
       toast.error('Failed to delete workflow');
@@ -245,104 +303,41 @@ const Dashboard: React.FC = () => {
 
   const stats = [
     {
-      title: 'Total Workflows',
-      value: workflows.length.toString(),
+      title: 'My Workflows',
+      value: myWorkflows.length.toString(),
+      icon: User,
+      description: 'Workflows you created'
+    },
+    {
+      title: 'All Workflows',
+      value: allWorkflows.length.toString(),
       icon: FileText,
-      description: 'All workflows in your account'
+      description: 'All workflows in the system'
     },
     {
       title: 'Active Workflows',
-      value: workflows.filter(w => w.is_active).length.toString(),
+      value: allWorkflows.filter(w => w.is_active).length.toString(),
       icon: Play,
       description: 'Currently active workflows'
     },
     {
       title: 'Total Nodes',
-      value: workflows.reduce((sum, w) => sum + (w.node_count || 0), 0).toString(),
+      value: allWorkflows.reduce((sum, w) => sum + (w.node_count || 0), 0).toString(),
       icon: TrendingUp,
       description: 'Across all workflows'
-    },
-    {
-      title: 'Total Edges',
-      value: workflows.reduce((sum, w) => sum + (w.edge_count || 0), 0).toString(),
-      icon: Users,
-      description: 'Connections between nodes'
     }
   ];
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <img src="/icon.png" alt="Kimiyi Logo" className="h-8 w-8 mr-3" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">Kimiyi Dashboard</h1>
-              <p className="text-sm text-gray-500">Manage your voice agent workflows</p>
-            </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button
-              onClick={handleNewWorkflow}
-              disabled={isCreating}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              {isCreating ? (
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              ) : (
-                <Plus className="h-4 w-4 mr-2" />
-              )}
-              {isCreating ? 'Creating...' : 'New Workflow'}
-            </Button>
-
-            {/* User Menu */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                  <Avatar className="h-8 w-8">
-                    <AvatarFallback className="bg-blue-600 text-white text-sm">
-                      {getUserInitials(user)}
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56" align="end" forceMount>
-                <DropdownMenuLabel className="font-normal">
-                  <div className="flex flex-col space-y-1">
-                    <p className="text-sm font-medium leading-none">
-                      {getUserDisplayName(user)}
-                    </p>
-                    <p className="text-xs leading-none text-muted-foreground">
-                      {user?.email}
-                    </p>
-                  </div>
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => navigate('/profile')}>
-                  <User className="mr-2 h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate('/builder')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  <span>Workflow Builder</span>
-                </DropdownMenuItem>
-                {user?.role === 'admin' && (
-                  <DropdownMenuItem onClick={() => navigate('/admin/users')}>
-                    <Users className="mr-2 h-4 w-4" />
-                    <span>Users</span>
-                  </DropdownMenuItem>
-                )}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleLogout}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  <span>Log out</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-        </div>
-      </header>
+      {/* Dashboard Header */}
+      <DashboardHeader
+        title="Kimiyi Dashboard"
+        subtitle="Manage voice agent workflows"
+        showNewWorkflowButton={true}
+        isCreating={isCreating}
+        onNewWorkflow={handleNewWorkflow}
+      />
 
       <div className="p-6 max-w-7xl mx-auto">
         {/* Stats Grid */}
@@ -399,95 +394,31 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* Workflows List */}
-        <Card>
+        {/* My Workflows Section */}
+        <Card className="mb-8">
           <CardHeader>
-            <CardTitle>Your Workflows</CardTitle>
-            <CardDescription>Manage and monitor your voice agent workflows</CardDescription>
+            <CardTitle className="flex items-center">
+              <User className="h-5 w-5 mr-2" />
+              My Workflows
+            </CardTitle>
+            <CardDescription>Workflows you created</CardDescription>
           </CardHeader>
           <CardContent>
-            {isLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-                <span className="ml-2 text-gray-500">Loading workflows...</span>
-              </div>
-            ) : workflows.length === 0 ? (
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No workflows yet</h3>
-                <p className="text-gray-500 mb-4">Create your first workflow to get started</p>
-                <Button onClick={handleNewWorkflow} disabled={isCreating}>
-                  {isCreating ? (
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  ) : (
-                    <Plus className="h-4 w-4 mr-2" />
-                  )}
-                  {isCreating ? 'Creating...' : 'Create Workflow'}
-                </Button>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {workflows.map((workflow) => (
-                  <div key={workflow.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-                    <div className="flex items-center justify-between">
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-gray-900">{workflow.name}</h3>
-                          <Badge className={getStatusColor(workflow.is_active)}>
-                            {getStatusText(workflow.is_active)}
-                          </Badge>
-                        </div>
-                        <p className="text-gray-600 mb-3">{workflow.description || 'No description'}</p>
-                        <div className="flex items-center space-x-6 text-sm text-gray-500">
-                          <div className="flex items-center">
-                            <Clock className="h-4 w-4 mr-1" />
-                            Modified {formatDate(workflow.updated_at)}
-                          </div>
-                          <div className="flex items-center">
-                            <FileText className="h-4 w-4 mr-1" />
-                            {workflow.node_count || 0} nodes
-                          </div>
-                          <div className="flex items-center">
-                            <TrendingUp className="h-4 w-4 mr-1" />
-                            {workflow.edge_count || 0} edges
-                          </div>
-                          <div className="flex items-center">
-                            <User className="h-4 w-4 mr-1" />
-                            {workflow.created_by_email}
-                          </div>
-                        </div>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleEditWorkflow(workflow.id)}
-                        >
-                          <Edit className="h-4 w-4 mr-1" />
-                          Edit
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleExportWorkflow(workflow.id, workflow.name)}
-                        >
-                          <Download className="h-4 w-4 mr-1" />
-                          Export
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleDeleteWorkflow(workflow.id, workflow.name)}
-                          className="text-red-600 hover:text-red-700"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+            {renderWorkflowList(myWorkflows, isLoadingMy, "Create your first workflow to get started")}
+          </CardContent>
+        </Card>
+
+        {/* All Workflows Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center">
+              <FileText className="h-5 w-5 mr-2" />
+              All Workflows
+            </CardTitle>
+            <CardDescription>All workflows in the system (shared across all users)</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {renderWorkflowList(allWorkflows, isLoadingAll, "No workflows exist yet. Create the first one!")}
           </CardContent>
         </Card>
       </div>

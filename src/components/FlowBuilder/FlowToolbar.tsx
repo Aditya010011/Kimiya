@@ -42,7 +42,17 @@ const FlowToolbar: React.FC = () => {
     getAvailableVariables,
     updateNode,
     addDefaultVariables,
-    getComponent
+    getComponent,
+    // Database integration
+    currentWorkflowId,
+    currentWorkflow,
+    isLoading,
+    isSaving,
+    hasUnsavedChanges,
+    saveWorkflowToDatabase,
+    importWorkflowFromFile,
+    exportWorkflowToFile,
+    importWorkflowFromData
   } = useFlowStore();
 
   const [isExecuting, setIsExecuting] = useState(false);
@@ -80,14 +90,20 @@ const FlowToolbar: React.FC = () => {
     }
   }, [nodes]);
 
-  const handleSave = () => {
+  const handleSave = async () => {
     try {
-      saveFlow();
-      const nodeCount = nodes.length;
-      const edgeCount = edges.length;
+      if (currentWorkflowId) {
+        // Save to database if we have a workflow ID
+        await saveWorkflowToDatabase();
+        toast.success(`Workflow "${workflowName}" saved to database! (${nodes.length} nodes, ${edges.length} connections)`);
+      } else {
+        // Save to localStorage as fallback
+        saveFlow();
+        toast.success(`Workflow saved locally! (${nodes.length} nodes, ${edges.length} connections)`);
+      }
+
       const saveTime = new Date();
       setLastSavedTime(saveTime);
-      toast.success(`Workflow saved! (${nodeCount} nodes, ${edgeCount} connections)`);
     } catch (error) {
       console.error('Error saving workflow:', error);
       toast.error('Failed to save workflow. Please try again.');
@@ -131,105 +147,129 @@ const FlowToolbar: React.FC = () => {
     toast.info('Flow execution stopped');
   };
 
-  const handleExport = () => {
-    const flowData = {
-      name: workflowName,
-      config: workflowConfig,
-      nodes: nodes.map(node => ({
-        ...node,
-        data: {
-          ...node.data,
-          component: undefined // Remove component reference for export
-        }
-      })),
-      edges,
-      variables: getAvailableVariables(),
-      exportedAt: new Date().toISOString(),
-      version: '1.0.0'
-    };
+  const handleExport = async () => {
+    try {
+      if (currentWorkflowId) {
+        // Export from database if we have a workflow ID
+        await exportWorkflowToFile(true); // Include metadata
+        toast.success(`Workflow "${workflowName}" exported from database!`);
+      } else {
+        // Export current flow state as fallback
+        const flowData = {
+          name: workflowName,
+          config: workflowConfig,
+          nodes: nodes.map(node => ({
+            ...node,
+            data: {
+              ...node.data,
+              component: undefined // Remove component reference for export
+            }
+          })),
+          edges,
+          variables: getAvailableVariables(),
+          exportedAt: new Date().toISOString(),
+          version: '1.0.0'
+        };
 
-    const dataStr = JSON.stringify(flowData, null, 2);
-    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
-    
-    const exportFileDefaultName = `${workflowName.replace(/\s+/g, '_').toLowerCase()}.json`;
-    
-    const linkElement = document.createElement('a');
-    linkElement.setAttribute('href', dataUri);
-    linkElement.setAttribute('download', exportFileDefaultName);
-    linkElement.click();
-    
-    toast.success('Flow exported successfully!');
+        const dataStr = JSON.stringify(flowData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+
+        const exportFileDefaultName = `${workflowName.replace(/\s+/g, '_').toLowerCase()}.json`;
+
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportFileDefaultName);
+        linkElement.click();
+
+        toast.success('Flow exported successfully!');
+      }
+    } catch (error) {
+      console.error('Export error:', error);
+      toast.error(`Failed to export workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   };
 
   const handleImport = () => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = '.json';
-    input.onchange = (e) => {
+    input.onchange = async (e) => {
       const file = (e.target as HTMLInputElement).files?.[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          try {
-            const flowData = JSON.parse(e.target?.result as string);
-
-            // Validate the imported data structure
-            if (!flowData || typeof flowData !== 'object') {
-              throw new Error('Invalid file format');
+        try {
+          // Confirm import if there are existing nodes/edges
+          if (nodes.length > 0 || edges.length > 0) {
+            if (!window.confirm('Import workflow? This will replace the current workflow. Any unsaved changes will be lost.')) {
+              return;
             }
-
-            // Check if it has the expected structure
-            if (!flowData.nodes && !flowData.edges && !flowData.name) {
-              throw new Error('File does not contain valid workflow data');
-            }
-
-            // Ensure nodes and edges are arrays
-            if (flowData.nodes && !Array.isArray(flowData.nodes)) {
-              throw new Error('Invalid nodes data format');
-            }
-            if (flowData.edges && !Array.isArray(flowData.edges)) {
-              throw new Error('Invalid edges data format');
-            }
-
-            // Confirm import if there are existing nodes/edges
-            if (nodes.length > 0 || edges.length > 0) {
-              if (!window.confirm('Import workflow? This will replace the current workflow. Any unsaved changes will be lost.')) {
-                return;
-              }
-            }
-
-            // Use the dedicated import method for proper handling
-            try {
-              console.log('📥 FlowToolbar: Importing workflow...');
-              importFlow(flowData);
-              console.log('✅ FlowToolbar: Import completed successfully');
-            } catch (loadError) {
-              console.error('❌ FlowToolbar: Import failed:', loadError);
-              throw new Error(`Failed to import workflow: ${loadError instanceof Error ? loadError.message : 'Unknown import error'}`);
-            }
-
-            // Import variables if they exist
-            if (flowData.variables && Array.isArray(flowData.variables)) {
-              flowData.variables.forEach((variable: any) => {
-                // Variables will be loaded through the loadFlow function
-                // which handles the complete workflow context
-              });
-            }
-
-            const importedItems = [];
-            if (flowData.nodes?.length) importedItems.push(`${flowData.nodes.length} nodes`);
-            if (flowData.edges?.length) importedItems.push(`${flowData.edges.length} edges`);
-            if (flowData.variables?.length) importedItems.push(`${flowData.variables.length} variables`);
-            if (flowData.config) importedItems.push('configuration');
-
-            const itemsText = importedItems.length > 0 ? ` (${importedItems.join(', ')})` : '';
-            toast.success(`Workflow "${flowData.name || 'Untitled'}" imported successfully!${itemsText}`);
-          } catch (error) {
-            console.error('Import error:', error);
-            toast.error(`Failed to import workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
           }
-        };
-        reader.readAsText(file);
+
+          // Try database import first
+          try {
+            console.log('📥 FlowToolbar: Importing workflow to database...');
+            // If we have a current workflow (e.g., from "New Workflow"), overwrite it
+            // Otherwise, create a new workflow
+            const shouldOverwrite = currentWorkflowId !== null;
+            console.log(`📋 Import mode: ${shouldOverwrite ? 'Overwrite current workflow' : 'Create new workflow'}`);
+
+            await importWorkflowFromFile(file, shouldOverwrite);
+            console.log('✅ FlowToolbar: Database import completed successfully');
+
+            const message = shouldOverwrite
+              ? `Workflow imported and updated in database!`
+              : `Workflow imported and saved to database!`;
+            toast.success(message);
+          } catch (dbError) {
+            console.warn('⚠️ Database import failed, falling back to local import:', dbError);
+
+            // Fallback to local import
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              try {
+                const flowData = JSON.parse(e.target?.result as string);
+
+                // Validate the imported data structure
+                if (!flowData || typeof flowData !== 'object') {
+                  throw new Error('Invalid file format');
+                }
+
+                // Check if it has the expected structure
+                if (!flowData.nodes && !flowData.edges && !flowData.name) {
+                  throw new Error('File does not contain valid workflow data');
+                }
+
+                // Ensure nodes and edges are arrays
+                if (flowData.nodes && !Array.isArray(flowData.nodes)) {
+                  throw new Error('Invalid nodes data format');
+                }
+                if (flowData.edges && !Array.isArray(flowData.edges)) {
+                  throw new Error('Invalid edges data format');
+                }
+
+                // Use the dedicated import method for proper handling
+                console.log('📥 FlowToolbar: Importing workflow locally...');
+                importFlow(flowData);
+                console.log('✅ FlowToolbar: Local import completed successfully');
+
+                const importedItems = [];
+                if (flowData.nodes?.length) importedItems.push(`${flowData.nodes.length} nodes`);
+                if (flowData.edges?.length) importedItems.push(`${flowData.edges.length} edges`);
+                if (flowData.variables?.length) importedItems.push(`${flowData.variables.length} variables`);
+                if (flowData.config) importedItems.push('configuration');
+
+                const itemsText = importedItems.length > 0 ? ` (${importedItems.join(', ')})` : '';
+                toast.success(`Workflow "${flowData.name || 'Untitled'}" imported locally!${itemsText}`);
+              } catch (error) {
+                console.error('Local import error:', error);
+                toast.error(`Failed to import workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+              }
+            };
+            reader.readAsText(file);
+          }
+        } catch (error) {
+          console.error('Import error:', error);
+          toast.error(`Failed to import workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
       }
     };
     input.click();
@@ -332,21 +372,30 @@ const FlowToolbar: React.FC = () => {
           variant="outline"
           size="sm"
           className="flex items-center space-x-2"
+          disabled={isSaving}
         >
           <Save className="h-4 w-4" />
-          <span>Save</span>
+          <span>{isSaving ? 'Saving...' : 'Save'}</span>
         </Button>
 
-        {/* Debug indicator */}
-        {loadedFromStorage && (
+        {/* Database status indicator */}
+        {currentWorkflowId ? (
+          <div className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded flex items-center space-x-1">
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            <span>Database: {currentWorkflow?.name || workflowName}</span>
+            {hasUnsavedChanges && <span className="text-orange-600">*</span>}
+          </div>
+        ) : loadedFromStorage ? (
           <div className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded">
             Loaded from storage
           </div>
-        )}
-
-        {!loadedFromStorage && nodes.length === 0 && (
+        ) : nodes.length === 0 ? (
           <div className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded">
             No workflow loaded
+          </div>
+        ) : (
+          <div className="text-xs bg-yellow-100 text-yellow-700 px-2 py-1 rounded">
+            Local only
           </div>
         )}
         
