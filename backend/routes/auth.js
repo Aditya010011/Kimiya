@@ -1,7 +1,8 @@
 const express = require('express');
 const databaseService = require('../services/database');
-const sessionManager = require('../services/sessionManager');
-const { authenticateToken, requireAdmin, rateLimit } = require('../middleware/auth');
+
+// Import service registry to get session services
+const { serviceRegistry } = require('../core/SessionServiceBootstrap');
 const {
   passwordUtils,
   tokenUtils,
@@ -11,6 +12,35 @@ const {
 } = require('../utils/auth-utils');
 
 const router = express.Router();
+
+// Middleware functions (will be set after session services are initialized)
+let authenticateToken = null;
+let requireAdmin = null;
+let rateLimit = null;
+
+// Helper function to get session services
+async function getSessionServices() {
+  try {
+    if (!serviceRegistry.isInitialized('sessionService')) {
+      // Fallback to basic auth if session services aren't ready
+      return null;
+    }
+
+    return {
+      sessionService: await serviceRegistry.get('sessionService'),
+      middlewareFactory: await serviceRegistry.get('sessionMiddlewareFactory')
+    };
+  } catch (error) {
+    console.warn('Session services not available:', error.message);
+    return null;
+  }
+}
+
+// Initialize middleware with fallback
+const basicAuth = require('../middleware/auth');
+authenticateToken = basicAuth.authenticateToken;
+requireAdmin = basicAuth.requireAdmin;
+rateLimit = basicAuth.rateLimit;
 
 /**
  * POST /api/auth/register
@@ -148,12 +178,12 @@ router.post('/login',
         });
       }
 
-      // Generate tokens
-      const accessToken = tokenUtils.generateAccessToken(user);
-      const refreshToken = tokenUtils.generateRefreshToken(user);
-
-      // Create user session record
+      // Create user session record first
       const sessionToken = require('crypto').randomBytes(32).toString('hex');
+
+      // Generate tokens with session token included
+      const accessToken = tokenUtils.generateAccessToken(user, sessionToken);
+      const refreshToken = tokenUtils.generateRefreshToken(user);
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24); // 24 hours from now
 
@@ -161,24 +191,33 @@ router.post('/login',
       const ipAddress = req.ip || req.connection.remoteAddress || req.socket.remoteAddress || 'unknown';
       const userAgent = req.get('User-Agent') || 'unknown';
 
-      await databaseService.query(`
-        INSERT INTO tblUserSessions (
-          user_id, session_token, expires_at, created_at, last_accessed_at,
-          ip_address, user_agent, is_active
-        ) VALUES (
-          @userId, @sessionToken, @expiresAt, GETDATE(), GETDATE(),
-          @ipAddress, @userAgent, 1
-        )
-      `, {
-        userId: user.id,
-        sessionToken: sessionToken,
-        expiresAt: expiresAt,
-        ipAddress: ipAddress,
-        userAgent: userAgent
-      });
-
-      // Register session with session manager
-      await sessionManager.createSession(user.id, sessionToken, expiresAt, ipAddress, userAgent);
+      // Create session using session service
+      try {
+        const services = await getSessionServices();
+        if (services) {
+          await services.sessionService.createSession({
+            userId: user.id,
+            sessionToken: sessionToken,
+            expiresAt: expiresAt,
+            ipAddress: ipAddress,
+            userAgent: userAgent,
+            deviceInfo: {
+              userAgent: userAgent,
+              ipAddress: ipAddress,
+              loginTime: new Date()
+            }
+          });
+        } else {
+          throw new Error('Session service not available');
+        }
+      } catch (sessionError) {
+        console.error('Failed to create session:', sessionError.message);
+        return res.status(500).json({
+          success: false,
+          error: 'Session creation failed',
+          message: 'Unable to create user session'
+        });
+      }
 
       // Log successful login
       await databaseService.query(`
@@ -221,10 +260,19 @@ router.post('/logout',
   authenticateToken,
   async (req, res) => {
     try {
-      // Use session manager to expire all user sessions
-      const expiredCount = await sessionManager.expireUserSessions(req.user.id, 'manual_logout');
+      // Use session service to expire all user sessions
+      let expiredCount = 0;
+      try {
+        const services = await getSessionServices();
+        if (services) {
+          expiredCount = await services.sessionService.expireUserSessions(req.user.id, 'manual_logout');
+        }
+      } catch (sessionError) {
+        console.warn('Failed to expire sessions with session service:', sessionError.message);
+        // Continue without session service
+      }
 
-      console.log(`Logout: Deactivated ${expiredCount} sessions for user ${req.user.email}`);
+
 
       // Log logout
       await databaseService.query(`
@@ -696,14 +744,13 @@ router.put('/admin/users/:id/status',
       const updateResult = await databaseService.query(`
         UPDATE tblUsers
         SET is_active = @isActive, updated_at = GETDATE()
-        OUTPUT INSERTED.*
         WHERE id = @userId
       `, {
         userId,
         isActive: is_active
       });
 
-      if (!updateResult.recordset || updateResult.recordset.length === 0) {
+      if (updateResult.rowsAffected[0] === 0) {
         return res.status(404).json({
           success: false,
           error: 'User not found',
@@ -711,7 +758,14 @@ router.put('/admin/users/:id/status',
         });
       }
 
-      const updatedUser = updateResult.recordset[0];
+      // Get the updated user data
+      const userResult = await databaseService.query(`
+        SELECT id, email, first_name, last_name, role, is_active, created_at, updated_at
+        FROM tblUsers
+        WHERE id = @userId
+      `, { userId });
+
+      const updatedUser = userResult.recordset[0];
 
       // Log the action
       await databaseService.query(`
@@ -751,8 +805,21 @@ router.post('/heartbeat',
       const sessionToken = req.token;
       const userId = req.user.id;
 
-      // Record heartbeat in session manager
-      const success = await sessionManager.recordHeartbeat(sessionToken, userId);
+      // Record heartbeat in session service
+      let success = false;
+      try {
+        const services = await getSessionServices();
+        if (services) {
+          success = await services.sessionService.recordHeartbeat(sessionToken, userId);
+        } else {
+          // Session service not available, but token is valid (verified by middleware)
+          success = true;
+        }
+      } catch (sessionError) {
+        console.warn('Failed to record heartbeat with session service:', sessionError.message);
+        // Continue - token is still valid even if heartbeat fails
+        success = true;
+      }
 
       if (success) {
         res.json({
@@ -788,7 +855,15 @@ router.post('/logout-tab',
       const sessionToken = req.token;
 
       // Expire the specific session
-      await sessionManager.expireSession(sessionToken, 'tab_closed');
+      try {
+        const services = await getSessionServices();
+        if (services) {
+          await services.sessionService.expireSession(sessionToken, 'tab_closed');
+        }
+      } catch (sessionError) {
+        console.warn('Failed to expire session with session service:', sessionError.message);
+        // Continue without session service
+      }
 
       res.json({
         success: true,
@@ -806,6 +881,138 @@ router.post('/logout-tab',
 );
 
 /**
+ * DELETE /api/auth/admin/users/:id
+ * Permanently delete a user (admin only)
+ */
+router.delete('/admin/users/:id',
+  authenticateToken,
+  requireAdmin,
+  async (req, res) => {
+    try {
+
+      const userId = parseInt(req.params.id);
+
+      if (!userId || isNaN(userId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid user ID',
+          message: 'Please provide a valid user ID'
+        });
+      }
+
+      // Prevent admin from deleting themselves
+      if (req.user.id === userId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Cannot delete own account',
+          message: 'You cannot delete your own account'
+        });
+      }
+
+      // Get user details before deletion for logging
+      const userResult = await databaseService.query(`
+        SELECT id, email, first_name, last_name, role, is_active
+        FROM tblUsers
+        WHERE id = @userId
+      `, { userId });
+
+      if (!userResult.recordset || userResult.recordset.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: 'User not found',
+          message: 'No user found with the specified ID'
+        });
+      }
+
+      const userToDelete = userResult.recordset[0];
+
+      // Start transaction for cascading deletes
+      const transaction = await databaseService.beginTransaction();
+
+      try {
+        // Delete related data in correct order to avoid foreign key constraints
+
+        // 1. Delete user sessions
+        await transaction.request().query(`
+          DELETE FROM tblUserSessions WHERE user_id = ${userId}
+        `);
+
+        // 2. Delete workflow-related data (cascading deletes will handle child tables)
+        // First delete from tblWorkflows (this will cascade to tblWorkflowConfigs, tblFlowNodes, tblFlowEdges)
+        await transaction.request().query(`
+          DELETE FROM tblWorkflows WHERE created_by = ${userId}
+        `);
+
+        // 3. Delete workflow templates created by user
+        await transaction.request().query(`
+          DELETE FROM tblWorkflowTemplates WHERE created_by = ${userId}
+        `);
+
+        // 4. Delete any call logs associated with user (if user_id column exists)
+        // Note: Currently tblCallLogs doesn't have user_id, but we'll add this for future compatibility
+        try {
+          await transaction.request().query(`
+            DELETE FROM tblCallLogs WHERE user_id = ${userId}
+          `);
+        } catch (error) {
+          // Ignore error if user_id column doesn't exist yet
+        }
+
+        // 5. Finally delete the user
+        const deleteResult = await transaction.request().query(`
+          DELETE FROM tblUsers WHERE id = ${userId}
+        `);
+
+        if (deleteResult.rowsAffected[0] === 0) {
+          await databaseService.rollbackTransaction(transaction);
+          return res.status(404).json({
+            success: false,
+            error: 'User not found',
+            message: 'No user found with the specified ID'
+          });
+        }
+
+        // Commit the transaction
+        await databaseService.commitTransaction(transaction);
+
+        // Log the deletion action
+        await databaseService.query(`
+          INSERT INTO tblLogs (message, level, source, created_at)
+          VALUES (@message, 'WARN', 'ADMIN', GETDATE())
+        `, {
+          message: `Admin ${req.user.email} permanently deleted user ${userToDelete.email} (ID: ${userId})`
+        });
+
+        res.json({
+          success: true,
+          message: 'User deleted permanently',
+          data: {
+            deleted_user: {
+              id: userToDelete.id,
+              email: userToDelete.email,
+              role: userToDelete.role
+            }
+          }
+        });
+
+      } catch (transactionError) {
+        await databaseService.rollbackTransaction(transaction);
+        throw transactionError;
+      }
+
+    } catch (error) {
+      console.error('Admin user deletion error:', error);
+      console.error('Error stack:', error.stack);
+      res.status(500).json({
+        success: false,
+        error: 'Failed to delete user',
+        message: 'An error occurred while deleting the user'
+      });
+    }
+  }
+);
+
+/**
  * GET /api/auth/session-stats
  * Get session statistics (admin only)
  */
@@ -814,7 +1021,17 @@ router.get('/session-stats',
   requireAdmin,
   async (req, res) => {
     try {
-      const stats = sessionManager.getSessionStats();
+      let stats = { totalInMemory: 0, active: 0, expired: 0, lastCleanup: null };
+      try {
+        const services = await getSessionServices();
+        if (services) {
+          const sessionStats = await services.sessionService.getSessionStats();
+          stats = sessionStats.cache || stats;
+        }
+      } catch (sessionError) {
+        console.warn('Failed to get session stats from session service:', sessionError.message);
+        // Continue with default stats
+      }
 
       // Get additional database stats
       const dbStats = await databaseService.query(`

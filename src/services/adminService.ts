@@ -117,6 +117,13 @@ class AdminService {
     });
   }
 
+  // Delete user permanently
+  async deleteUser(userId: number): Promise<ApiResponse<{ message: string; deleted_user: { id: number; email: string; role: string } }>> {
+    return this.makeRequest<{ message: string; deleted_user: { id: number; email: string; role: string } }>(`/api/auth/admin/users/${userId}`, {
+      method: 'DELETE',
+    });
+  }
+
   // Utility functions for formatting user data
   static formatUserDisplayName(user: AdminUser): string {
     if (user.first_name && user.last_name) {

@@ -8,6 +8,7 @@ import {
   Eye,
   UserCheck,
   UserX,
+  Trash2,
   Activity,
   Settings,
   AlertCircle,
@@ -36,6 +37,14 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { toast } from 'sonner';
 import { AdminService, formatUserDisplayName, formatUserInitials, formatRelativeTime } from '@/services/adminService';
@@ -60,6 +69,8 @@ const UserManagement: React.FC = () => {
   const [filterRole, setFilterRole] = useState<'all' | 'user' | 'admin'>('all');
   const [filterStatus, setFilterStatus] = useState<'all' | 'active' | 'inactive'>('all');
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date());
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<AdminUser | null>(null);
 
   // Create AdminService instance
   const adminService = new AdminService();
@@ -96,7 +107,7 @@ const UserManagement: React.FC = () => {
   const handleStatusToggle = async (userId: number, currentStatus: boolean) => {
     try {
       const response = await adminService.updateUserStatus(userId, !currentStatus);
-      
+
       if (response.success) {
         toast.success(`User ${!currentStatus ? 'activated' : 'deactivated'} successfully`);
         await loadUsers(true); // Silent reload to get updated data
@@ -105,6 +116,30 @@ const UserManagement: React.FC = () => {
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to update user status');
+    }
+  };
+
+  const handleDeleteUser = (user: AdminUser) => {
+    setUserToDelete(user);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    try {
+      const response = await adminService.deleteUser(userToDelete.id);
+
+      if (response.success) {
+        toast.success(`User ${userToDelete.email} deleted permanently`);
+        await loadUsers(true); // Silent reload to get updated data
+        setDeleteDialogOpen(false);
+        setUserToDelete(null);
+      } else {
+        toast.error(response.error || 'Failed to delete user');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Failed to delete user');
     }
   };
 
@@ -501,6 +536,14 @@ const UserManagement: React.FC = () => {
                                 </>
                               )}
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              onClick={() => handleDeleteUser(user)}
+                              className="text-red-600 focus:text-red-600"
+                            >
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete Permanently
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -519,6 +562,37 @@ const UserManagement: React.FC = () => {
           </CardContent>
         </Card>
         </div>
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Delete User Permanently</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to permanently delete{' '}
+                <span className="font-semibold">{userToDelete?.email}</span>?
+                {' '}This action cannot be undone and will remove all user data including workflows, sessions, and call logs.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setDeleteDialogOpen(false);
+                  setUserToDelete(null);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteUser}
+              >
+                Delete Permanently
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
     </div>
   );
 };

@@ -2,8 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Save,
-  Play,
-  Square,
   FileText,
   Settings,
   Download,
@@ -55,7 +53,7 @@ const FlowToolbar: React.FC = () => {
     importWorkflowFromData
   } = useFlowStore();
 
-  const [isExecuting, setIsExecuting] = useState(false);
+
   const [globalPrompt, setGlobalPrompt] = useState('You are a helpful AI assistant. Be professional, friendly, and concise in your responses. Listen carefully to the user and provide accurate, helpful information.');
 
   // Sync global prompt with start node when nodes change
@@ -123,29 +121,7 @@ const FlowToolbar: React.FC = () => {
     toast.success(`Workflow "${config.name}" updated successfully!`);
   };
 
-  const handleExecute = async () => {
-    if (nodes.length === 0) {
-      toast.error('Cannot execute empty flow');
-      return;
-    }
 
-    setIsExecuting(true);
-    try {
-      // Simulate flow execution
-      toast.info('Executing flow...');
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      toast.success('Flow executed successfully!');
-    } catch (error) {
-      toast.error('Flow execution failed');
-    } finally {
-      setIsExecuting(false);
-    }
-  };
-
-  const handleStop = () => {
-    setIsExecuting(false);
-    toast.info('Flow execution stopped');
-  };
 
   const handleExport = async () => {
     try {
@@ -321,28 +297,8 @@ const FlowToolbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Center Section - Execution Controls */}
+      {/* Center Section - Validation Controls */}
       <div className="flex items-center space-x-2">
-        {!isExecuting ? (
-          <Button
-            onClick={handleExecute}
-            className="flex items-center space-x-2"
-            disabled={nodes.length === 0}
-          >
-            <Play className="h-4 w-4" />
-            <span>Execute</span>
-          </Button>
-        ) : (
-          <Button
-            onClick={handleStop}
-            variant="destructive"
-            className="flex items-center space-x-2"
-          >
-            <Square className="h-4 w-4" />
-            <span>Stop</span>
-          </Button>
-        )}
-        
         <Button
           onClick={handleValidate}
           variant="outline"

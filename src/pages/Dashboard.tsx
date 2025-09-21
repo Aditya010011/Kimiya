@@ -334,7 +334,7 @@ const Dashboard: React.FC = () => {
       <DashboardHeader
         title="Kimiyi Dashboard"
         subtitle="Manage voice agent workflows"
-        showNewWorkflowButton={true}
+        showNewWorkflowButton={false}
         isCreating={isCreating}
         onNewWorkflow={handleNewWorkflow}
       />

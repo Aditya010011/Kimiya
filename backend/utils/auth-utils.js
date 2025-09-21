@@ -61,12 +61,17 @@ const tokenUtils = {
   /**
    * Generate JWT access token
    */
-  generateAccessToken(user) {
+  generateAccessToken(user, sessionToken = null) {
     const payload = {
       userId: user.id,
       email: user.email,
       role: user.role
     };
+
+    // Include session token if provided
+    if (sessionToken) {
+      payload.sessionToken = sessionToken;
+    }
 
     return jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: process.env.JWT_EXPIRES_IN || '24h',

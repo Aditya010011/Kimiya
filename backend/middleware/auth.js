@@ -1,17 +1,21 @@
 const jwt = require('jsonwebtoken');
 const databaseService = require('../services/database');
 
+
+
 /**
  * JWT Authentication Middleware
  * Verifies JWT tokens and adds user information to request object
  */
 const authenticateToken = async (req, res, next) => {
   try {
+
     // Get token from Authorization header
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
 
     if (!token) {
+
       return res.status(401).json({
         success: false,
         error: 'Access token required',
@@ -41,13 +45,9 @@ const authenticateToken = async (req, res, next) => {
 
     // Add user information to request object
     req.user = userResult.recordset[0];
-    req.token = token;
+    req.token = decoded.sessionToken || token; // Use session token if available, fallback to JWT token
 
-    // Update session activity with session manager (async, don't wait)
-    const sessionManager = require('../services/sessionManager');
-    sessionManager.recordHeartbeat(token, decoded.userId).catch(err => {
-      console.warn('Failed to record session heartbeat:', err.message);
-    });
+
 
     next();
   } catch (error) {

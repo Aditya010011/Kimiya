@@ -25,8 +25,12 @@ console.log(`🔧 Loading configuration for ${environment} environment`);
 // Load database service after environment variables are loaded
 const databaseService = require('./services/database');
 
-// Load session manager
-const sessionManager = require('./services/sessionManager');
+// Load new session management system
+const { bootstrapSessionServices, getSessionMiddleware, getSessionStats } = require('./core/SessionServiceBootstrap');
+
+// Session services (will be initialized after server setup)
+let sessionServices = null;
+let sessionMiddleware = null;
 
 // Validate port configuration
 if (!validatePortConfig(environment)) {
@@ -346,13 +350,49 @@ const server = app.listen(PORT, () => {
   console.log(`   • GET  /health - Health check`);
   console.log(`   • GET  /ping - Quick ping`);
 
-  // Initialize session manager
+  // Initialize session management system
   setTimeout(async () => {
     try {
-      await sessionManager.initialize();
-      console.log(`   • Session Manager: Active with heartbeat monitoring`);
+      console.log('🔄 Initializing Session Management System...');
+
+      sessionServices = await bootstrapSessionServices({
+        cache: {
+          maxMemorySize: 10000,
+          ttl: 30 * 60 * 1000, // 30 minutes
+          enableRedis: process.env.REDIS_URL ? true : false,
+          redisConfig: process.env.REDIS_URL ? { url: process.env.REDIS_URL } : {}
+        },
+        session: {
+          sessionTimeout: 30 * 60 * 1000, // 30 minutes
+          heartbeatTimeout: 5 * 60 * 1000, // 5 minutes
+          maxSessionsPerUser: 10
+        }
+      });
+
+      sessionMiddleware = getSessionMiddleware(sessionServices);
+
+      console.log(`   • Session Management System: ✅ Active with comprehensive monitoring`);
+
+      // Add session stats endpoint
+      app.get('/api/session-stats', sessionMiddleware.requireAdmin, async (req, res) => {
+        try {
+          const stats = await getSessionStats(sessionServices);
+          res.json({
+            success: true,
+            data: stats
+          });
+        } catch (error) {
+          console.error('Failed to get session stats:', error);
+          res.status(500).json({
+            success: false,
+            error: 'Failed to retrieve session statistics'
+          });
+        }
+      });
+
     } catch (error) {
-      console.error('Session manager initialization failed:', error.message);
+      console.error('❌ Session Management System initialization failed:', error.message);
+      console.log(`   • Session Management System: ❌ Failed - using fallback mode`);
     }
   }, 2000); // 2 seconds after startup
   console.log(`   • POST /api/make-call-optimized - Optimized call creation`);
