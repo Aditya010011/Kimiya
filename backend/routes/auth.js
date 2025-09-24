@@ -71,9 +71,8 @@ router.post('/register',
       const passwordHash = await passwordUtils.hashPassword(password);
 
       // Create user
-      const createUserResult = await databaseService.query(`
+      await databaseService.query(`
         INSERT INTO tblUsers (email, password_hash, first_name, last_name, role, is_active, created_at, updated_at)
-        OUTPUT INSERTED.*
         VALUES (@email, @passwordHash, @firstName, @lastName, @role, 1, GETDATE(), GETDATE())
       `, {
         email,
@@ -82,6 +81,11 @@ router.post('/register',
         lastName: last_name || null,
         role
       });
+
+      // Get the created user
+      const createUserResult = await databaseService.query(`
+        SELECT * FROM tblUsers WHERE email = @email
+      `, { email });
 
       const newUser = createUserResult.recordset[0];
 
@@ -391,11 +395,15 @@ router.put('/profile',
       const updateQuery = `
         UPDATE tblUsers
         SET ${updateFields.join(', ')}
-        OUTPUT INSERTED.*
         WHERE id = @userId AND is_active = 1
       `;
 
-      const updateResult = await databaseService.query(updateQuery, updateParams);
+      await databaseService.query(updateQuery, updateParams);
+
+      // Get the updated user
+      const updateResult = await databaseService.query(`
+        SELECT * FROM tblUsers WHERE id = @userId AND is_active = 1
+      `, { userId });
 
       if (updateResult.recordset.length === 0) {
         return res.status(404).json({

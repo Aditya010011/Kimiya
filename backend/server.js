@@ -153,6 +153,11 @@ const { testTTSEndpoint } = require('./routes/test-tts-endpoint');
 app.get('/api/twilio-config', twilioConfigHandler);
 app.post('/api/chat', chatHandler);
 
+// Chat with analytics endpoint (with authentication)
+const chatWithAnalyticsHandler = require('./routes/chat-with-analytics');
+const { optionalAuth } = require('./middleware/auth');
+app.post('/api/chat-with-analytics', optionalAuth, chatWithAnalyticsHandler);
+
 // ConversationRelay routes (individual handlers for main endpoints)
 app.post('/api/make-call-optimized', makeCallOptimizedHandler);
 app.all('/api/twiml-optimized', twimlOptimizedHandler);
@@ -167,6 +172,10 @@ app.use('/api', optimizedRoutes);
 // Database operations routes
 const databaseRoutes = require('./routes/database-operations');
 app.use('/api/database', databaseRoutes);
+
+// Chat Analytics routes
+const chatAnalyticsRoutes = require('./routes/chat-analytics');
+app.use('/api/chat-analytics', chatAnalyticsRoutes);
 
 // Authentication routes
 const authRoutes = require('./routes/auth');

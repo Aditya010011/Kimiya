@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import {
   Users,
   Search,
@@ -57,6 +57,7 @@ interface UserManagementStats {
 }
 
 const UserManagement: React.FC = () => {
+  const navigate = useNavigate();
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [stats, setStats] = useState<UserManagementStats>({
     total_count: 0,
@@ -141,6 +142,10 @@ const UserManagement: React.FC = () => {
     } catch (err) {
       toast.error(err instanceof Error ? err.message : 'Failed to delete user');
     }
+  };
+
+  const handleViewUserDetails = (userId: number) => {
+    navigate(`/admin/users/${userId}/analytics`);
   };
 
   const filteredUsers = users.filter(user => {
@@ -515,7 +520,7 @@ const UserManagement: React.FC = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                            <DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => handleViewUserDetails(user.id)}>
                               <Eye className="mr-2 h-4 w-4" />
                               View Details
                             </DropdownMenuItem>

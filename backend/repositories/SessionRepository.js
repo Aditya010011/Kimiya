@@ -33,12 +33,11 @@ class SessionRepository {
         deviceInfo = null
       } = sessionData;
 
-      const result = await this.db.query(`
+      await this.db.query(`
         INSERT INTO tblUserSessions (
           user_id, session_token, expires_at, created_at, last_accessed_at,
           ip_address, user_agent, device_info, is_active
         )
-        OUTPUT INSERTED.*
         VALUES (
           @userId, @sessionToken, @expiresAt, GETDATE(), GETDATE(),
           @ipAddress, @userAgent, @deviceInfo, 1
@@ -51,6 +50,12 @@ class SessionRepository {
         userAgent: userAgent?.substring(0, 500), // Limit length
         deviceInfo: deviceInfo ? JSON.stringify(deviceInfo) : null
       });
+
+      // Get the inserted record
+      const result = await this.db.query(`
+        SELECT * FROM tblUserSessions
+        WHERE session_token = @sessionToken
+      `, { sessionToken });
 
       return result.recordset[0];
     } catch (error) {

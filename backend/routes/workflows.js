@@ -353,11 +353,16 @@ router.post('/', authenticateToken, async (req, res) => {
 
     try {
       // Create workflow
-      const workflowResult = await databaseService.query(`
+      await databaseService.query(`
         INSERT INTO tblWorkflows (name, description, created_by, created_at, updated_at)
-        OUTPUT INSERTED.id
         VALUES (@name, @description, @userId, GETDATE(), GETDATE())
       `, { name: name.trim(), description: description || null, userId }, transaction);
+
+      // Get the created workflow
+      const workflowResult = await databaseService.query(`
+        SELECT id FROM tblWorkflows WHERE name = @name AND created_by = @userId
+        ORDER BY created_at DESC
+      `, { name: name.trim(), userId }, transaction);
 
       const workflowId = workflowResult.recordset[0].id;
 
@@ -887,13 +892,21 @@ router.post('/import', authenticateToken, async (req, res) => {
 
       } else {
         // Create new workflow
-        const workflowResult = await databaseService.query(`
+        await databaseService.query(`
           INSERT INTO tblWorkflows (name, description, created_by, created_at, updated_at)
-          OUTPUT INSERTED.id
           VALUES (@name, @description, @userId, GETDATE(), GETDATE())
         `, {
           name: workflowData.name,
           description: workflowData.description || null,
+          userId
+        }, transaction);
+
+        // Get the created workflow
+        const workflowResult = await databaseService.query(`
+          SELECT id FROM tblWorkflows WHERE name = @name AND created_by = @userId
+          ORDER BY created_at DESC
+        `, {
+          name: workflowData.name,
           userId
         }, transaction);
 

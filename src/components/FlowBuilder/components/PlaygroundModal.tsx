@@ -16,6 +16,9 @@ import { WorkflowConfig } from '../../../types/workflowConfig';
 import { toast } from 'sonner';
 import { defaultTwilioService, TwilioService, CallResponse } from '../../../services/twilioService';
 import { getApiBaseUrl } from '../../../utils/envConfig';
+import { chatAnalyticsService } from '../../../services/chatAnalyticsService';
+import { useAuthStore } from '../../../stores/authStore';
+import { useFlowStore } from '../../../stores/flowStore';
 
 interface PlaygroundModalProps {
   isOpen: boolean;
@@ -49,6 +52,12 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
   onUpdateWorkflowConfig,
   onSaveFlow
 }) => {
+  // Get current authenticated user
+  const { user } = useAuthStore();
+
+  // Get current workflow name from FlowStore
+  const { workflowName: currentWorkflowName } = useFlowStore();
+
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
@@ -60,6 +69,11 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const [isUserScrolling, setIsUserScrolling] = useState(false);
   const [showScrollToBottom, setShowScrollToBottom] = useState(false);
+
+  // Analytics tracking state
+  const [analyticsSessionId, setAnalyticsSessionId] = useState<string | null>(null);
+  const [isAnalyticsEnabled, setIsAnalyticsEnabled] = useState(true);
+  const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
 
   // Call functionality state
   const [activeTab, setActiveTab] = useState<'chat' | 'call'>('chat');
@@ -208,22 +222,118 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
     }
   };
 
+  // Start analytics session
+  const startAnalyticsSession = async () => {
+    if (!isAnalyticsEnabled) {
+      console.log('⚠️ ANALYTICS: Skipping session start - analytics disabled');
+      return;
+    }
+
+    // Create a default workflow config if none exists
+    const effectiveWorkflowConfig = workflowConfig || {
+      id: `workflow-${Date.now()}`,
+      name: currentWorkflowName || 'Untitled Workflow',
+      description: 'Auto-generated workflow for playground session',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    console.log('🚀 ANALYTICS: Starting session with config:', effectiveWorkflowConfig.name);
+    console.log('📝 ANALYTICS: Using workflow name from FlowStore:', currentWorkflowName);
+    console.log('📝 ANALYTICS: workflowConfig exists:', !!workflowConfig);
+
+    try {
+      const sessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const startTime = new Date();
+
+      console.log('🚀 ANALYTICS: Starting new session:', {
+        sessionId,
+        workflowId: effectiveWorkflowConfig.id,
+        workflowName: effectiveWorkflowConfig.name,
+        userId: user?.id || 1,
+        userEmail: user?.email || 'development-user'
+      });
+
+      await chatAnalyticsService.createChatSession({
+        session_id: sessionId,
+        workflow_id: effectiveWorkflowConfig.id,
+        workflow_name: effectiveWorkflowConfig.name,
+        user_id: user?.id || 1, // Use authenticated user ID, fallback to 1 for development
+        start_time: startTime.toISOString()
+      });
+
+      setAnalyticsSessionId(sessionId);
+      setSessionStartTime(startTime);
+      console.log('✅ ANALYTICS: Session started successfully:', sessionId);
+    } catch (error) {
+      console.error('❌ ANALYTICS: Failed to start session:', error);
+      // Don't show error to user, just log it
+    }
+  };
+
+  // End analytics session
+  const endAnalyticsSession = async (outcome?: string) => {
+    if (!analyticsSessionId || !isAnalyticsEnabled) {
+      console.log('⚠️ ANALYTICS: Skipping session end - no active session or analytics disabled');
+      return;
+    }
+
+    try {
+      console.log('🏁 ANALYTICS: Ending session:', analyticsSessionId, 'with outcome:', outcome || 'success');
+
+      await chatAnalyticsService.updateChatSession(analyticsSessionId, {
+        end_time: new Date().toISOString(),
+        status: 'completed',
+        outcome: outcome || 'success'
+      });
+
+      console.log('✅ ANALYTICS: Session ended successfully:', analyticsSessionId);
+      setAnalyticsSessionId(null);
+      setSessionStartTime(null);
+    } catch (error) {
+      console.error('❌ ANALYTICS: Failed to end session:', error);
+    }
+  };
+
   const callBackendChatAPI = async (messages: any[]): Promise<string> => {
     try {
       const API_BASE_URL = getApiBaseUrl();
 
-      const response = await fetch(`${API_BASE_URL}/api/chat`, {
+      // Use analytics-enabled endpoint if analytics is enabled
+      const endpoint = isAnalyticsEnabled ? '/api/chat-with-analytics' : '/api/chat';
+
+      const requestBody: any = {
+        messages: messages,
+        workflowId: workflowConfig?.id || `workflow-${Date.now()}`,
+        globalPrompt: globalPrompt,
+        currentNodeId: currentNodeId
+      };
+
+      // Add analytics-specific fields if analytics is enabled
+      if (isAnalyticsEnabled) {
+        // Create effective workflow config for analytics
+        const effectiveWorkflowConfig = workflowConfig || {
+          id: `workflow-${Date.now()}`,
+          name: currentWorkflowName || 'Untitled Workflow',
+          description: 'Auto-generated workflow for playground session'
+        };
+
+        requestBody.sessionId = analyticsSessionId;
+        requestBody.userId = user?.id || 1; // Use authenticated user ID, fallback to 1 for development
+        requestBody.workflowName = effectiveWorkflowConfig.name;
+        requestBody.isNewSession = !analyticsSessionId; // First message creates session
+        requestBody.isEndSession = false; // Will be set to true on termination
+      }
+
+      console.log('🔄 CHAT API: Calling', endpoint, 'with analytics:', isAnalyticsEnabled);
+
+      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         signal: AbortSignal.timeout(15000), // 15 second timeout
-        body: JSON.stringify({
-          messages: messages,
-          workflowId: workflowConfig?.id || `workflow-${Date.now()}`,
-          globalPrompt: globalPrompt,
-          currentNodeId: currentNodeId
-        }),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
@@ -447,6 +557,9 @@ Conversation turns in this node: ${conversationTurns}`
 
         setMessages(prev => [...prev, aiMessage]);
 
+        // Note: AI message analytics tracking is handled by the backend chat-with-analytics endpoint
+        // to avoid duplicate message storage
+
         // Check if we should move to next node (more aggressive to follow workflow)
         if (conversationTurns >= 2) { // Reduced back to 2 to move faster through workflow
           // Add a small delay to make the conversation feel more natural
@@ -573,6 +686,9 @@ Conversation turns in this node: ${conversationTurns}`
     setInputMessage('');
     setIsLoading(true);
 
+    // Note: User message analytics tracking is handled by the backend chat-with-analytics endpoint
+    // to avoid duplicate message storage
+
     // Check for termination intent
     if (detectTerminationIntent(messageContent)) {
       const goodbyeMessage: ChatMessage = {
@@ -583,6 +699,17 @@ Conversation turns in this node: ${conversationTurns}`
       };
 
       setMessages(prev => [...prev, goodbyeMessage]);
+
+      // End analytics session when conversation ends
+      if (analyticsSessionId && isAnalyticsEnabled) {
+        try {
+          console.log('👋 ANALYTICS: Ending session with success outcome');
+          await endAnalyticsSession('success');
+        } catch (error) {
+          console.error('❌ ANALYTICS: Failed to end session:', error);
+        }
+      }
+
       setIsLoading(false);
 
       // If there's an active call, end it
@@ -600,8 +727,12 @@ Conversation turns in this node: ${conversationTurns}`
     }
   };
 
-  const handleStartSimulation = () => {
+  const handleStartSimulation = async () => {
     setIsSimulating(true);
+
+    // Start analytics session
+    await startAnalyticsSession();
+
     initializeConversation();
   };
 
@@ -612,6 +743,9 @@ Conversation turns in this node: ${conversationTurns}`
     setConversationTurns(0);
     setNodeContext('');
     setConversationSummary('');
+
+    // End analytics session
+    await endAnalyticsSession('abandoned');
 
     // End any active call
     if (isCallInProgress && currentCallSid) {

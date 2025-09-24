@@ -95,15 +95,21 @@ router.post('/log-entry', async (req, res) => {
     }
 
     // Example query - you'll need to create the actual table structure
-    const result = await databaseService.query(`
+    await databaseService.query(`
       INSERT INTO tblLogs (message, level, source, created_at)
-      OUTPUT INSERTED.*
       VALUES (@message, @level, @source, GETDATE())
     `, {
       message,
       level,
       source
     });
+
+    // Get the created log entry
+    const result = await databaseService.query(`
+      SELECT TOP 1 * FROM tblLogs
+      WHERE message = @message AND level = @level AND source = @source
+      ORDER BY created_at DESC
+    `, { message, level, source });
 
     res.json({
       success: true,
