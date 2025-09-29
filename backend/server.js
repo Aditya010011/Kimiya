@@ -185,6 +185,20 @@ app.use('/api/auth', authRoutes);
 const workflowRoutes = require('./routes/workflows');
 app.use('/api/workflows', workflowRoutes);
 
+// Contact import/export routes (must be before main contacts routes to avoid /:id conflict)
+const contactImportExportRoutes = require('./routes/contacts-import-export');
+app.use('/api/contacts', contactImportExportRoutes);
+
+// Contact management routes
+const contactRoutes = require('./routes/contacts');
+app.use('/api/contacts', contactRoutes);
+
+const contactGroupRoutes = require('./routes/contact-groups');
+app.use('/api/contact-groups', contactGroupRoutes);
+
+const contactTagRoutes = require('./routes/contact-tags');
+app.use('/api/contact-tags', contactTagRoutes);
+
 // ConversationRelay test endpoint
 app.get('/api/conversationrelay-test', (req, res) => {
   res.json({

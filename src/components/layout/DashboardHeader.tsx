@@ -7,7 +7,8 @@ import {
   User,
   Users,
   LogOut,
-  Loader2
+  Loader2,
+  Contact
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
@@ -142,6 +143,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <DropdownMenuItem onClick={() => navigate('/profile')}>
                 <User className="mr-2 h-4 w-4" />
                 <span>Profile</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/contacts')}>
+                <Contact className="mr-2 h-4 w-4" />
+                <span>Contacts</span>
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => navigate('/builder')}>
                 <Settings className="mr-2 h-4 w-4" />

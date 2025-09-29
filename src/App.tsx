@@ -7,6 +7,7 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Profile from "./pages/Profile";
+import Contacts from "./pages/Contacts";
 import UserManagement from "./pages/UserManagement";
 import UserAnalyticsDashboard from "./pages/UserAnalyticsDashboard";
 import NotFound from "./pages/NotFound";
@@ -38,6 +39,11 @@ const App = () => (
           <Route path="/profile" element={
             <ProtectedRoute>
               <Profile />
+            </ProtectedRoute>
+          } />
+          <Route path="/contacts" element={
+            <ProtectedRoute>
+              <Contacts />
             </ProtectedRoute>
           } />
           <Route path="/admin/users" element={
