@@ -10,6 +10,7 @@ import Profile from "./pages/Profile";
 import Contacts from "./pages/Contacts";
 import UserManagement from "./pages/UserManagement";
 import UserAnalyticsDashboard from "./pages/UserAnalyticsDashboard";
+import InboundCallTesting from "./pages/InboundCallTesting";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 
@@ -54,6 +55,11 @@ const App = () => (
           <Route path="/admin/users/:userId/analytics" element={
             <ProtectedRoute requiredRole="admin">
               <UserAnalyticsDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/inbound-testing" element={
+            <ProtectedRoute>
+              <InboundCallTesting />
             </ProtectedRoute>
           } />
 

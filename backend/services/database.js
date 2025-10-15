@@ -81,6 +81,17 @@ class DatabaseService {
   }
 
   /**
+   * Get database connection pool
+   * Ensures connection is established before returning pool
+   */
+  async getPool() {
+    if (!this.pool) {
+      await this.connect();
+    }
+    return this.pool;
+  }
+
+  /**
    * Execute a query with parameters
    */
   async query(queryString, parameters = {}) {

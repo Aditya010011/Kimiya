@@ -86,7 +86,7 @@ app.get('/health', (req, res) => {
       activeConnections: activeConnections,
       websocketPath: '/api/conversationrelay-ws',
       protocolVersion: 'ConversationRelay-v1.0',
-      expectedUrl: `wss://${process.env.WEBHOOK_BASE_URL?.replace('https://', '') || 'ai-phone-call.kimiyi.ai'}/api/conversationrelay-ws`
+      expectedUrl: `wss://${process.env.WEBHOOK_BASE_URL?.replace('https://', '') || 'dev-ai-phone-call.kimiyi.ai'}/api/conversationrelay-ws`
     },
     environment: {
       nodeEnv: process.env.NODE_ENV || 'not set',
@@ -98,7 +98,7 @@ app.get('/health', (req, res) => {
       hasAzureEndpoint: !!process.env.AZURE_OPENAI_ENDPOINT,
       hasTwilioConfig: !!(process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN),
       hasAzureConfig: !!(process.env.AZURE_OPENAI_API_KEY && process.env.AZURE_OPENAI_ENDPOINT),
-      webhookBaseUrl: process.env.WEBHOOK_BASE_URL || 'https://ai-phone-call.kimiyi.ai',
+      webhookBaseUrl: process.env.WEBHOOK_BASE_URL || 'https://dev-ai-phone-call.kimiyi.ai',
       hasDatabaseConfig: !!(process.env.DB_SERVER && process.env.DB_DATABASE && process.env.DB_USER && process.env.DB_PASSWORD),
       hasJwtConfig: !!process.env.JWT_SECRET
     },
@@ -185,6 +185,10 @@ app.use('/api/auth', authRoutes);
 const workflowRoutes = require('./routes/workflows');
 app.use('/api/workflows', workflowRoutes);
 
+// Inbound call routes (TwiML-based, separate from ConversationRelay)
+const inboundRoutes = require('./routes/inbound-routes');
+app.use('/api/inbound', inboundRoutes);
+
 // Contact import/export routes (must be before main contacts routes to avoid /:id conflict)
 const contactImportExportRoutes = require('./routes/contacts-import-export');
 app.use('/api/contacts', contactImportExportRoutes);
@@ -203,7 +207,7 @@ app.use('/api/contact-tags', contactTagRoutes);
 app.get('/api/conversationrelay-test', (req, res) => {
   res.json({
     status: 'ConversationRelay WebSocket server is running',
-    endpoint: 'wss://ai-phone-call.kimiyi.ai/api/conversationrelay-ws',
+    endpoint: `wss://${process.env.WEBHOOK_BASE_URL?.replace('https://', '') || 'dev-ai-phone-call.kimiyi.ai'}/api/conversationrelay-ws`,
     protocol: 'Twilio ConversationRelay',
     features: [
       'Real-time bidirectional audio streaming',
@@ -225,7 +229,7 @@ app.get('/api/websocket-test', (req, res) => {
   res.json({
     websocketServer: 'active',
     path: '/api/conversationrelay-ws',
-    fullUrl: 'wss://ai-phone-call.kimiyi.ai/api/conversationrelay-ws',
+    fullUrl: `wss://${process.env.WEBHOOK_BASE_URL?.replace('https://', '') || 'dev-ai-phone-call.kimiyi.ai'}/api/conversationrelay-ws`,
     testConnection: 'Use WebSocket client to connect to the above URL',
     expectedProtocol: 'Twilio ConversationRelay Media Stream'
   });
@@ -434,7 +438,7 @@ try {
   global.conversationRelayWS = conversationRelayWS;
 
   console.log(`🎙️  ConversationRelay WebSocket server initialized`);
-  console.log(`📡 Real-time audio streaming: wss://ai-phone-call.kimiyi.ai/api/conversationrelay-ws`);
+  console.log(`📡 Real-time audio streaming: wss://${process.env.WEBHOOK_BASE_URL?.replace('https://', '') || 'dev-ai-phone-call.kimiyi.ai'}/api/conversationrelay-ws`);
 } catch (error) {
   console.error(`❌ ConversationRelay WebSocket server failed to initialize:`, error.message);
   console.log(`📡 Falling back to traditional TwiML processing`);

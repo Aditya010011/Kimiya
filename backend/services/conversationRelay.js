@@ -112,7 +112,7 @@ class ConversationRelay extends EventEmitter {
     const mediaStreamConfig = {
       callSid,
       track: 'both', // inbound and outbound
-      statusCallback: `${process.env.WEBHOOK_BASE_URL || 'https://ai-phone-call.kimiyi.ai'}/api/media-stream-status`,
+      statusCallback: `${process.env.WEBHOOK_BASE_URL || 'https://dev-ai-phone-call.kimiyi.ai'}/api/media-stream-status`,
       statusCallbackMethod: 'POST'
     };
 
