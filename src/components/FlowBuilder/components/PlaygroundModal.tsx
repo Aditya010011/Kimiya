@@ -19,6 +19,7 @@ import { getApiBaseUrl } from '../../../utils/envConfig';
 import { chatAnalyticsService } from '../../../services/chatAnalyticsService';
 import { useAuthStore } from '../../../stores/authStore';
 import { useFlowStore } from '../../../stores/flowStore';
+import { useChatWithCredits } from '../../../hooks/useChatWithCredits';
 
 interface PlaygroundModalProps {
   isOpen: boolean;
@@ -57,6 +58,9 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
 
   // Get current workflow name from FlowStore
   const { workflowName: currentWorkflowName } = useFlowStore();
+
+  // Credit-aware chat functionality
+  const { sendBasicChatMessage, sendAnalyticsChatMessage } = useChatWithCredits();
 
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [inputMessage, setInputMessage] = useState('');
@@ -297,11 +301,6 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
 
   const callBackendChatAPI = async (messages: any[]): Promise<string> => {
     try {
-      const API_BASE_URL = getApiBaseUrl();
-
-      // Use analytics-enabled endpoint if analytics is enabled
-      const endpoint = isAnalyticsEnabled ? '/api/chat-with-analytics' : '/api/chat';
-
       const requestBody: any = {
         messages: messages,
         workflowId: workflowConfig?.id || `workflow-${Date.now()}`,
@@ -325,24 +324,25 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
         requestBody.isEndSession = false; // Will be set to true on termination
       }
 
-      console.log('🔄 CHAT API: Calling', endpoint, 'with analytics:', isAnalyticsEnabled);
+      console.log('🔄 CHAT API: Calling with analytics:', isAnalyticsEnabled);
 
-      const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+      // Use credit-aware chat functionality
+      const chatFunction = isAnalyticsEnabled ? sendAnalyticsChatMessage : sendBasicChatMessage;
+      const response = await chatFunction(requestBody, {
+        includeAuth: true,
+        onCreditDeducted: (creditsDeducted, remainingBalance) => {
+          console.log(`💳 Credits deducted: ${creditsDeducted}, remaining: ${remainingBalance}`);
         },
-        signal: AbortSignal.timeout(15000), // 15 second timeout
-        body: JSON.stringify(requestBody),
+        onInsufficientCredits: (currentBalance, requiredCredits) => {
+          console.warn(`⚠️ Insufficient credits: ${currentBalance}/${requiredCredits}`);
+        }
       });
 
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `Backend API error: ${response.status} ${response.statusText}`);
+      if (!response.success) {
+        throw new Error(response.error || 'Chat request failed');
       }
 
-      const data = await response.json();
-      return data.response || 'No response generated';
+      return response.response || 'No response generated';
     } catch (error) {
       console.error('Backend chat API error:', error);
       throw error;

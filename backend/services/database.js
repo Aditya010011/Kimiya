@@ -144,16 +144,17 @@ class DatabaseService {
   }
 
   /**
-   * Begin a transaction
+   * Begin a transaction with specified isolation level
+   * @param {string} isolationLevel - Isolation level (default: SERIALIZABLE for credit operations)
    */
-  async beginTransaction() {
+  async beginTransaction(isolationLevel = sql.ISOLATION_LEVEL.SERIALIZABLE) {
     try {
       if (!this.pool) {
         await this.connect();
       }
 
       const transaction = new sql.Transaction(this.pool);
-      await transaction.begin();
+      await transaction.begin(isolationLevel);
       return transaction;
     } catch (error) {
       console.error('❌ Failed to begin transaction:', error.message);

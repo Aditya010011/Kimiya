@@ -11,16 +11,21 @@ import Contacts from "./pages/Contacts";
 import UserManagement from "./pages/UserManagement";
 import UserAnalyticsDashboard from "./pages/UserAnalyticsDashboard";
 import InboundCallTesting from "./pages/InboundCallTesting";
+import CreditDashboard from "./pages/CreditDashboard";
+import AdminCreditManagement from "./pages/AdminCreditManagement";
+import AdminCreditPlans from "./pages/AdminCreditPlans";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import { CreditProvider } from "./contexts/CreditContext";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
-      <Sonner />
-      <BrowserRouter>
+      <CreditProvider>
+        <Sonner />
+        <BrowserRouter>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
@@ -62,11 +67,27 @@ const App = () => (
               <InboundCallTesting />
             </ProtectedRoute>
           } />
+          <Route path="/credits" element={
+            <ProtectedRoute>
+              <CreditDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/credits" element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminCreditManagement />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/billing" element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminCreditPlans />
+            </ProtectedRoute>
+          } />
 
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
-      </BrowserRouter>
+        </BrowserRouter>
+      </CreditProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );

@@ -1,6 +1,7 @@
 const fetch = require('node-fetch');
 const ChatAnalyticsService = require('../services/ChatAnalyticsService');
 const databaseService = require('../services/database');
+const { deductCreditsAfterSuccess } = require('../middleware/creditMiddleware');
 
 // Initialize services
 const chatAnalyticsService = new ChatAnalyticsService(databaseService);
@@ -174,7 +175,28 @@ module.exports = async function chatWithAnalyticsHandler(req, res) {
     }
 
     console.log('Chat AI response generated successfully');
-    res.json({
+
+    // Deduct credits after successful response (if user is authenticated)
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const creditDeductResult = await deductCreditsAfterSuccess(
+      req,
+      'chat',
+      {
+        messageId,
+        responseLength: aiResponse.length,
+        messageCount: messages.length,
+        workflowId,
+        workflowName,
+        sessionId,
+        processingTime,
+        tokensUsed: estimateTokens(aiResponse),
+        timestamp: new Date().toISOString()
+      },
+      messageId,
+      'chat_message'
+    );
+
+    const response = {
       success: true,
       response: aiResponse,
       metadata: {
@@ -184,7 +206,18 @@ module.exports = async function chatWithAnalyticsHandler(req, res) {
         node_id: currentNodeId
       },
       timestamp: new Date().toISOString()
-    });
+    };
+
+    // Add credit information to response if credits were processed
+    if (req.creditInfo && creditDeductResult.success && !creditDeductResult.skipped) {
+      response.creditInfo = {
+        creditsDeducted: req.creditInfo.requiredCredits,
+        remainingBalance: creditDeductResult.data.balanceAfter,
+        transactionId: creditDeductResult.data.transactionId
+      };
+    }
+
+    res.json(response);
 
   } catch (error) {
     console.error('=== ERROR IN CHAT WITH ANALYTICS API ===');

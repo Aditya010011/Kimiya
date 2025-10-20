@@ -149,14 +149,17 @@ const optimizedRoutes = require('./routes/optimized-routes');
 const ConversationRelayWebSocket = require('./routes/conversationrelay-websocket');
 const { testTTSEndpoint } = require('./routes/test-tts-endpoint');
 
+// Import middleware for chat endpoints
+const { optionalAuth } = require('./middleware/auth');
+const { requireCredits } = require('./middleware/creditMiddleware');
+
 // Essential API Routes (removed conflicting traditional TwiML routes)
 app.get('/api/twilio-config', twilioConfigHandler);
-app.post('/api/chat', chatHandler);
+app.post('/api/chat', optionalAuth, requireCredits(1), chatHandler);
 
-// Chat with analytics endpoint (with authentication)
+// Chat with analytics endpoint (with authentication and credit checking)
 const chatWithAnalyticsHandler = require('./routes/chat-with-analytics');
-const { optionalAuth } = require('./middleware/auth');
-app.post('/api/chat-with-analytics', optionalAuth, chatWithAnalyticsHandler);
+app.post('/api/chat-with-analytics', optionalAuth, requireCredits(1), chatWithAnalyticsHandler);
 
 // ConversationRelay routes (individual handlers for main endpoints)
 app.post('/api/make-call-optimized', makeCallOptimizedHandler);
@@ -180,6 +183,18 @@ app.use('/api/chat-analytics', chatAnalyticsRoutes);
 // Authentication routes
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);
+
+// Credit management routes
+const creditRoutes = require('./routes/credits');
+app.use('/api/credits', creditRoutes);
+
+// Admin credit management routes
+const adminCreditRoutes = require('./routes/admin-credits');
+app.use('/api/admin/credits', adminCreditRoutes);
+
+// Billing management routes
+const billingRoutes = require('./routes/billing');
+app.use('/api/billing', billingRoutes);
 
 // Workflow management routes
 const workflowRoutes = require('./routes/workflows');

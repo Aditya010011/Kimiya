@@ -8,7 +8,9 @@ import {
   Users,
   LogOut,
   Loader2,
-  Contact
+  Contact,
+  CreditCard,
+  Receipt
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
@@ -22,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import CreditBalanceWidget from '@/components/credit/CreditBalanceWidget';
 
 interface DashboardHeaderProps {
   title?: string;
@@ -117,6 +120,19 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
             </Button>
           )}
 
+          {/* Credit Balance Widget */}
+          {user && (
+            <div className="cursor-pointer flex-shrink-0" onClick={() => navigate('/credits')}>
+              <CreditBalanceWidget
+                userId={user.id}
+                variant="minimal"
+                showUsageProjection={false}
+                showAlerts={true}
+                className="border-0 shadow-none bg-transparent p-0"
+              />
+            </div>
+          )}
+
           {/* User Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -157,10 +173,20 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
                 <span>Dashboard</span>
               </DropdownMenuItem>
               {user?.role === 'admin' && (
-                <DropdownMenuItem onClick={() => navigate('/admin/users')}>
-                  <Users className="mr-2 h-4 w-4" />
-                  <span>Users</span>
-                </DropdownMenuItem>
+                <>
+                  <DropdownMenuItem onClick={() => navigate('/admin/users')}>
+                    <Users className="mr-2 h-4 w-4" />
+                    <span>Users</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/credits')}>
+                    <CreditCard className="mr-2 h-4 w-4" />
+                    <span>Credit Management</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => navigate('/admin/billing')}>
+                    <Receipt className="mr-2 h-4 w-4" />
+                    <span>Plans & Billing</span>
+                  </DropdownMenuItem>
+                </>
               )}
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleLogout}>

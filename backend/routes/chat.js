@@ -1,4 +1,5 @@
 const fetch = require('node-fetch');
+const { deductCreditsAfterSuccess } = require('../middleware/creditMiddleware');
 
 // Backend chat endpoint for playground conversations
 module.exports = async function chatHandler(req, res) {
@@ -64,11 +65,39 @@ module.exports = async function chatHandler(req, res) {
     const aiResponse = await callAzureOpenAI(apiMessages);
 
     console.log('Chat AI response generated successfully');
-    res.json({
+
+    // Deduct credits after successful response (if user is authenticated)
+    const messageId = `msg_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const creditDeductResult = await deductCreditsAfterSuccess(
+      req,
+      'chat',
+      {
+        messageId,
+        responseLength: aiResponse.length,
+        messageCount: messages.length,
+        workflowId,
+        timestamp: new Date().toISOString()
+      },
+      messageId,
+      'chat_message'
+    );
+
+    const response = {
       success: true,
       response: aiResponse,
       timestamp: new Date().toISOString()
-    });
+    };
+
+    // Add credit information to response if credits were processed
+    if (req.creditInfo && creditDeductResult.success && !creditDeductResult.skipped) {
+      response.creditInfo = {
+        creditsDeducted: req.creditInfo.requiredCredits,
+        remainingBalance: creditDeductResult.data.balanceAfter,
+        transactionId: creditDeductResult.data.transactionId
+      };
+    }
+
+    res.json(response);
 
   } catch (error) {
     console.error('=== ERROR IN CHAT API ===');
