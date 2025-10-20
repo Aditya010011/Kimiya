@@ -172,9 +172,46 @@ const AdminCreditPlans: React.FC = () => {
         toast.success(`Successfully changed to ${selectedPlan.name} plan (${cycleText} billing)!`);
         setShowPlanChangeDialog(false);
 
-        // Wait for billing data to refresh to ensure UI shows latest subscription details
-        // Use background refresh to avoid hiding the UI during the update
-        await loadBillingData(true);
+        // Update the billing state immediately with the new subscription data from the response
+        // This ensures the UI shows the latest data without waiting for a refetch
+        if (billing && response.data) {
+          // Calculate the price based on billing cycle
+          const planPrice = billingCycle === 'annual'
+            ? (selectedPlan.annual_price_usd || selectedPlan.price_usd * 12 * 0.8)
+            : selectedPlan.price_usd;
+
+          const updatedBilling = {
+            ...billing,
+            current_subscription: {
+              ...billing.current_subscription,
+              plan_id: selectedPlan.id,
+              billing_cycle: billingCycle,
+              current_period_start: response.data.newPeriodStart,
+              current_period_end: response.data.newPeriodEnd,
+              status: 'active',
+              cancel_at_period_end: false,
+              plan: {
+                ...selectedPlan,
+                billing_cycle: billingCycle,
+                price_usd: planPrice
+              }
+            },
+            // Update upcoming invoice immediately
+            upcoming_invoice: {
+              amount_usd: planPrice,
+              due_date: response.data.newPeriodEnd,
+              plan_name: selectedPlan.name
+            }
+          };
+
+          setBilling(updatedBilling);
+        }
+
+        // Also refresh from backend to get complete data (upcoming invoice, etc.)
+        // Use a small delay to ensure database transaction is fully committed
+        setTimeout(async () => {
+          await loadBillingData(true);
+        }, 300);
 
         // Dispatch custom event to trigger credit balance refresh in navbar
         window.dispatchEvent(new CustomEvent('planChanged', {

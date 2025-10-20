@@ -810,6 +810,8 @@ class BillingService {
             billing_cycle = @billingCycle,
             current_period_start = @newPeriodStart,
             current_period_end = @newPeriodEnd,
+            status = 'active',
+            cancel_at_period_end = 0,
             updated_at = GETDATE()
           WHERE organization_id = @organizationId
         `, {
