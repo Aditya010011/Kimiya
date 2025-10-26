@@ -1,0 +1,232 @@
+{
+  "name": "Subway Order AI Agent Workflow",
+  "description": null,
+  "nodes": [
+    {
+      "id": "start_node",
+      "type": "startNode",
+      "position": {
+        "x": -75,
+        "y": -255
+      },
+      "data": {
+        "firstMessage": "Welcome to Subway! I'm your AI ordering assistant. I'm here to help you place a delicious order for delivery or pickup. What can I get started for you?",
+        "globalPrompt": "You are a professional sandwich shop ordering AI assistant. Be friendly, efficient, and knowledgeable about menu items. Help customers build their perfect sandwich and complete their order. Always maintain a warm and helpful tone.",
+        "label": "Welcome & Greeting"
+      }
+    },
+    {
+      "id": "order_type_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Determine order type:\n\n1. Is this for delivery or pickup?\n2. Which location are they ordering from?\n3. How many people are they ordering for?\n4. Is this a single order or group order?\n5. Any time constraints?\n\nBe clear about their order preferences.",
+        "label": "Order Type"
+      }
+    },
+    {
+      "id": "sandwich_selection_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -570,
+        "y": 570
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Help them select sandwiches:\n\n1. What type of sandwich? (6-inch or footlong)\n2. Which bread? (Italian, wheat, honey oat, etc.)\n3. Which protein? (turkey, ham, tuna, veggie, etc.)\n4. Toasted or not?\n5. Any dietary preferences? (vegan, gluten-free)\n6. Describe our popular options\n7. Ask if they want to customize\n\nBe enthusiastic about menu options.",
+        "label": "Sandwich Selection"
+      }
+    },
+    {
+      "id": "customization_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 945,
+        "y": 555
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Help customize their sandwich:\n\n1. What vegetables? (lettuce, tomato, onion, etc.)\n2. Any extras? (bacon, cheese, avocado)\n3. Sauce preferences? (mayo, mustard, oil & vinegar, etc.)\n4. Spice level? (jalapeños, hot sauce)\n5. Any items to avoid?\n6. Confirm their customizations\n7. Ask if they want another sandwich\n\nMake their sandwich exactly how they want it.",
+        "label": "Customization"
+      }
+    },
+    {
+      "id": "sides_drinks_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 345,
+        "y": 870
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Offer sides and drinks:\n\n1. Would they like chips or sides?\n2. What drink? (soda, water, juice, coffee)\n3. Size preferences? (small, medium, large)\n4. Any cookies or desserts?\n5. Mention combo deals\n6. Calculate running total\n7. Ask if they need anything else\n\nBe helpful in suggesting add-ons.",
+        "label": "Sides & Drinks"
+      }
+    },
+    {
+      "id": "customer_information_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -315,
+        "y": 1725
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Collect customer information:\n\n1. Full Name: First and last name\n2. Phone Number: Contact number\n3. Address: Delivery address (if delivery)\n4. Email: For order confirmation\n5. Special Instructions: Delivery notes, allergies\n6. Payment Method: Card or cash\n7. Loyalty Member: Any rewards program?\n\nConfirm all information is correct.",
+        "label": "Customer Information"
+      }
+    },
+    {
+      "id": "order_confirmation_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 600,
+        "y": 1605
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Provide order confirmation:\n\n1. Summarize entire order\n2. Confirm total price\n3. Provide order number\n4. Explain delivery/pickup time\n5. Provide tracking information\n6. Mention any special offers\n7. Provide contact number for questions\n8. Thank them for their order\n\nMake them excited about their meal!",
+        "label": "Order Confirmation"
+      }
+    },
+    {
+      "id": "end_call_node",
+      "type": "endCall",
+      "position": {
+        "x": -420,
+        "y": 2490
+      },
+      "data": {
+        "endMessage": "Thank you for your order! Your delicious meal will be ready soon. Enjoy!",
+        "label": "End Call"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "source": "start_node",
+      "target": "order_type_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_2",
+      "source": "order_type_node",
+      "target": "sandwich_selection_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_3",
+      "source": "sandwich_selection_node",
+      "target": "customization_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_4",
+      "source": "customization_node",
+      "target": "sides_drinks_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_5",
+      "source": "sides_drinks_node",
+      "target": "customer_information_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_6",
+      "source": "customer_information_node",
+      "target": "order_confirmation_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_7",
+      "source": "order_confirmation_node",
+      "target": "end_call_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    }
+  ],
+  "configs": {
+    "createdAt": "2025-10-21T00:00:00.000Z",
+    "description": "Subway sandwich shop ordering workflow for food orders and delivery",
+    "globalSettings": {
+      "defaultLanguage": "en-US",
+      "timezone": "UTC",
+      "callRecording": true,
+      "transcriptionEnabled": true,
+      "sentimentAnalysis": true,
+      "conversationSummary": true,
+      "maxCallDuration": 30,
+      "silenceTimeout": 10,
+      "interruptionHandling": true
+    },
+    "llm": {
+      "provider": "azure_openai",
+      "azure": {
+        "apiKey": "f6d564a83af3498c9beb46d7d3e3da96",
+        "endpoint": "https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "maxTokens": 1000,
+        "systemPrompt": "You are a friendly sandwich shop ordering assistant. Help customers build their perfect sandwich and complete their order."
+      }
+    },
+    "name": "Subway Order AI Agent Workflow",
+    "transcription": {
+      "provider": "deepgram",
+      "deepgram": {
+        "apiKey": "YOUR_DEEPGRAM_API_KEY",
+        "model": "nova-2",
+        "language": "en-US",
+        "punctuate": true,
+        "smartFormat": true
+      }
+    },
+    "twilio": {
+      "accountSid": "",
+      "authToken": "",
+      "phoneNumber": "+17077433838",
+      "recordCalls": true,
+      "callTimeout": 1800
+    },
+    "version": "1.0.0",
+    "voice": {
+      "provider": "default"
+    }
+  },
+  "exportedAt": "2025-10-21T07:11:34.351Z",
+  "version": "1.0"
+}
+

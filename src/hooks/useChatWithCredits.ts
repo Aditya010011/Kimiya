@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useCreditContext } from '@/contexts/CreditContext';
 import { toast } from 'sonner';
+import { TokenManager } from '@/services/authService';
 
 interface ChatResponse {
   success: boolean;
@@ -50,7 +51,7 @@ export const useChatWithCredits = () => {
 
       // Add authentication header if requested
       if (includeAuth) {
-        const token = localStorage.getItem('access_token');
+        const token = TokenManager.getAccessToken();
         if (token) {
           headers['Authorization'] = `Bearer ${token}`;
         }
@@ -94,14 +95,9 @@ export const useChatWithCredits = () => {
         // Handle successful response with credit deduction
         if (data.creditInfo) {
           const { creditsDeducted, remainingBalance } = data.creditInfo;
-          
+
           // Update local credit balance immediately (optimistic update)
           updateBalanceAfterDeduction(creditsDeducted);
-          
-          // Show success toast with credit info
-          toast.success('Message sent successfully', {
-            description: `${creditsDeducted} credit${creditsDeducted !== 1 ? 's' : ''} deducted. ${remainingBalance} credits remaining.`
-          });
 
           if (onCreditDeducted) {
             onCreditDeducted(creditsDeducted, remainingBalance);

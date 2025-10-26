@@ -1,0 +1,246 @@
+{
+  "name": "Cold Call Agent AI Workflow",
+  "description": null,
+  "nodes": [
+    {
+      "id": "start_node",
+      "type": "startNode",
+      "position": {
+        "x": -75,
+        "y": -255
+      },
+      "data": {
+        "firstMessage": "Hi, this is [Agent Name] calling from [Company Name]. I know this is unexpected, but I have something that might be valuable for your business. Do you have about 30 seconds?",
+        "globalPrompt": "You are a professional cold calling AI agent. Be respectful, confident, and direct. Quickly establish relevance and value. Always respect the prospect's time and be prepared to handle rejection gracefully. Your goal is to get a brief conversation started and qualify the lead.",
+        "label": "Cold Call Opening"
+      }
+    },
+    {
+      "id": "attention_grab_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Grab their attention with a compelling hook:\n\n1. Quickly state why you're calling\n2. Mention a specific reason relevant to them\n3. Reference their company or industry\n4. Ask a qualifying question\n5. Listen for their response\n6. Be prepared for objections or rejection\n7. Keep it brief and conversational\n\nYou have 20-30 seconds to make an impression.",
+        "label": "Attention Grabber"
+      }
+    },
+    {
+      "id": "value_proposition_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -570,
+        "y": 570
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Present your value proposition:\n\n1. Explain what you do in simple terms\n2. Highlight the key benefit for their business\n3. Mention a specific result or outcome\n4. Reference similar companies you've worked with\n5. Ask if this is relevant to them\n6. Listen for interest level\n7. Be ready to pivot if needed\n\nFocus on their needs, not your features.",
+        "label": "Value Proposition"
+      }
+    },
+    {
+      "id": "pain_point_discovery_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 945,
+        "y": 555
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Discover their pain points:\n\n1. Ask about their current challenges\n2. Listen for problems you can solve\n3. Ask follow-up questions\n4. Identify their priorities\n5. Understand their decision-making process\n6. Gauge urgency\n7. Determine if they're a good fit\n\nAsk thoughtful questions and listen more than you talk.",
+        "label": "Pain Point Discovery"
+      }
+    },
+    {
+      "id": "objection_handling_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 345,
+        "y": 870
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Handle common cold call objections:\n\n1. 'I'm not interested' - Ask why, offer to send info\n2. 'I'm too busy' - Respect their time, ask for brief callback\n3. 'We already have a solution' - Ask about satisfaction, offer comparison\n4. 'No budget' - Ask about future plans, stay in touch\n5. 'Send me info' - Get their email, confirm follow-up\n6. Listen to their real concern\n7. Provide relevant response\n8. Move toward next step\n\nObjections are often just requests for more information.",
+        "label": "Objection Handling"
+      }
+    },
+    {
+      "id": "next_step_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -315,
+        "y": 1725
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Establish next steps:\n\n1. If interested: Schedule a brief call or demo\n2. If not ready: Ask when to follow up\n3. If objecting: Offer to send information\n4. Confirm contact information\n5. Explain what happens next\n6. Set clear expectations\n7. Get their email for follow-up\n8. Thank them for their time\n\nAlways leave the door open for future contact.",
+        "label": "Next Steps"
+      }
+    },
+    {
+      "id": "contact_capture_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 600,
+        "y": 1605
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Capture contact information:\n\n1. Confirm their name\n2. Get their email address\n3. Confirm phone number\n4. Ask best time to reach them\n5. Note any preferences\n6. Confirm follow-up date/time if scheduled\n7. Thank them again\n8. End on a positive note\n\nBe professional and efficient.",
+        "label": "Contact Capture"
+      }
+    },
+    {
+      "id": "end_call_node",
+      "type": "endCall",
+      "position": {
+        "x": -420,
+        "y": 2490
+      },
+      "data": {
+        "endMessage": "Thanks for your time! We'll be in touch soon. Have a great day!",
+        "label": "End Call"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "source": "start_node",
+      "target": "attention_grab_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_2",
+      "source": "attention_grab_node",
+      "target": "value_proposition_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Prospect is willing to listen",
+        "description": "Present value proposition if prospect is interested"
+      }
+    },
+    {
+      "id": "edge_3",
+      "source": "value_proposition_node",
+      "target": "pain_point_discovery_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Prospect shows interest in the value proposition",
+        "description": "Discover pain points if interested"
+      }
+    },
+    {
+      "id": "edge_4",
+      "source": "pain_point_discovery_node",
+      "target": "objection_handling_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Prospect raises objections or concerns",
+        "description": "Handle objections if raised"
+      }
+    },
+    {
+      "id": "edge_5",
+      "source": "objection_handling_node",
+      "target": "next_step_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_6",
+      "source": "pain_point_discovery_node",
+      "target": "next_step_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Prospect is qualified and ready for next step",
+        "description": "Move to next steps if no objections"
+      }
+    },
+    {
+      "id": "edge_7",
+      "source": "next_step_node",
+      "target": "contact_capture_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_8",
+      "source": "contact_capture_node",
+      "target": "end_call_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    }
+  ],
+  "configs": {
+    "createdAt": "2025-10-21T00:00:00.000Z",
+    "description": "Cold calling workflow for lead generation, qualification, and appointment setting",
+    "globalSettings": {
+      "defaultLanguage": "en-US",
+      "timezone": "UTC",
+      "callRecording": true,
+      "transcriptionEnabled": true,
+      "sentimentAnalysis": true,
+      "conversationSummary": true,
+      "maxCallDuration": 30,
+      "silenceTimeout": 10,
+      "interruptionHandling": true
+    },
+    "llm": {
+      "provider": "azure_openai",
+      "azure": {
+        "apiKey": "f6d564a83af3498c9beb46d7d3e3da96",
+        "endpoint": "https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "maxTokens": 1000,
+        "systemPrompt": "You are a professional cold calling agent. Be respectful, confident, and focused on qualifying leads."
+      }
+    },
+    "name": "Cold Call Agent AI Workflow",
+    "transcription": {
+      "provider": "deepgram",
+      "deepgram": {
+        "apiKey": "YOUR_DEEPGRAM_API_KEY",
+        "model": "nova-2",
+        "language": "en-US",
+        "punctuate": true,
+        "smartFormat": true
+      }
+    },
+    "twilio": {
+      "accountSid": "",
+      "authToken": "",
+      "phoneNumber": "+17077433838",
+      "recordCalls": true,
+      "callTimeout": 1800
+    },
+    "version": "1.0.0",
+    "voice": {
+      "provider": "default"
+    }
+  },
+  "exportedAt": "2025-10-21T07:11:34.351Z",
+  "version": "1.0"
+}
+

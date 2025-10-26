@@ -19,6 +19,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { AdminService } from '@/services/adminService';
 import { toast } from 'sonner';
+import { AuthService } from '@/services/authService';
 
 interface User {
   id: number;
@@ -95,13 +96,10 @@ const UserSelector: React.FC<UserSelectorProps> = ({
       const updatedUsers = await Promise.all(
         userList.map(async (user) => {
           try {
-            const response = await fetch(`/api/credits/balance/${user.id}`, {
-              headers: {
-                'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-                'Content-Type': 'application/json'
-              }
-            });
-            
+            const response = await AuthService.makeAuthenticatedRequest(
+              `/api/credits/balance/${user.id}`
+            );
+
             if (response.ok) {
               const data = await response.json();
               return {
@@ -112,11 +110,11 @@ const UserSelector: React.FC<UserSelectorProps> = ({
           } catch (error) {
             console.error(`Failed to load credit balance for user ${user.id}:`, error);
           }
-          
+
           return { ...user, creditBalance: 0 };
         })
       );
-      
+
       setUsers(updatedUsers);
     } catch (error) {
       console.error('Error loading credit balances:', error);

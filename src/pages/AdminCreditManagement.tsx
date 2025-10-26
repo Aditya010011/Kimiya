@@ -20,13 +20,13 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from '@/components/ui/table';
 import {
   Dialog,
@@ -48,6 +48,7 @@ import {
 } from '@/components/ui/select';
 import { toast } from 'sonner';
 import { CreditService } from '@/services/creditService';
+import { useCreditContext } from '@/contexts/CreditContext';
 import { AdminCreditOverview, CreditAllocation } from '@/types/creditTypes';
 import UserSelector from '@/components/admin/UserSelector';
 
@@ -66,6 +67,9 @@ const AdminCreditManagement: React.FC = () => {
     reason: '',
     allocationType: 'top_up' as CreditAllocation['allocation_type']
   });
+
+  // Get credit context to refresh balances
+  const { refreshBalance, refreshSummary } = useCreditContext();
 
   const loadOverview = async () => {
     try {
@@ -93,24 +97,47 @@ const AdminCreditManagement: React.FC = () => {
     try {
       setIsAllocating(true);
 
+      // Import AuthService for authenticated requests
+      const { AuthService } = await import('@/services/authService');
+
       // Use the real API endpoint for credit allocation
-      const response = await fetch('/api/credits/admin/allocate', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          userId: allocationForm.selectedUser.id,
-          amount: parseInt(allocationForm.amount),
-          notes: allocationForm.reason
-        })
-      });
+      const response = await AuthService.makeAuthenticatedRequest(
+        '/api/admin/credits/allocate',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            userId: allocationForm.selectedUser.id,
+            amount: parseInt(allocationForm.amount),
+            notes: allocationForm.reason
+          })
+        }
+      );
 
       const data = await response.json();
 
       if (response.ok && data.success) {
         toast.success(`Successfully allocated ${allocationForm.amount} credits to ${allocationForm.selectedUser.email}`);
+
+        // ✅ FIX: Reload overview and refresh credit context for real-time updates
+        // 1. Reload admin overview
+        await loadOverview();
+
+        // 2. Refresh admin's balance in credit context (for header widget)
+        await refreshBalance();
+        await refreshSummary();
+
+        // 3. Dispatch custom event so other components listening for credit updates refresh
+        window.dispatchEvent(new CustomEvent('creditBalanceUpdated', {
+          detail: {
+            userId: allocationForm.selectedUser.id,
+            amount: parseInt(allocationForm.amount),
+            type: 'allocation'
+          }
+        }));
+
         setIsAllocateDialogOpen(false);
         setAllocationForm({
           selectedUser: null,
@@ -118,7 +145,6 @@ const AdminCreditManagement: React.FC = () => {
           reason: '',
           allocationType: 'top_up'
         });
-        loadOverview(); // Refresh data
       } else {
         toast.error(data.error || 'Failed to allocate credits');
       }
@@ -452,13 +478,15 @@ const AdminCreditManagement: React.FC = () => {
                         #{index + 1}
                       </div>
                       <div>
-                        <div className="text-sm font-medium">{user.user_name}</div>
-                        <div className="text-xs text-gray-500">{user.user_email}</div>
+                        <div className="text-sm font-medium">{user.user_name || 'Unknown User'}</div>
+                        <div className="text-xs text-gray-500">{user.user_email || 'N/A'}</div>
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-sm font-medium">{formatNumber(user.credits_used)}</div>
-                      <div className="text-xs text-gray-500">{user.percentage_of_total.toFixed(1)}%</div>
+                      <div className="text-sm font-medium">{formatNumber(user.credits_used || 0)}</div>
+                      <div className="text-xs text-gray-500">
+                        {user.percentage_of_total != null ? `${(user.percentage_of_total as number).toFixed(1)}%` : '0%'}
+                      </div>
                     </div>
                   </div>
                 ))}

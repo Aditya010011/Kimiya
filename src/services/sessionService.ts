@@ -9,7 +9,8 @@ class SessionService {
   private heartbeatInterval: NodeJS.Timeout | null = null;
   private baseUrl: string;
   private isActive: boolean = false;
-  
+  private isExternalRedirect: boolean = false; // Flag to skip cleanup on external redirects
+
   // Configuration
   private readonly HEARTBEAT_INTERVAL = 60 * 1000; // Send heartbeat every 60 seconds
   private readonly OFFLINE_TIMEOUT = 5 * 60 * 1000; // 5 minutes without activity = offline
@@ -17,6 +18,17 @@ class SessionService {
   constructor() {
     this.baseUrl = envConfig.backendUrl;
     this.setupEventListeners();
+  }
+
+  /**
+   * Mark that we're redirecting to an external URL (e.g., Stripe)
+   * This prevents session cleanup requests from being sent
+   */
+  setExternalRedirect(isRedirecting: boolean = true): void {
+    this.isExternalRedirect = isRedirecting;
+    if (isRedirecting) {
+      console.log('🔗 External redirect detected, skipping session cleanup');
+    }
   }
 
   /**
@@ -107,6 +119,12 @@ class SessionService {
    * Mark user as offline when closing tab
    */
   private async markOffline(): Promise<void> {
+    // ✅ FIX: Skip cleanup if redirecting to external URL (e.g., Stripe)
+    if (this.isExternalRedirect) {
+      console.log('🔗 Skipping session cleanup due to external redirect');
+      return;
+    }
+
     try {
       const token = TokenManager.getAccessToken();
       if (!token) {
@@ -116,7 +134,7 @@ class SessionService {
       // Use sendBeacon for reliable delivery during page unload
       const data = JSON.stringify({});
       const blob = new Blob([data], { type: 'application/json' });
-      
+
       const success = navigator.sendBeacon(
         `${this.baseUrl}/api/auth/logout-tab`,
         blob

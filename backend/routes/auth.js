@@ -89,6 +89,10 @@ router.post('/register',
 
       const newUser = createUserResult.recordset[0];
 
+      // Initialize credit balance for new user
+      const CreditService = require('../services/CreditService');
+      await CreditService.initializeUserCreditBalance(newUser.id);
+
       // Generate tokens
       const accessToken = tokenUtils.generateAccessToken(newUser);
       const refreshToken = tokenUtils.generateRefreshToken(newUser);

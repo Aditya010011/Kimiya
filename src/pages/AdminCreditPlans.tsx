@@ -22,6 +22,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { getApiBaseUrl } from '@/utils/envConfig';
+import { AuthService } from '@/services/authService';
 import {
   Table,
   TableBody,
@@ -54,6 +56,7 @@ import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
 import { CreditService } from '@/services/creditService';
 import { OrganizationBilling, CreditPlan, PlanChangeRequest } from '@/types/creditTypes';
+import sessionService from '@/services/sessionService';
 
 const AdminCreditPlans: React.FC = () => {
   const navigate = useNavigate();
@@ -67,9 +70,6 @@ const AdminCreditPlans: React.FC = () => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
 
   const loadBillingData = async (isBackgroundRefresh = false) => {
-    // Use organization_id from user or default for Phase 1
-    const organizationId = user?.organization_id || 'org_default_123';
-
     try {
       // Only show full loading state on initial load, not on background refreshes
       if (isBackgroundRefresh) {
@@ -78,11 +78,42 @@ const AdminCreditPlans: React.FC = () => {
         setIsLoading(true);
       }
 
+      // Verify user is authenticated
+      if (!user?.id) {
+        console.error(`❌ User not authenticated or user ID not available`);
+        toast.error('User not authenticated');
+        return;
+      }
+
+      // First, get the organization_id from the credits API
+      console.log(`📊 Getting organization_id from credits API for user: ${user.id}...`);
+      const creditsResponse = await CreditService.getUserCreditBalance(user.id);
+
+      if (!creditsResponse.success || !creditsResponse.data?.organizationId) {
+        console.error(`❌ Failed to get organization_id from credits API`);
+        console.error(`   Response:`, creditsResponse);
+        toast.error('Failed to determine organization');
+        return;
+      }
+
+      const organizationId = creditsResponse.data.organizationId;
+      console.log(`✅ Organization ID from credits API: ${organizationId}`);
+
+      console.log(`📊 Loading billing data for org: ${organizationId}${isBackgroundRefresh ? ' (background refresh)' : ''}`);
       const response = await CreditService.getOrganizationBilling(organizationId);
 
       if (response.success && response.data) {
+        console.log(`✅ Billing data received:`);
+        if (response.data.current_subscription) {
+          console.log(`   Current plan_id: ${response.data.current_subscription.plan_id}`);
+          console.log(`   Current plan name: ${response.data.current_subscription.plan.name}`);
+          console.log(`   Status: ${response.data.current_subscription.status}`);
+        } else {
+          console.log(`   No current subscription`);
+        }
         setBilling(response.data);
       } else {
+        console.log(`❌ Error: ${response.error}`);
         toast.error(response.error || 'Failed to load billing information');
       }
     } catch (error) {
@@ -100,6 +131,24 @@ const AdminCreditPlans: React.FC = () => {
   useEffect(() => {
     loadBillingData();
   }, [user]);
+
+  // Listen for plan change events and refresh billing data
+  useEffect(() => {
+    const handlePlanChange = () => {
+      console.log('🔄 Plan change event received, refreshing billing data...');
+      loadBillingData(true); // true = background refresh
+    };
+
+    window.addEventListener('planChanged', handlePlanChange);
+    window.addEventListener('planPurchased', handlePlanChange);
+    window.addEventListener('creditBalanceUpdated', handlePlanChange);
+
+    return () => {
+      window.removeEventListener('planChanged', handlePlanChange);
+      window.removeEventListener('planPurchased', handlePlanChange);
+      window.removeEventListener('creditBalanceUpdated', handlePlanChange);
+    };
+  }, []);
 
   const formatCurrency = (amount: number) => {
     if (amount === -1) return 'Contact for pricing';
@@ -150,83 +199,72 @@ const AdminCreditPlans: React.FC = () => {
   };
 
   const handlePlanChange = async () => {
-    if (!selectedPlan || !billing?.current_subscription) return;
-
-    // Use organization_id from user or default for Phase 1
-    const organizationId = user?.organization_id || 'org_default_123';
+    if (!selectedPlan) return;
 
     try {
       setIsChangingPlan(true);
 
-      const planChangeRequest: PlanChangeRequest = {
-        current_plan_id: billing.current_subscription.plan_id,
-        new_plan_id: selectedPlan.id,
-        effective_date: 'immediate',
-        billing_cycle: billingCycle
-      };
+      // Verify user is authenticated
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
 
-      const response = await CreditService.changePlan(organizationId, planChangeRequest);
+      // Get organization_id from credits API
+      console.log(`🛒 Getting organization_id from credits API for checkout (user: ${user.id})...`);
+      const creditsResponse = await CreditService.getUserCreditBalance(user.id);
 
-      if (response.success) {
-        const cycleText = billingCycle === 'annual' ? 'annual' : 'monthly';
-        toast.success(`Successfully changed to ${selectedPlan.name} plan (${cycleText} billing)!`);
-        setShowPlanChangeDialog(false);
+      if (!creditsResponse.success || !creditsResponse.data?.organizationId) {
+        throw new Error('Failed to determine organization');
+      }
 
-        // Update the billing state immediately with the new subscription data from the response
-        // This ensures the UI shows the latest data without waiting for a refetch
-        if (billing && response.data) {
-          // Calculate the price based on billing cycle
-          const planPrice = billingCycle === 'annual'
-            ? (selectedPlan.annual_price_usd || selectedPlan.price_usd * 12 * 0.8)
-            : selectedPlan.price_usd;
+      const organizationId = creditsResponse.data.organizationId;
+      console.log(`✅ Using organization_id for checkout: ${organizationId}`);
 
-          const updatedBilling = {
-            ...billing,
-            current_subscription: {
-              ...billing.current_subscription,
-              plan_id: selectedPlan.id,
-              billing_cycle: billingCycle,
-              current_period_start: response.data.newPeriodStart,
-              current_period_end: response.data.newPeriodEnd,
-              status: 'active',
-              cancel_at_period_end: false,
-              plan: {
-                ...selectedPlan,
-                billing_cycle: billingCycle,
-                price_usd: planPrice
-              }
-            },
-            // Update upcoming invoice immediately
-            upcoming_invoice: {
-              amount_usd: planPrice,
-              due_date: response.data.newPeriodEnd,
-              plan_name: selectedPlan.name
-            }
-          };
+      // Use Stripe checkout for payment
+      const apiBaseUrl = getApiBaseUrl();
 
-          setBilling(updatedBilling);
-        }
+      // Get the access token from localStorage (stored by AuthService)
+      const token = localStorage.getItem('kimiya_access_token');
+      if (!token) {
+        throw new Error('Authentication token not found. Please log in again.');
+      }
 
-        // Also refresh from backend to get complete data (upcoming invoice, etc.)
-        // Use a small delay to ensure database transaction is fully committed
-        setTimeout(async () => {
-          await loadBillingData(true);
-        }, 300);
+      console.log(`🔄 Sending checkout request with:`);
+      console.log(`   planId: ${selectedPlan.id}`);
+      console.log(`   billingCycle: ${billingCycle}`);
+      console.log(`   organizationId: ${organizationId}`);
 
-        // Dispatch custom event to trigger credit balance refresh in navbar
-        window.dispatchEvent(new CustomEvent('planChanged', {
-          detail: {
-            planId: selectedPlan.id,
-            billingCycle,
-            credits: selectedPlan.monthly_credits
-          }
-        }));
+      const response = await fetch(`${apiBaseUrl}/api/stripe/checkout-session`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          organizationId,
+          planId: selectedPlan.id,
+          billingCycle
+        })
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to create checkout session');
+      }
+
+      const data = await response.json();
+      if (data.data?.url) {
+        // ✅ FIX: Mark external redirect to skip session cleanup
+        sessionService.setExternalRedirect(true);
+
+        console.log(`🔄 Redirecting to Stripe checkout immediately...`);
+        window.location.href = data.data.url;
       } else {
-        toast.error(response.error || 'Failed to change plan');
+        throw new Error('No checkout URL returned');
       }
     } catch (error) {
-      toast.error('Failed to change plan');
-      console.error('Error changing plan:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to start checkout');
+      console.error('Error creating checkout session:', error);
     } finally {
       setIsChangingPlan(false);
     }
@@ -254,6 +292,39 @@ const AdminCreditPlans: React.FC = () => {
 
   const isCurrentPlan = (planId: string) => {
     return billing?.current_subscription?.plan_id === planId;
+  };
+
+  const hasExistingSubscription = () => {
+    return billing?.current_subscription !== null && billing?.current_subscription !== undefined;
+  };
+
+  const getButtonLabel = (planId: string) => {
+    if (planId === 'enterprise') {
+      return 'Contact Sales';
+    }
+
+    if (isCurrentPlan(planId)) {
+      return 'Current Plan';
+    }
+
+    // If no existing subscription, show "Subscribe" or "Get Started"
+    if (!hasExistingSubscription()) {
+      return 'Subscribe';
+    }
+
+    // If there's an existing subscription but this isn't the current plan
+    return 'Change Plan';
+  };
+
+  const isButtonDisabled = (planId: string) => {
+    // Disable if it's the current plan
+    if (isCurrentPlan(planId)) {
+      return true;
+    }
+
+    // Don't disable if there's no subscription (allow first-time purchase)
+    // Don't disable if there's a subscription but this isn't the current plan (allow plan change)
+    return false;
   };
 
   if (!user || user.role !== 'admin') {
@@ -330,7 +401,10 @@ const AdminCreditPlans: React.FC = () => {
                     )}
                   </div>
                   <div className="text-sm text-gray-500">
-                    {formatCurrency(billing.current_subscription.plan.price_usd)}/month
+                    {billing.current_subscription.billing_cycle === 'annual'
+                      ? `${formatCurrency(billing.current_subscription.plan.annual_price_usd)}/year`
+                      : `${formatCurrency(billing.current_subscription.plan.price_usd)}/month`
+                    }
                   </div>
                 </div>
                 
@@ -497,12 +571,11 @@ const AdminCreditPlans: React.FC = () => {
 
                       <Button
                         onClick={() => handlePlanSelect(plan)}
-                        disabled={isCurrentPlan(plan.id)}
+                        disabled={isButtonDisabled(plan.id)}
                         className="w-full mt-6"
                         variant={isCurrentPlan(plan.id) ? 'outline' : 'default'}
                       >
-                        {isCurrentPlan(plan.id) ? 'Current Plan' :
-                         plan.id === 'enterprise' ? 'Contact Sales' : 'Select Plan'}
+                        {getButtonLabel(plan.id)}
                       </Button>
                     </CardContent>
                   </Card>

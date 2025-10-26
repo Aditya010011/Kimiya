@@ -141,33 +141,35 @@ async function deductCreditsAfterSuccess(req, serviceType, serviceDetails = {}, 
       return { success: true, skipped: true };
     }
 
-    const { requiredCredits, userId } = req.creditInfo;
-    
-    console.log(`💳 CREDITS: Deducting ${requiredCredits} credits from user ${userId} for ${serviceType}`);
+    const { requiredCredits, userId, reservationId } = req.creditInfo;
 
-    const deductResult = await CreditService.deductCredits(
-      userId,
-      requiredCredits,
+    // Credits were already reserved/deducted in the requireCredits middleware
+    // This function just updates the transaction record with the actual service type and details
+    console.log(`💳 CREDITS: Updating reservation ${reservationId} with service details for ${serviceType}`);
+
+    // Update the existing transaction record with actual service details
+    // Instead of deducting again, we just update the reservation transaction
+    const updateResult = await CreditService.updateTransactionDetails(
+      reservationId,
       serviceType,
       serviceDetails,
       referenceId,
       referenceType
     );
 
-    if (deductResult.success) {
-      console.log(`✅ CREDITS: Successfully deducted ${requiredCredits} credits from user ${userId}`);
-      console.log(`   Balance: ${deductResult.data.balanceBefore} → ${deductResult.data.balanceAfter}`);
+    if (updateResult.success) {
+      console.log(`✅ CREDITS: Successfully updated transaction ${reservationId} for user ${userId}`);
     } else {
-      console.error(`❌ CREDITS: Failed to deduct credits from user ${userId}:`, deductResult.error);
+      console.error(`❌ CREDITS: Failed to update transaction for user ${userId}:`, updateResult.error);
     }
 
-    return deductResult;
+    return updateResult;
 
   } catch (error) {
-    console.error('💥 CREDITS: Error deducting credits:', error);
+    console.error('💥 CREDITS: Error updating transaction:', error);
     return {
       success: false,
-      error: 'Failed to deduct credits'
+      error: 'Failed to update transaction'
     };
   }
 }

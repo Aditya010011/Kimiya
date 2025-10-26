@@ -135,7 +135,7 @@ const Dashboard: React.FC = () => {
   const loadAllWorkflows = async () => {
     try {
       setIsLoadingAll(true);
-      const data = await WorkflowService.getWorkflows();
+      const data = await WorkflowService.getWorkflows(1, 100);
       setAllWorkflows(data.workflows);
     } catch (error) {
       console.error('Failed to load all workflows:', error);
@@ -148,7 +148,7 @@ const Dashboard: React.FC = () => {
   const loadMyWorkflows = async () => {
     try {
       setIsLoadingMy(true);
-      const data = await WorkflowService.getMyWorkflows();
+      const data = await WorkflowService.getMyWorkflows(1, 100);
       setMyWorkflows(data.workflows);
     } catch (error) {
       console.error('Failed to load my workflows:', error);

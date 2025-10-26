@@ -10,7 +10,8 @@ import {
   Loader2,
   Contact,
   CreditCard,
-  Receipt
+  Receipt,
+  Phone
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
@@ -171,6 +172,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <DropdownMenuItem onClick={() => navigate('/')}>
                 <Settings className="mr-2 h-4 w-4" />
                 <span>Dashboard</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/inbound-testing')}>
+                <Phone className="mr-2 h-4 w-4" />
+                <span>Inbound Testing</span>
               </DropdownMenuItem>
               {user?.role === 'admin' && (
                 <>

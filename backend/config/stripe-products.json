@@ -1,0 +1,87 @@
+{
+  "products": {
+    "starter": {
+      "id": "prod_THQd4CRrguMKqy",
+      "name": "Starter Plan",
+      "description": "500 minutes per month (30,000 credits)",
+      "planId": "starter",
+      "monthlyCredits": 30000,
+      "prices": {
+        "monthly": {
+          "id": "price_1SKrmSP3IrzUrUyZbTkVm0PC",
+          "amount": 4900,
+          "currency": "usd",
+          "interval": "month"
+        },
+        "annual": {
+          "id": "price_1SKrmUP3IrzUrUyZAr1I2BOv",
+          "amount": 47040,
+          "currency": "usd",
+          "interval": "year"
+        }
+      }
+    },
+    "professional": {
+      "id": "prod_THQdrKptnHYFrx",
+      "name": "Professional Plan",
+      "description": "3,000 minutes per month (180,000 credits)",
+      "planId": "professional",
+      "monthlyCredits": 180000,
+      "prices": {
+        "monthly": {
+          "id": "price_1SKrmWP3IrzUrUyZcBvkpeE1",
+          "amount": 29900,
+          "currency": "usd",
+          "interval": "month"
+        },
+        "annual": {
+          "id": "price_1SKrmXP3IrzUrUyZOhTsAnaE",
+          "amount": 286880,
+          "currency": "usd",
+          "interval": "year"
+        }
+      }
+    },
+    "business": {
+      "id": "prod_THQdVyigaXv3m3",
+      "name": "Business Plan",
+      "description": "12,000 minutes per month (720,000 credits)",
+      "planId": "business",
+      "monthlyCredits": 720000,
+      "prices": {
+        "monthly": {
+          "id": "price_1SKrmZP3IrzUrUyZ9ffLIBnf",
+          "amount": 89900,
+          "currency": "usd",
+          "interval": "month"
+        },
+        "annual": {
+          "id": "price_1SKrmaP3IrzUrUyZivdMMkHr",
+          "amount": 863040,
+          "currency": "usd",
+          "interval": "year"
+        }
+      }
+    },
+    "enterprise": {
+      "id": "prod_THQdfG5TkjXWXZ",
+      "name": "Enterprise Plan",
+      "description": "Unlimited minutes with custom pricing",
+      "planId": "enterprise",
+      "monthlyCredits": -1,
+      "prices": {
+        "monthly": null,
+        "annual": null
+      }
+    }
+  },
+  "priceIdToPlanMap": {
+    "price_1SKrmSP3IrzUrUyZbTkVm0PC": "starter",
+    "price_1SKrmUP3IrzUrUyZAr1I2BOv": "starter",
+    "price_1SKrmWP3IrzUrUyZcBvkpeE1": "professional",
+    "price_1SKrmXP3IrzUrUyZOhTsAnaE": "professional",
+    "price_1SKrmZP3IrzUrUyZ9ffLIBnf": "business",
+    "price_1SKrmaP3IrzUrUyZivdMMkHr": "business"
+  }
+}
+

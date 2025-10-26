@@ -10,20 +10,33 @@ const BillingService = require('../services/BillingService');
 router.get('/organization/:organizationId', authenticateToken, async (req, res) => {
   try {
     const { organizationId } = req.params;
-    
+
+    console.log(`📊 GET /api/billing/organization/${organizationId} called`);
+
     // Check if user has access to this organization
     if (req.user.role !== 'admin' && req.user.organization_id !== organizationId) {
+      console.log(`❌ Access denied for user ${req.user.id} to org ${organizationId}`);
       return res.status(403).json({
         success: false,
         error: 'Access denied. You can only view your own organization billing.'
       });
     }
-    
+
     const result = await BillingService.getOrganizationBilling(organizationId);
-    
+
     if (result.success) {
+      console.log(`✅ Billing data retrieved successfully for org ${organizationId}`);
+      if (result.data && result.data.current_subscription) {
+        console.log(`   Current plan_id: ${result.data.current_subscription.plan_id}`);
+        console.log(`   Current plan name: ${result.data.current_subscription.plan.name}`);
+        console.log(`   Subscription status: ${result.data.current_subscription.status}`);
+        console.log(`   Updated at: ${result.data.current_subscription.updated_at}`);
+      } else {
+        console.log(`   ⚠️ No subscription found for org ${organizationId}`);
+      }
       res.json(result);
     } else {
+      console.log(`❌ Error retrieving billing data: ${result.error}`);
       res.status(500).json(result);
     }
     

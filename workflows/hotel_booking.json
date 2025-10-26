@@ -1,0 +1,258 @@
+  {
+    "name": "Hotel Booking AI Agent Workflow",
+    "description": null,
+    "nodes": [
+      {
+        "id": "start_node",
+        "type": "startNode",
+        "position": {
+          "x": -75,
+          "y": -255
+        },
+        "data": {
+          "firstMessage": "Welcome to Luxury Hotels! I'm your AI booking assistant. I'm here to help you find and reserve the perfect hotel for your stay. How can I assist you today?",
+          "globalPrompt": "You are a professional hotel booking AI assistant. Be warm, welcoming, and knowledgeable about hotel services. Help customers find accommodations that match their needs and preferences. Always maintain a helpful and courteous approach.",
+          "label": "Welcome & Greeting"
+        }
+      },
+      {
+        "id": "booking_type_node",
+        "type": "conversationNode",
+        "position": {
+          "x": 100,
+          "y": 400
+        },
+        "data": {
+          "model": "gpt-4o-mini",
+          "prompt": "Determine the customer's booking needs. Ask if they're looking to: Make a new reservation, modify an existing booking, check availability, or inquire about hotel amenities. Be conversational and understand their primary need before proceeding.",
+          "label": "Booking Type Classification"
+        }
+      },
+      {
+        "id": "travel_details_node",
+        "type": "conversationNode",
+        "position": {
+          "x": -570,
+          "y": 570
+        },
+        "data": {
+          "model": "gpt-4o-mini",
+          "prompt": "Gather travel details through natural conversation:\n\n1. Destination: Which city or location?\n2. Check-in Date: When will they arrive?\n3. Check-out Date: When will they depart?\n4. Number of Guests: How many people?\n5. Room Type: Single, double, suite, or flexible?\n6. Special Requirements: Accessibility needs, high floor, quiet room, etc.\n7. Budget Range: Price per night preference?\n8. Purpose of Stay: Business, leisure, special occasion?\n\nAsk follow-up questions to understand their preferences fully.",
+          "label": "Travel Details Gathering"
+        }
+      },
+      {
+        "id": "amenities_preferences_node",
+        "type": "conversationNode",
+        "position": {
+          "x": 945,
+          "y": 555
+        },
+        "data": {
+          "model": "gpt-4o-mini",
+          "prompt": "Understand their amenity preferences through natural conversation:\n\n1. Dining: Restaurant, room service, breakfast included?\n2. Fitness: Gym, pool, spa facilities?\n3. Business: Conference rooms, business center?\n4. Entertainment: Concierge, activities, nightlife?\n5. Parking: On-site parking, valet service?\n6. Internet: WiFi requirements?\n7. Pet Policy: Traveling with pets?\n8. Special Services: Housekeeping frequency, late checkout?\n\nBe thorough in understanding what matters most to them.",
+          "label": "Amenities & Preferences"
+        }
+      },
+      {
+        "id": "room_selection_node",
+        "type": "conversationNode",
+        "position": {
+          "x": 345,
+          "y": 870
+        },
+        "data": {
+          "model": "gpt-4o-mini",
+          "prompt": "Present available room options based on their requirements:\n\n1. Show 3-5 room options with prices\n2. Highlight key features of each room\n3. Explain the differences between options\n4. Ask which room interests them most\n5. Provide information about current promotions or discounts\n6. Explain cancellation policies\n7. Confirm their selection\n\nBe helpful in guiding them to the best choice for their needs.",
+          "label": "Room Selection & Pricing"
+        }
+      },
+      {
+        "id": "guest_information_node",
+        "type": "conversationNode",
+        "position": {
+          "x": -315,
+          "y": 1725
+        },
+        "data": {
+          "model": "gpt-4o-mini",
+          "prompt": "Collect guest information for the reservation:\n\n1. Full Name: First and last name\n2. Email Address: For confirmation\n3. Phone Number: Contact number\n4. Address: Billing address\n5. Payment Method: Credit card or other\n6. Special Requests: Late arrival, early checkout, etc.\n7. Loyalty Program: Member of rewards program?\n8. Emergency Contact: If applicable\n\nAssure them about data security and privacy.",
+          "label": "Guest Information Collection"
+        }
+      },
+      {
+        "id": "booking_confirmation_node",
+        "type": "conversationNode",
+        "position": {
+          "x": 600,
+          "y": 1605
+        },
+        "data": {
+          "model": "gpt-4o-mini",
+          "prompt": "Provide comprehensive booking confirmation:\n\n1. Confirm all booking details\n2. Provide confirmation number\n3. Explain check-in/check-out procedures\n4. Provide hotel contact information\n5. Explain cancellation policy\n6. Mention any special offers or upgrades\n7. Ask if they have any final questions\n8. Provide directions and parking information\n\nMake them feel confident about their reservation.",
+          "label": "Booking Confirmation"
+        }
+      },
+      {
+        "id": "transfer_to_agent_node",
+        "type": "transferCall",
+        "position": {
+          "x": 645,
+          "y": 2385
+        },
+        "data": {
+          "destination": "+1234567890",
+          "transferMessage": "Transferring to hotel concierge for additional assistance with your reservation.",
+          "label": "Transfer to Concierge"
+        }
+      },
+      {
+        "id": "end_call_node",
+        "type": "endCall",
+        "position": {
+          "x": -420,
+          "y": 2490
+        },
+        "data": {
+          "endMessage": "Thank you for booking with us! We look forward to welcoming you. Have a wonderful stay!",
+          "label": "End Call"
+        }
+      }
+    ],
+    "edges": [
+      {
+        "id": "edge_1",
+        "source": "start_node",
+        "target": "booking_type_node",
+        "type": "conditional",
+        "data": {
+          "type": "none",
+          "isDefault": true
+        }
+      },
+      {
+        "id": "edge_2",
+        "source": "booking_type_node",
+        "target": "travel_details_node",
+        "type": "conditional",
+        "data": {
+          "type": "ai_based",
+          "aiCondition": "Customer wants to make a new reservation",
+          "description": "Route to travel details for new bookings"
+        }
+      },
+      {
+        "id": "edge_3",
+        "source": "travel_details_node",
+        "target": "amenities_preferences_node",
+        "type": "conditional",
+        "data": {
+          "type": "none",
+          "isDefault": true
+        }
+      },
+      {
+        "id": "edge_4",
+        "source": "amenities_preferences_node",
+        "target": "room_selection_node",
+        "type": "conditional",
+        "data": {
+          "type": "none",
+          "isDefault": true
+        }
+      },
+      {
+        "id": "edge_5",
+        "source": "room_selection_node",
+        "target": "guest_information_node",
+        "type": "conditional",
+        "data": {
+          "type": "none",
+          "isDefault": true
+        }
+      },
+      {
+        "id": "edge_6",
+        "source": "guest_information_node",
+        "target": "booking_confirmation_node",
+        "type": "conditional",
+        "data": {
+          "type": "none",
+          "isDefault": true
+        }
+      },
+      {
+        "id": "edge_7",
+        "source": "booking_confirmation_node",
+        "target": "transfer_to_agent_node",
+        "type": "conditional",
+        "data": {
+          "type": "ai_based",
+          "aiCondition": "Customer needs additional assistance or has complex requests",
+          "description": "Transfer to concierge for special requests"
+        }
+      },
+      {
+        "id": "edge_8",
+        "source": "booking_confirmation_node",
+        "target": "end_call_node",
+        "type": "conditional",
+        "data": {
+          "type": "ai_based",
+          "aiCondition": "Customer is satisfied with the booking",
+          "description": "End call after successful booking"
+        }
+      }
+    ],
+    "configs": {
+      "createdAt": "2025-10-21T00:00:00.000Z",
+      "description": "Hotel booking workflow for handling reservations, amenity inquiries, and guest information collection",
+      "globalSettings": {
+        "defaultLanguage": "en-US",
+        "timezone": "UTC",
+        "callRecording": true,
+        "transcriptionEnabled": true,
+        "sentimentAnalysis": true,
+        "conversationSummary": true,
+        "maxCallDuration": 30,
+        "silenceTimeout": 10,
+        "interruptionHandling": true
+      },
+      "llm": {
+        "provider": "azure_openai",
+        "azure": {
+          "apiKey": "f6d564a83af3498c9beb46d7d3e3da96",
+          "endpoint": "https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview",
+          "model": "gpt-4o-mini",
+          "temperature": 0.7,
+          "maxTokens": 1000,
+          "systemPrompt": "You are a professional hotel booking assistant. Be helpful and guide customers through the reservation process."
+        }
+      },
+      "name": "Hotel Booking AI Agent Workflow",
+      "transcription": {
+        "provider": "deepgram",
+        "deepgram": {
+          "apiKey": "YOUR_DEEPGRAM_API_KEY",
+          "model": "nova-2",
+          "language": "en-US",
+          "punctuate": true,
+          "smartFormat": true
+        }
+      },
+      "twilio": {
+        "accountSid": "",
+        "authToken": "",
+        "phoneNumber": "+17077433838",
+        "recordCalls": true,
+        "callTimeout": 1800
+      },
+      "version": "1.0.0",
+      "voice": {
+        "provider": "default"
+      }
+    },
+    "exportedAt": "2025-10-21T07:11:34.351Z",
+    "version": "1.0"
+  }
+

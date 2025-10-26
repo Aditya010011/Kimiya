@@ -1,0 +1,244 @@
+{
+  "name": "IT Helpdesk AI Agent Workflow",
+  "description": null,
+  "nodes": [
+    {
+      "id": "start_node",
+      "type": "startNode",
+      "position": {
+        "x": -75,
+        "y": -255
+      },
+      "data": {
+        "firstMessage": "Welcome to IT Support! I'm your AI helpdesk assistant. I'm here to help you troubleshoot technical issues and find solutions. What can I help you with today?",
+        "globalPrompt": "You are a professional IT support AI assistant. Be patient, knowledgeable, and systematic in troubleshooting. Guide users through step-by-step solutions. Always maintain a professional and helpful tone. Escalate complex issues to human technicians when needed.",
+        "label": "Welcome & Greeting"
+      }
+    },
+    {
+      "id": "issue_category_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Determine the issue category:\n\n1. What type of issue are they experiencing?\n2. Is it hardware, software, network, or account-related?\n3. What device or system is affected?\n4. When did the issue start?\n5. Have they tried any troubleshooting?\n\nBe systematic in understanding the problem.",
+        "label": "Issue Category"
+      }
+    },
+    {
+      "id": "issue_details_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -570,
+        "y": 570
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Gather detailed issue information:\n\n1. Describe the exact problem\n2. What error messages are shown?\n3. What were they doing when it happened?\n4. Has this happened before?\n5. What's the impact (critical, high, medium, low)?\n6. How many users are affected?\n7. What's their device/OS?\n8. Any recent changes or updates?\n\nAsk clarifying questions to understand fully.",
+        "label": "Issue Details"
+      }
+    },
+    {
+      "id": "troubleshooting_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 945,
+        "y": 555
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Provide troubleshooting steps:\n\n1. Ask what they've already tried\n2. Suggest basic troubleshooting (restart, clear cache)\n3. Provide step-by-step instructions\n4. Ask them to try each step\n5. Confirm if the issue is resolved\n6. If not resolved, try advanced steps\n7. Document what was tried\n8. Determine if escalation is needed\n\nBe patient and clear with instructions.",
+        "label": "Troubleshooting"
+      }
+    },
+    {
+      "id": "resolution_check_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 345,
+        "y": 870
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Check if issue is resolved:\n\n1. Is the issue completely resolved?\n2. Are there any remaining problems?\n3. Is the system functioning normally?\n4. Can they perform their required tasks?\n5. Any performance concerns?\n6. Confirm full resolution\n\nEnsure complete satisfaction.",
+        "label": "Resolution Check"
+      }
+    },
+    {
+      "id": "escalation_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -315,
+        "y": 1725
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Escalate to human technician if needed:\n\n1. Explain why escalation is necessary\n2. Provide ticket number\n3. Explain next steps\n4. Provide estimated response time\n5. Collect contact information\n6. Explain what information will be shared\n7. Provide escalation reference\n\nBe professional and reassuring.",
+        "label": "Escalation"
+      }
+    },
+    {
+      "id": "documentation_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 600,
+        "y": 1605
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Document and provide follow-up:\n\n1. Summarize the issue and resolution\n2. Provide ticket number\n3. Offer preventive tips\n4. Provide knowledge base links\n5. Ask if they need anything else\n6. Provide support contact info\n7. Thank them for contacting support\n\nLeave them with helpful resources.",
+        "label": "Documentation & Follow-up"
+      }
+    },
+    {
+      "id": "end_call_node",
+      "type": "endCall",
+      "position": {
+        "x": -420,
+        "y": 2490
+      },
+      "data": {
+        "endMessage": "Thank you for contacting IT Support! If you need further assistance, please don't hesitate to reach out. Have a great day!",
+        "label": "End Call"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "source": "start_node",
+      "target": "issue_category_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_2",
+      "source": "issue_category_node",
+      "target": "issue_details_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_3",
+      "source": "issue_details_node",
+      "target": "troubleshooting_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_4",
+      "source": "troubleshooting_node",
+      "target": "resolution_check_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_5",
+      "source": "resolution_check_node",
+      "target": "documentation_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Issue is resolved",
+        "description": "Document resolution if issue is fixed"
+      }
+    },
+    {
+      "id": "edge_6",
+      "source": "resolution_check_node",
+      "target": "escalation_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Issue is not resolved or requires escalation",
+        "description": "Escalate if troubleshooting unsuccessful"
+      }
+    },
+    {
+      "id": "edge_7",
+      "source": "escalation_node",
+      "target": "end_call_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_8",
+      "source": "documentation_node",
+      "target": "end_call_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    }
+  ],
+  "configs": {
+    "createdAt": "2025-10-21T00:00:00.000Z",
+    "description": "IT helpdesk workflow for technical support, troubleshooting, and issue resolution",
+    "globalSettings": {
+      "defaultLanguage": "en-US",
+      "timezone": "UTC",
+      "callRecording": true,
+      "transcriptionEnabled": true,
+      "sentimentAnalysis": true,
+      "conversationSummary": true,
+      "maxCallDuration": 30,
+      "silenceTimeout": 10,
+      "interruptionHandling": true
+    },
+    "llm": {
+      "provider": "azure_openai",
+      "azure": {
+        "apiKey": "f6d564a83af3498c9beb46d7d3e3da96",
+        "endpoint": "https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "maxTokens": 1000,
+        "systemPrompt": "You are a professional IT support assistant. Be patient and systematic in troubleshooting technical issues."
+      }
+    },
+    "name": "IT Helpdesk AI Agent Workflow",
+    "transcription": {
+      "provider": "deepgram",
+      "deepgram": {
+        "apiKey": "YOUR_DEEPGRAM_API_KEY",
+        "model": "nova-2",
+        "language": "en-US",
+        "punctuate": true,
+        "smartFormat": true
+      }
+    },
+    "twilio": {
+      "accountSid": "",
+      "authToken": "",
+      "phoneNumber": "+17077433838",
+      "recordCalls": true,
+      "callTimeout": 1800
+    },
+    "version": "1.0.0",
+    "voice": {
+      "provider": "default"
+    }
+  },
+  "exportedAt": "2025-10-21T07:11:34.351Z",
+  "version": "1.0"
+}
+

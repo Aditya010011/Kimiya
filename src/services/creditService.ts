@@ -138,14 +138,11 @@ export class CreditService {
   /**
    * Get user's current credit balance
    */
-  static async getUserCreditBalance(userId: number): Promise<CreditApiResponse<CreditBalance>> {
+  static async getUserCreditBalance(userId: number): Promise<CreditApiResponse<any>> {
     try {
-      const response = await fetch(`/api/credits/balance/${userId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await AuthService.makeAuthenticatedRequest(
+        `/api/credits/balance/${userId}`
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -154,18 +151,11 @@ export class CreditService {
       const data = await response.json();
 
       if (data.success && data.data) {
-        const balance: CreditBalance = {
-          user_id: userId,
-          total_credits: data.data.totalCredits || 0,
-          available_credits: data.data.currentBalance || 0,
-          reserved_credits: data.data.reservedCredits || 0,
-          last_updated: data.data.lastUpdated || new Date().toISOString(),
-          expires_at: data.data.expiresAt || new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-        };
-
+        // Return the full response data which includes organizationId
+        console.log(`✅ Credits API response received:`, data.data);
         return {
           success: true,
-          data: balance
+          data: data.data  // Return full data object with organizationId
         };
       } else {
         throw new Error(data.error || 'Failed to get credit balance');
@@ -186,12 +176,9 @@ export class CreditService {
     filters?: CreditFilters
   ): Promise<CreditApiResponse<CreditTransaction[]>> {
     try {
-      const response = await fetch(`/api/credits/transactions/${userId}`, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('access_token')}`,
-          'Content-Type': 'application/json'
-        }
-      });
+      const response = await AuthService.makeAuthenticatedRequest(
+        `/api/credits/transactions/${userId}`
+      );
 
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -200,9 +187,13 @@ export class CreditService {
       const data = await response.json();
 
       if (data.success && data.data) {
+        // Handle both array and object responses
+        const transactions = Array.isArray(data.data)
+          ? data.data
+          : (data.data.transactions || []);
         return {
           success: true,
-          data: data.data
+          data: transactions
         };
       } else {
         throw new Error(data.error || 'Failed to get credit transactions');
@@ -368,44 +359,28 @@ export class CreditService {
    */
   static async getAdminCreditOverview(): Promise<CreditApiResponse<AdminCreditOverview>> {
     try {
-      const mockOverview: AdminCreditOverview = {
-        total_users: 156,
-        total_credits_allocated: 450000,
-        total_credits_used: 287500,
-        total_credits_remaining: 162500,
-        users_with_low_balance: 12,
-        users_with_high_usage: 8,
-        top_users_by_usage: [
-          {
-            user_id: 1,
-            user_email: 'john@company.com',
-            user_name: 'John Doe',
-            credits_used: 15000,
-            percentage_of_total: 5.2
-          },
-          {
-            user_id: 2,
-            user_email: 'sarah@company.com',
-            user_name: 'Sarah Smith',
-            credits_used: 12500,
-            percentage_of_total: 4.3
-          }
-        ],
-        usage_by_service: {
-          chat: 45000,
-          inbound_calls: 89000,
-          outbound_calls: 125000,
-          storage: 15000,
-          transcription: 8500,
-          ai_services: 5000
-        },
-        recent_allocations: []
-      };
+      // ✅ FIX: Call real API endpoint instead of using mock data
+      const response = await AuthService.makeAuthenticatedRequest(
+        `/api/admin/credits/overview`
+      );
 
-      return {
-        success: true,
-        data: mockOverview
-      };
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      if (data.success && data.data) {
+        return {
+          success: true,
+          data: data.data
+        };
+      } else {
+        return {
+          success: false,
+          error: data.error || 'Failed to get admin credit overview'
+        };
+      }
     } catch (error) {
       return {
         success: false,

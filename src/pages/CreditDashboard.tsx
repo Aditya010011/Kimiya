@@ -49,15 +49,21 @@ const CreditDashboard: React.FC = () => {
     try {
       setIsLoading(true);
       const response = await CreditService.getCreditTransactions(user.id, { limit: 20 });
-      
+
       if (response.success && response.data) {
-        setRecentTransactions(response.data);
+        // Handle both array and object responses
+        const transactions = Array.isArray(response.data)
+          ? response.data
+          : (response.data.transactions || []);
+        setRecentTransactions(transactions);
       } else {
         toast.error(response.error || 'Failed to load transaction history');
+        setRecentTransactions([]);
       }
     } catch (error) {
       toast.error('Failed to load transaction history');
       console.error('Error loading transactions:', error);
+      setRecentTransactions([]);
     } finally {
       setIsLoading(false);
     }
@@ -249,9 +255,9 @@ const CreditDashboard: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center space-x-2">
-                                {getServiceIcon(transaction.service_type)}
+                                {getServiceIcon(transaction.service_type || 'manual')}
                                 <span className="text-sm capitalize">
-                                  {transaction.service_type.replace('_', ' ')}
+                                  {(transaction.service_type || 'manual').replace('_', ' ')}
                                 </span>
                               </div>
                             </TableCell>

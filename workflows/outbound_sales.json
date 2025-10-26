@@ -1,0 +1,245 @@
+{
+  "name": "Outbound Sales AI Agent Workflow",
+  "description": null,
+  "nodes": [
+    {
+      "id": "start_node",
+      "type": "startNode",
+      "position": {
+        "x": -75,
+        "y": -255
+      },
+      "data": {
+        "firstMessage": "Hi there! I'm calling from SalesFirst Solutions. I hope I'm not catching you at a bad time. Do you have a quick minute to chat?",
+        "globalPrompt": "You are a professional outbound sales AI agent. Be respectful of the prospect's time, confident in your pitch, and focused on understanding their needs. Always be honest and transparent about your offering. Your goal is to qualify leads and schedule meetings with interested prospects.",
+        "label": "Welcome & Initial Contact"
+      }
+    },
+    {
+      "id": "qualification_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Qualify the prospect through natural conversation:\n\n1. Confirm you've reached the right person\n2. Briefly introduce yourself and your company\n3. Ask about their current situation/challenges\n4. Determine if they're a good fit for your solution\n5. Listen for pain points and needs\n6. Gauge their level of interest\n\nBe conversational and respectful. If they're not interested, thank them professionally and end the call.",
+        "label": "Lead Qualification"
+      }
+    },
+    {
+      "id": "needs_analysis_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -570,
+        "y": 570
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Conduct a needs analysis through natural conversation:\n\n1. Current Situation: What are they currently using?\n2. Pain Points: What challenges are they facing?\n3. Goals: What are they trying to achieve?\n4. Budget: Do they have budget allocated?\n5. Timeline: When are they looking to make a decision?\n6. Decision Makers: Who else is involved in the decision?\n7. Priorities: What matters most to them?\n8. Previous Solutions: Have they tried similar solutions?\n\nAsk thoughtful follow-up questions to understand their needs deeply.",
+        "label": "Needs Analysis"
+      }
+    },
+    {
+      "id": "solution_pitch_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 945,
+        "y": 555
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Present your solution tailored to their needs:\n\n1. Acknowledge their specific challenges\n2. Explain how your solution addresses their pain points\n3. Highlight key benefits and ROI\n4. Share relevant case studies or success stories\n5. Address potential objections proactively\n6. Explain pricing and packages\n7. Discuss implementation timeline\n8. Ask if they see value in what you're offering\n\nBe confident but not pushy. Focus on their needs, not just features.",
+        "label": "Solution Presentation"
+      }
+    },
+    {
+      "id": "objection_handling_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 345,
+        "y": 870
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Handle objections professionally:\n\n1. Listen fully to their concern\n2. Acknowledge and validate their perspective\n3. Ask clarifying questions\n4. Provide relevant information or solutions\n5. Address budget concerns with ROI data\n6. Handle timing objections with flexibility\n7. Offer alternatives or compromises\n8. Confirm if their concern is resolved\n\nRemain calm and professional. Objections are often just requests for more information.",
+        "label": "Objection Handling"
+      }
+    },
+    {
+      "id": "meeting_scheduling_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -315,
+        "y": 1725
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Schedule a follow-up meeting or demo:\n\n1. Propose specific meeting times\n2. Suggest meeting format (phone, video, in-person)\n3. Confirm attendees and their roles\n4. Explain what will be covered\n5. Send calendar invite details\n6. Confirm contact information\n7. Mention any preparation needed\n8. Express enthusiasm about next steps\n\nMake scheduling easy and clear.",
+        "label": "Meeting Scheduling"
+      }
+    },
+    {
+      "id": "contact_confirmation_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 600,
+        "y": 1605
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Confirm contact details and next steps:\n\n1. Verify email address for confirmation\n2. Confirm phone number\n3. Confirm meeting date and time\n4. Explain what happens next\n5. Provide your contact information\n6. Ask if they have any final questions\n7. Thank them for their time\n8. Express excitement about the opportunity\n\nLeave them with a positive impression.",
+        "label": "Contact Confirmation"
+      }
+    },
+    {
+      "id": "end_call_node",
+      "type": "endCall",
+      "position": {
+        "x": -420,
+        "y": 2490
+      },
+      "data": {
+        "endMessage": "Thank you for your time today! We look forward to speaking with you soon. Have a great day!",
+        "label": "End Call"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "source": "start_node",
+      "target": "qualification_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_2",
+      "source": "qualification_node",
+      "target": "needs_analysis_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Prospect is interested and qualifies as a potential customer",
+        "description": "Proceed to needs analysis if qualified"
+      }
+    },
+    {
+      "id": "edge_3",
+      "source": "needs_analysis_node",
+      "target": "solution_pitch_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_4",
+      "source": "solution_pitch_node",
+      "target": "objection_handling_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Prospect has objections or concerns",
+        "description": "Handle objections if raised"
+      }
+    },
+    {
+      "id": "edge_5",
+      "source": "objection_handling_node",
+      "target": "meeting_scheduling_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_6",
+      "source": "solution_pitch_node",
+      "target": "meeting_scheduling_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Prospect is interested and ready to schedule",
+        "description": "Schedule meeting if no objections"
+      }
+    },
+    {
+      "id": "edge_7",
+      "source": "meeting_scheduling_node",
+      "target": "contact_confirmation_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_8",
+      "source": "contact_confirmation_node",
+      "target": "end_call_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    }
+  ],
+  "configs": {
+    "createdAt": "2025-10-21T00:00:00.000Z",
+    "description": "Outbound sales workflow for lead qualification, needs analysis, solution presentation, and meeting scheduling",
+    "globalSettings": {
+      "defaultLanguage": "en-US",
+      "timezone": "UTC",
+      "callRecording": true,
+      "transcriptionEnabled": true,
+      "sentimentAnalysis": true,
+      "conversationSummary": true,
+      "maxCallDuration": 30,
+      "silenceTimeout": 10,
+      "interruptionHandling": true
+    },
+    "llm": {
+      "provider": "azure_openai",
+      "azure": {
+        "apiKey": "f6d564a83af3498c9beb46d7d3e3da96",
+        "endpoint": "https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "maxTokens": 1000,
+        "systemPrompt": "You are a professional outbound sales agent. Be respectful, confident, and focused on understanding customer needs."
+      }
+    },
+    "name": "Outbound Sales AI Agent Workflow",
+    "transcription": {
+      "provider": "deepgram",
+      "deepgram": {
+        "apiKey": "YOUR_DEEPGRAM_API_KEY",
+        "model": "nova-2",
+        "language": "en-US",
+        "punctuate": true,
+        "smartFormat": true
+      }
+    },
+    "twilio": {
+      "accountSid": "",
+      "authToken": "",
+      "phoneNumber": "+17077433838",
+      "recordCalls": true,
+      "callTimeout": 1800
+    },
+    "version": "1.0.0",
+    "voice": {
+      "provider": "default"
+    }
+  },
+  "exportedAt": "2025-10-21T07:11:34.351Z",
+  "version": "1.0"
+}
+

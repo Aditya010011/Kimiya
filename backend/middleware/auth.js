@@ -28,7 +28,7 @@ const authenticateToken = async (req, res, next) => {
     
     // Get user from database to ensure user still exists and is active
     const userResult = await databaseService.query(`
-      SELECT id, email, first_name, last_name, role, is_active, created_at, updated_at
+      SELECT id, email, first_name, last_name, role, organization_id, is_active, created_at, updated_at
       FROM tblUsers
       WHERE id = @userId AND is_active = 1
     `, {
@@ -45,6 +45,7 @@ const authenticateToken = async (req, res, next) => {
 
     // Add user information to request object
     req.user = userResult.recordset[0];
+    console.log(`✅ User authenticated: ${req.user.email}, organization_id: ${req.user.organization_id}`);
     req.token = decoded.sessionToken || token; // Use session token if available, fallback to JWT token
 
 

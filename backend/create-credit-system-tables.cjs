@@ -698,6 +698,9 @@ async function createCreditSystemTables() {
     await createBillingHistoryTable(pool);
     await createUsageLogsTable(pool);
 
+    // Create webhook events table for idempotency
+    await createWebhookEventsTable(pool);
+
     // Create triggers
     await createUpdateTriggers(pool);
 
@@ -712,7 +715,7 @@ async function createCreditSystemTables() {
       WHERE TABLE_NAME IN (
         'tblOrganizations', 'tblCreditPlans', 'tblSubscriptions',
         'tblCreditBalances', 'tblCreditTransactions', 'tblPaymentMethods',
-        'tblBillingHistory', 'tblUsageLogs'
+        'tblBillingHistory', 'tblUsageLogs', 'tblWebhookEvents'
       )
       ORDER BY TABLE_NAME
     `);
@@ -746,6 +749,40 @@ if (require.main === module) {
     });
 }
 
+/**
+ * Create Webhook Events table for idempotency
+ */
+async function createWebhookEventsTable(pool) {
+  console.log('\n🔔 Creating Webhook Events table...');
+
+  await pool.request().query(`
+    IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='tblWebhookEvents' AND xtype='U')
+    BEGIN
+      CREATE TABLE tblWebhookEvents (
+        id INT IDENTITY(1,1) PRIMARY KEY,
+        event_id NVARCHAR(100) NOT NULL UNIQUE,
+        event_type NVARCHAR(50) NOT NULL,
+        organization_id NVARCHAR(50) NOT NULL,
+        processed_at DATETIME2 NOT NULL DEFAULT GETDATE(),
+
+        CONSTRAINT FK_tblWebhookEvents_organization_id
+          FOREIGN KEY (organization_id) REFERENCES tblOrganizations(id) ON DELETE CASCADE,
+        CONSTRAINT UQ_tblWebhookEvents_event_id UNIQUE (event_id)
+      );
+
+      CREATE INDEX IX_tblWebhookEvents_event_id ON tblWebhookEvents(event_id);
+      CREATE INDEX IX_tblWebhookEvents_organization_id ON tblWebhookEvents(organization_id);
+      CREATE INDEX IX_tblWebhookEvents_processed_at ON tblWebhookEvents(processed_at DESC);
+
+      PRINT '✅ Webhook Events table created successfully';
+    END
+    ELSE
+    BEGIN
+      PRINT '⚠️  Webhook Events table already exists';
+    END
+  `);
+}
+
 module.exports = {
   createCreditSystemTables,
   createOrganizationsTable,
@@ -756,6 +793,7 @@ module.exports = {
   createPaymentMethodsTable,
   createBillingHistoryTable,
   createUsageLogsTable,
+  createWebhookEventsTable,
   createUpdateTriggers,
   insertDefaultCreditPlans,
   createDefaultOrganization

@@ -143,15 +143,17 @@ export interface AdminCreditOverview {
     credits_used: number;
     percentage_of_total: number;
   }>;
-  usage_by_service: {
-    chat: number;
-    inbound_calls: number;
-    outbound_calls: number;
-    storage: number;
-    transcription: number;
-    ai_services: number;
-  };
-  recent_allocations: CreditAllocation[];
+  usage_by_service: Record<string, number>;
+  recent_allocations: Array<{
+    id: number;
+    user_id: number;
+    user_email: string;
+    user_name: string;
+    amount: number;
+    allocation_type: string;
+    created_at: string;
+    notes?: string;
+  }>;
 }
 
 export interface CreditUsageChart {

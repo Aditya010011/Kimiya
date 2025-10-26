@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Check, Info, Zap } from 'lucide-react';
+import { Check, Info, Zap, Loader } from 'lucide-react';
 import { CreditService } from '@/services/creditService';
 import { CreditPlan } from '@/types/creditTypes';
 import {
@@ -20,17 +20,24 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { toast } from 'sonner';
+import { useAuthStore } from '@/stores/authStore';
+import { getApiBaseUrl } from '@/utils/envConfig';
 
 interface PricingPlansProps {
   onSelectPlan?: (planId: string, billingCycle: 'monthly' | 'annual') => void;
   currentPlanId?: string;
+  useStripeCheckout?: boolean;
 }
 
 export const PricingPlans: React.FC<PricingPlansProps> = ({
   onSelectPlan,
   currentPlanId,
+  useStripeCheckout = true,
 }) => {
   const [billingCycle, setBillingCycle] = useState<'monthly' | 'annual'>('monthly');
+  const [isLoading, setIsLoading] = useState<string | null>(null);
+  const { user } = useAuthStore();
   const plans = CreditService.CREDIT_PLANS;
 
   const formatPrice = (plan: CreditPlan): { price: string; period: string; savings?: string } => {
@@ -59,8 +66,51 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({
     return `${value.toLocaleString()}${unit}`;
   };
 
-  const handleSelectPlan = (planId: string) => {
-    if (onSelectPlan) {
+  const handleSelectPlan = async (planId: string) => {
+    if (planId === 'enterprise') {
+      toast.info('Please contact sales for enterprise pricing');
+      return;
+    }
+
+    if (useStripeCheckout && user?.organization_id) {
+      try {
+        setIsLoading(planId);
+        const apiBaseUrl = getApiBaseUrl();
+        const { AuthService } = await import('@/services/authService');
+
+        const response = await AuthService.makeAuthenticatedRequest(
+          `${apiBaseUrl}/api/stripe/checkout-session`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              organizationId: user.organization_id,
+              planId,
+              billingCycle
+            })
+          }
+        );
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || 'Failed to create checkout session');
+        }
+
+        const data = await response.json();
+        if (data.data?.url) {
+          window.location.href = data.data.url;
+        } else {
+          throw new Error('No checkout URL returned');
+        }
+      } catch (error) {
+        console.error('Error creating checkout session:', error);
+        toast.error(error instanceof Error ? error.message : 'Failed to start checkout');
+      } finally {
+        setIsLoading(null);
+      }
+    } else if (onSelectPlan) {
       onSelectPlan(planId, billingCycle);
     }
   };
@@ -252,13 +302,20 @@ export const PricingPlans: React.FC<PricingPlansProps> = ({
                   className="w-full"
                   variant={plan.is_popular ? 'default' : 'outline'}
                   onClick={() => handleSelectPlan(plan.id)}
-                  disabled={isCurrentPlan}
+                  disabled={isCurrentPlan || isLoading === plan.id}
                 >
-                  {isCurrentPlan
-                    ? 'Current Plan'
-                    : isEnterprise
-                    ? 'Contact Sales'
-                    : 'Select Plan'}
+                  {isLoading === plan.id ? (
+                    <>
+                      <Loader className="w-4 h-4 mr-2 animate-spin" />
+                      Processing...
+                    </>
+                  ) : isCurrentPlan ? (
+                    'Current Plan'
+                  ) : isEnterprise ? (
+                    'Contact Sales'
+                  ) : (
+                    'Select Plan'
+                  )}
                 </Button>
               </CardFooter>
             </Card>

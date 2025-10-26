@@ -1,0 +1,232 @@
+{
+  "name": "Table Reservation AI Agent Workflow",
+  "description": null,
+  "nodes": [
+    {
+      "id": "start_node",
+      "type": "startNode",
+      "position": {
+        "x": -75,
+        "y": -255
+      },
+      "data": {
+        "firstMessage": "Welcome to our restaurant! I'm your AI reservation assistant. I'm here to help you book a table. How many guests will be dining with us?",
+        "globalPrompt": "You are a professional restaurant reservation AI assistant. Be efficient, friendly, and focused on securing table reservations. Help customers find available times and confirm their bookings. Always maintain a professional and welcoming tone.",
+        "label": "Welcome & Greeting"
+      }
+    },
+    {
+      "id": "party_size_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Determine party size:\n\n1. How many guests will be dining?\n2. Are there any children in the party?\n3. Do they need a high chair or booster seat?\n4. Any accessibility requirements?\n5. Confirm the party size\n\nBe clear about the number of guests.",
+        "label": "Party Size"
+      }
+    },
+    {
+      "id": "date_time_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -570,
+        "y": 570
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Gather date and time preferences:\n\n1. What date would they like to dine?\n2. What time do they prefer?\n3. Do they have flexibility with timing?\n4. Is this for a special occasion?\n5. Any time constraints?\n6. Confirm the date and time\n\nBe helpful in finding available slots.",
+        "label": "Date & Time Selection"
+      }
+    },
+    {
+      "id": "availability_check_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 945,
+        "y": 555
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Check availability and present options:\n\n1. Confirm requested date and time\n2. Present available time slots\n3. Explain any wait times\n4. Offer alternative times if needed\n5. Mention any special seating options\n6. Ask which time works best\n7. Confirm their selection\n\nBe clear about availability.",
+        "label": "Availability Check"
+      }
+    },
+    {
+      "id": "seating_preferences_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 345,
+        "y": 870
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Gather seating preferences:\n\n1. Do they have seating preferences? (window, quiet, near bar)\n2. Any accessibility needs?\n3. Outdoor or indoor seating?\n4. High-top or regular table?\n5. Any other special requests?\n6. Confirm preferences\n\nNote their preferences for the reservation.",
+        "label": "Seating Preferences"
+      }
+    },
+    {
+      "id": "customer_details_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -315,
+        "y": 1725
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Collect customer details:\n\n1. Full Name: First and last name\n2. Phone Number: Contact number\n3. Email: For confirmation\n4. Special Occasions: Birthday, anniversary, etc.\n5. Dietary Restrictions: Alert kitchen if needed\n6. Preferred Contact: Phone or email\n7. Loyalty Member: Any rewards program?\n\nConfirm all information is correct.",
+        "label": "Customer Details"
+      }
+    },
+    {
+      "id": "reservation_confirmation_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 600,
+        "y": 1605
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Provide reservation confirmation:\n\n1. Confirm all reservation details\n2. Provide confirmation number\n3. Explain cancellation policy\n4. Mention arrival time (arrive 10 min early)\n5. Provide restaurant phone number\n6. Mention dress code if applicable\n7. Explain parking information\n8. Thank them for the reservation\n\nMake them excited about their visit!",
+        "label": "Reservation Confirmation"
+      }
+    },
+    {
+      "id": "end_call_node",
+      "type": "endCall",
+      "position": {
+        "x": -420,
+        "y": 2490
+      },
+      "data": {
+        "endMessage": "Thank you for your reservation! We look forward to welcoming you. See you soon!",
+        "label": "End Call"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "source": "start_node",
+      "target": "party_size_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_2",
+      "source": "party_size_node",
+      "target": "date_time_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_3",
+      "source": "date_time_node",
+      "target": "availability_check_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_4",
+      "source": "availability_check_node",
+      "target": "seating_preferences_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_5",
+      "source": "seating_preferences_node",
+      "target": "customer_details_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_6",
+      "source": "customer_details_node",
+      "target": "reservation_confirmation_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_7",
+      "source": "reservation_confirmation_node",
+      "target": "end_call_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    }
+  ],
+  "configs": {
+    "createdAt": "2025-10-21T00:00:00.000Z",
+    "description": "Table reservation workflow for restaurant booking and confirmation",
+    "globalSettings": {
+      "defaultLanguage": "en-US",
+      "timezone": "UTC",
+      "callRecording": true,
+      "transcriptionEnabled": true,
+      "sentimentAnalysis": true,
+      "conversationSummary": true,
+      "maxCallDuration": 30,
+      "silenceTimeout": 10,
+      "interruptionHandling": true
+    },
+    "llm": {
+      "provider": "azure_openai",
+      "azure": {
+        "apiKey": "f6d564a83af3498c9beb46d7d3e3da96",
+        "endpoint": "https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "maxTokens": 1000,
+        "systemPrompt": "You are a professional restaurant reservation assistant. Be efficient and friendly in booking tables."
+      }
+    },
+    "name": "Table Reservation AI Agent Workflow",
+    "transcription": {
+      "provider": "deepgram",
+      "deepgram": {
+        "apiKey": "YOUR_DEEPGRAM_API_KEY",
+        "model": "nova-2",
+        "language": "en-US",
+        "punctuate": true,
+        "smartFormat": true
+      }
+    },
+    "twilio": {
+      "accountSid": "",
+      "authToken": "",
+      "phoneNumber": "+17077433838",
+      "recordCalls": true,
+      "callTimeout": 1800
+    },
+    "version": "1.0.0",
+    "voice": {
+      "provider": "default"
+    }
+  },
+  "exportedAt": "2025-10-21T07:11:34.351Z",
+  "version": "1.0"
+}
+

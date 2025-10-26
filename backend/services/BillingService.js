@@ -9,6 +9,8 @@ class BillingService {
    */
   static async getOrganizationBilling(organizationId) {
     try {
+      console.log(`\n📊 BillingService.getOrganizationBilling called for org: ${organizationId}`);
+
       // Get organization info
       const orgResult = await databaseService.query(`
         SELECT id, name, created_at
@@ -17,6 +19,7 @@ class BillingService {
       `, { organizationId });
 
       if (!orgResult.recordset || orgResult.recordset.length === 0) {
+        console.log(`❌ Organization not found: ${organizationId}`);
         return {
           success: false,
           error: 'Organization not found'
@@ -24,11 +27,13 @@ class BillingService {
       }
 
       const organization = orgResult.recordset[0];
+      console.log(`✅ Organization found: ${organization.name}`);
 
       // Get current subscription
       // Try with new columns first, fall back to old schema if columns don't exist
       let subscriptionResult;
       try {
+        console.log(`🔍 Querying subscription with ORDER BY updated_at DESC...`);
         subscriptionResult = await databaseService.query(`
           SELECT
             s.id,
@@ -61,7 +66,7 @@ class BillingService {
           FROM tblSubscriptions s
           INNER JOIN tblCreditPlans cp ON s.plan_id = cp.id
           WHERE s.organization_id = @organizationId
-          ORDER BY s.created_at DESC
+          ORDER BY s.updated_at DESC
         `, { organizationId });
       } catch (error) {
         // If new columns don't exist, fall back to basic query
@@ -98,13 +103,22 @@ class BillingService {
           FROM tblSubscriptions s
           INNER JOIN tblCreditPlans cp ON s.plan_id = cp.id
           WHERE s.organization_id = @organizationId
-          ORDER BY s.created_at DESC
+          ORDER BY s.updated_at DESC
         `, { organizationId });
       }
 
       let currentSubscription = null;
       if (subscriptionResult.recordset && subscriptionResult.recordset.length > 0) {
         const sub = subscriptionResult.recordset[0];
+        console.log(`✅ Subscription found:`);
+        console.log(`   ID: ${sub.id}`);
+        console.log(`   Plan ID: ${sub.plan_id}`);
+        console.log(`   Plan Name: ${sub.plan_name}`);
+        console.log(`   Status: ${sub.status}`);
+        console.log(`   Created At: ${sub.created_at}`);
+        console.log(`   Updated At: ${sub.updated_at}`);
+        console.log(`   Billing Cycle: ${sub.billing_cycle}`);
+
         currentSubscription = {
           id: sub.id,
           organization_id: sub.organization_id,
@@ -183,14 +197,19 @@ class BillingService {
       // Calculate upcoming invoice (if subscription exists)
       let upcomingInvoice = null;
       if (currentSubscription && currentSubscription.status === 'active') {
+        // Use annual price for annual plans, monthly price for monthly plans
+        const invoiceAmount = currentSubscription.billing_cycle === 'annual'
+          ? currentSubscription.plan.annual_price_usd
+          : currentSubscription.plan.price_usd;
+
         upcomingInvoice = {
-          amount_usd: currentSubscription.plan.price_usd,
+          amount_usd: invoiceAmount,
           due_date: currentSubscription.current_period_end,
           plan_name: currentSubscription.plan.name
         };
       }
 
-      return {
+      const response = {
         success: true,
         data: {
           organization_id: organizationId,
@@ -201,6 +220,16 @@ class BillingService {
           upcoming_invoice: upcomingInvoice
         }
       };
+
+      console.log(`✅ Returning billing data:`);
+      if (currentSubscription) {
+        console.log(`   Current subscription plan_id: ${currentSubscription.plan_id}`);
+        console.log(`   Current subscription plan name: ${currentSubscription.plan.name}`);
+      } else {
+        console.log(`   No current subscription`);
+      }
+
+      return response;
 
     } catch (error) {
       console.error('Error getting organization billing:', error);
@@ -299,6 +328,24 @@ class BillingService {
 
       // Allocate credits to all users in the organization
       await this.allocateCreditsForPlan(organizationId, plan, userId);
+
+      // Update allocation_reset_date for all users in the organization
+      // This resets the billing cycle countdown when plan is purchased
+      const resetDate = new Date(currentPeriodEnd);
+      resetDate.setHours(0, 0, 0, 0);
+
+      await databaseService.query(`
+        UPDATE tblCreditBalances
+        SET allocation_reset_date = @resetDate,
+            monthly_used = 0,
+            last_updated = GETDATE()
+        WHERE organization_id = @organizationId
+      `, {
+        organizationId,
+        resetDate
+      });
+
+      console.log(`✅ Updated allocation_reset_date to ${resetDate} for all users in organization ${organizationId}`);
 
       // Create billing history record
       await this.createBillingRecord(organizationId, subscriptionId, plan, currentPeriodStart, currentPeriodEnd);
@@ -821,6 +868,24 @@ class BillingService {
           newPeriodStart,
           newPeriodEnd
         });
+
+        // Update allocation_reset_date for all users in the organization
+        // This resets the billing cycle countdown when plan is changed
+        const resetDate = new Date(newPeriodEnd);
+        resetDate.setHours(0, 0, 0, 0);
+
+        await databaseService.query(`
+          UPDATE tblCreditBalances
+          SET allocation_reset_date = @resetDate,
+              monthly_used = 0,
+              last_updated = GETDATE()
+          WHERE organization_id = @organizationId
+        `, {
+          organizationId,
+          resetDate
+        });
+
+        console.log(`✅ Updated allocation_reset_date to ${resetDate} for all users in organization ${organizationId}`);
 
         // Determine change type
         let changeType = 'same_tier';

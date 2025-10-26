@@ -61,6 +61,13 @@ console.log(`🔧 CORS configured for ${environment} environment with comprehens
 
 // Middleware
 app.use(cors(corsOptions));
+
+// ✅ FIX: Mount Stripe webhook BEFORE express.json() middleware
+// The webhook needs raw body for signature verification
+const stripeRoutes = require('./routes/stripe');
+app.use('/api/stripe', stripeRoutes);
+
+// Now apply JSON parsing middleware for all other routes
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -192,9 +199,15 @@ app.use('/api/credits', creditRoutes);
 const adminCreditRoutes = require('./routes/admin-credits');
 app.use('/api/admin/credits', adminCreditRoutes);
 
+// Organization credit pool routes
+const organizationCreditPoolRoutes = require('./routes/organization-credit-pools');
+app.use('/api/organization-credit-pools', organizationCreditPoolRoutes);
+
 // Billing management routes
 const billingRoutes = require('./routes/billing');
 app.use('/api/billing', billingRoutes);
+
+// Stripe payment routes (already mounted before JSON middleware for webhook signature verification)
 
 // Workflow management routes
 const workflowRoutes = require('./routes/workflows');

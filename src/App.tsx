@@ -14,6 +14,8 @@ import InboundCallTesting from "./pages/InboundCallTesting";
 import CreditDashboard from "./pages/CreditDashboard";
 import AdminCreditManagement from "./pages/AdminCreditManagement";
 import AdminCreditPlans from "./pages/AdminCreditPlans";
+import BillingSuccess from "./pages/BillingSuccess";
+import BillingCancel from "./pages/BillingCancel";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { CreditProvider } from "./contexts/CreditContext";
@@ -80,6 +82,16 @@ const App = () => (
           <Route path="/admin/billing" element={
             <ProtectedRoute requiredRole="admin">
               <AdminCreditPlans />
+            </ProtectedRoute>
+          } />
+          <Route path="/billing/success" element={
+            <ProtectedRoute>
+              <BillingSuccess />
+            </ProtectedRoute>
+          } />
+          <Route path="/billing/cancel" element={
+            <ProtectedRoute>
+              <BillingCancel />
             </ProtectedRoute>
           } />
 

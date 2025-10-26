@@ -14,7 +14,7 @@ class CreditService {
   static async getUserCreditBalance(userId) {
     try {
       const result = await databaseService.query(`
-        SELECT 
+        SELECT
           cb.current_balance,
           cb.allocated_credits,
           cb.used_credits,
@@ -22,6 +22,7 @@ class CreditService {
           cb.monthly_used,
           cb.allocation_reset_date,
           cb.last_updated,
+          cb.organization_id,
           u.email,
           u.first_name,
           u.last_name,
@@ -39,17 +40,23 @@ class CreditService {
       }
 
       const balance = result.recordset[0];
-      
+
+      console.log(`📊 CreditService.getUserCreditBalance called for userId: ${userId}`);
+      console.log(`   Organization ID: ${balance.organization_id}`);
+      console.log(`   Current Balance: ${balance.current_balance}`);
+      console.log(`   Allocation Reset Date: ${balance.allocation_reset_date}`);
+
       // Calculate usage projection for current month
       const daysInMonth = new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate();
       const currentDay = new Date().getDate();
-      const projectedMonthlyUsage = balance.monthly_used > 0 ? 
+      const projectedMonthlyUsage = balance.monthly_used > 0 ?
         Math.round((balance.monthly_used / currentDay) * daysInMonth) : 0;
 
       return {
         success: true,
         data: {
           userId: userId,
+          organizationId: balance.organization_id,
           currentBalance: balance.current_balance,
           allocatedCredits: balance.allocated_credits,
           usedCredits: balance.used_credits,
@@ -62,6 +69,7 @@ class CreditService {
             email: balance.email,
             firstName: balance.first_name,
             lastName: balance.last_name,
+            organizationId: balance.organization_id,
             organizationName: balance.organization_name
           }
         }
@@ -216,27 +224,34 @@ class CreditService {
           )
         `);
 
-        // Create usage log
-        const request4 = transaction.request();
-        request4.input('userId', userId);
-        request4.input('organizationId', balance.organization_id);
-        request4.input('serviceType', serviceType);
-        request4.input('usageAmount', amount);
-        request4.input('serviceMetadata', JSON.stringify(serviceDetails));
-        request4.input('referenceId', referenceId);
-        request4.input('referenceType', referenceType);
-        request4.input('creditCost', amount);
-        await request4.query(`
-          INSERT INTO tblUsageLogs (
-            user_id, organization_id, service_type, usage_amount,
-            usage_units, service_metadata, reference_id, reference_type,
-            credit_cost, rate_applied
-          ) VALUES (
-            @userId, @organizationId, @serviceType, @usageAmount,
-            'credits', @serviceMetadata, @referenceId, @referenceType,
-            @creditCost, 1.0
-          )
-        `);
+        // Create usage log (only for valid service types)
+        // Map internal service types to valid usage log types
+        const validServiceTypes = ['chat', 'inbound_call', 'outbound_call', 'storage', 'transcription', 'ai_service'];
+        const logServiceType = validServiceTypes.includes(serviceType) ? serviceType : 'chat';
+
+        // Only log if it's not a reservation or internal operation
+        if (!['reservation', 'reservation_refund', 'adjustment'].includes(serviceType)) {
+          const request4 = transaction.request();
+          request4.input('userId', userId);
+          request4.input('organizationId', balance.organization_id);
+          request4.input('serviceType', logServiceType);
+          request4.input('usageAmount', amount);
+          request4.input('serviceMetadata', JSON.stringify(serviceDetails));
+          request4.input('referenceId', referenceId);
+          request4.input('referenceType', referenceType);
+          request4.input('creditCost', amount);
+          await request4.query(`
+            INSERT INTO tblUsageLogs (
+              user_id, organization_id, service_type, usage_amount,
+              usage_units, service_metadata, reference_id, reference_type,
+              credit_cost, rate_applied
+            ) VALUES (
+              @userId, @organizationId, @serviceType, @usageAmount,
+              'credits', @serviceMetadata, @referenceId, @referenceType,
+              @creditCost, 1.0
+            )
+          `);
+        }
 
         await transaction.commit();
 
@@ -262,6 +277,54 @@ class CreditService {
       return {
         success: false,
         error: 'Failed to deduct credits'
+      };
+    }
+  }
+
+  /**
+   * Update transaction details after successful operation
+   * Used to convert a reservation transaction to an actual service transaction
+   * @param {string} transactionId - Transaction ID to update
+   * @param {string} serviceType - Actual service type
+   * @param {Object} serviceDetails - Service details
+   * @param {string} referenceId - Reference to the service record
+   * @param {string} referenceType - Type of reference
+   * @returns {Promise<Object>} Result of update
+   */
+  static async updateTransactionDetails(transactionId, serviceType, serviceDetails = {}, referenceId = null, referenceType = null) {
+    try {
+      await databaseService.query(`
+        UPDATE tblCreditTransactions
+        SET
+          service_type = @serviceType,
+          service_details = @serviceDetails,
+          reference_id = @referenceId,
+          reference_type = @referenceType,
+          updated_at = GETDATE()
+        WHERE transaction_id = @transactionId
+      `, {
+        transactionId,
+        serviceType,
+        serviceDetails: JSON.stringify(serviceDetails),
+        referenceId,
+        referenceType
+      });
+
+      console.log(`✅ Updated transaction ${transactionId} with service type: ${serviceType}`);
+
+      return {
+        success: true,
+        data: {
+          transactionId,
+          serviceType,
+          timestamp: new Date().toISOString()
+        }
+      };
+    } catch (error) {
+      console.error('Error updating transaction details:', error);
+      return {
+        success: false,
+        error: 'Failed to update transaction details'
       };
     }
   }
@@ -303,18 +366,19 @@ class CreditService {
       `, { userId });
 
       const transactions = result.recordset.map(tx => ({
-        transactionId: tx.transaction_id,
-        type: tx.type,
+        id: tx.transaction_id,
+        transaction_type: tx.type,
         amount: tx.amount,
-        balanceBefore: tx.balance_before,
-        balanceAfter: tx.balance_after,
-        serviceType: tx.service_type,
-        serviceDetails: tx.service_details ? JSON.parse(tx.service_details) : null,
-        referenceId: tx.reference_id,
-        referenceType: tx.reference_type,
+        balance_before: tx.balance_before,
+        balance_after: tx.balance_after,
+        service_type: tx.service_type,
+        service_details: tx.service_details ? JSON.parse(tx.service_details) : null,
+        reference_id: tx.reference_id,
+        reference_type: tx.reference_type,
         notes: tx.notes,
-        createdAt: tx.created_at,
-        createdByName: tx.created_by_name
+        created_at: tx.created_at,
+        created_by_name: tx.created_by_name,
+        description: `${tx.type.charAt(0).toUpperCase() + tx.type.slice(1)} - ${tx.service_type.replace('_', ' ')}`
       }));
 
       return {
@@ -352,7 +416,7 @@ class CreditService {
       // Start transaction with SERIALIZABLE isolation
       const sql = require('mssql');
       const transaction = await databaseService.beginTransaction(sql.ISOLATION_LEVEL.SERIALIZABLE);
-      
+
       try {
         // Get current balance with row lock
         const request1 = transaction.request();
@@ -364,19 +428,65 @@ class CreditService {
           WHERE user_id = @userId
         `);
 
+        let balance;
+
         if (!balanceResult.recordset || balanceResult.recordset.length === 0) {
-          await transaction.rollback();
-          return {
-            success: false,
-            error: 'User credit balance not found'
+          // ✅ FIX: Initialize credit balance if it doesn't exist
+          console.log(`   ℹ️  No credit balance found for user ${userId}, initializing...`);
+
+          // Get user's organization
+          const userRequest = transaction.request();
+          userRequest.input('userId', userId);
+          const userResult = await userRequest.query(`
+            SELECT organization_id FROM tblUsers WHERE id = @userId
+          `);
+
+          if (!userResult.recordset || userResult.recordset.length === 0) {
+            await transaction.rollback();
+            return {
+              success: false,
+              error: 'User not found'
+            };
+          }
+
+          const organizationId = userResult.recordset[0].organization_id || 'org_default_123';
+
+          // Calculate next month's first day for allocation reset
+          const nextMonth = new Date();
+          nextMonth.setMonth(nextMonth.getMonth() + 1);
+          nextMonth.setDate(1);
+          nextMonth.setHours(0, 0, 0, 0);
+
+          // Create new credit balance record
+          const initRequest = transaction.request();
+          initRequest.input('userId', userId);
+          initRequest.input('organizationId', organizationId);
+          initRequest.input('allocationResetDate', nextMonth);
+          await initRequest.query(`
+            INSERT INTO tblCreditBalances (
+              user_id, organization_id, current_balance, allocated_credits,
+              used_credits, monthly_allocation, monthly_used, allocation_reset_date
+            ) VALUES (
+              @userId, @organizationId, 0, 0, 0, 0, 0, @allocationResetDate
+            )
+          `);
+
+          console.log(`   ✅ Credit balance initialized for user ${userId}`);
+
+          // Set balance for subsequent operations
+          balance = {
+            current_balance: 0,
+            allocated_credits: 0,
+            organization_id: organizationId
           };
+        } else {
+          balance = balanceResult.recordset[0];
         }
 
-        const balance = balanceResult.recordset[0];
         const newBalance = balance.current_balance + amount;
         const newAllocatedCredits = balance.allocated_credits + amount;
 
-        // Update credit balance
+        // Update credit balance for recipient
         const request2 = transaction.request();
         request2.input('userId', userId);
         request2.input('newBalance', newBalance);
@@ -390,7 +500,60 @@ class CreditService {
           WHERE user_id = @userId
         `);
 
-        // Create transaction record
+        // ✅ FIX: Deduct credits from admin's balance
+        console.log(`   💳 Deducting ${amount} credits from admin ${adminUserId}...`);
+
+        const adminBalanceRequest = transaction.request();
+        adminBalanceRequest.input('adminUserId', adminUserId);
+        const adminBalanceResult = await adminBalanceRequest.query(`
+          SELECT current_balance, allocated_credits, organization_id
+          FROM tblCreditBalances WITH (UPDLOCK, ROWLOCK)
+          WHERE user_id = @adminUserId
+        `);
+
+        if (!adminBalanceResult.recordset || adminBalanceResult.recordset.length === 0) {
+          await transaction.rollback();
+          return {
+            success: false,
+            error: 'Admin credit balance not found'
+          };
+        }
+
+        const adminBalance = adminBalanceResult.recordset[0];
+
+        // Check if admin has enough credits
+        if (adminBalance.current_balance < amount) {
+          await transaction.rollback();
+          return {
+            success: false,
+            error: `Admin does not have enough credits. Available: ${adminBalance.current_balance}, Required: ${amount}`
+          };
+        }
+
+        const adminNewBalance = adminBalance.current_balance - amount;
+        const adminNewUsedCredits = (adminBalance.used_credits || 0) + amount;
+        // ✅ FIX: Don't decrease admin's allocated_credits
+        // allocated_credits tracks what was allocated TO a user, not what they allocated FROM
+        // Only decrease the current_balance and increase used_credits when deducting
+        // Handle NULL values for used_credits
+
+        // Update admin's balance
+        const adminUpdateRequest = transaction.request();
+        adminUpdateRequest.input('adminUserId', adminUserId);
+        adminUpdateRequest.input('adminNewBalance', adminNewBalance);
+        adminUpdateRequest.input('adminNewUsedCredits', adminNewUsedCredits);
+        await adminUpdateRequest.query(`
+          UPDATE tblCreditBalances
+          SET
+            current_balance = @adminNewBalance,
+            used_credits = @adminNewUsedCredits,
+            last_updated = GETDATE()
+          WHERE user_id = @adminUserId
+        `);
+
+        console.log(`   ✅ Admin balance updated: ${adminBalance.current_balance} → ${adminNewBalance}`);
+
+        // Create transaction record for recipient
         const transactionId = `alloc_${Date.now()}_${userId}`;
         const request3 = transaction.request();
         request3.input('transactionId', transactionId);
@@ -413,6 +576,28 @@ class CreditService {
           )
         `);
 
+        // Create transaction record for admin (deduction)
+        const adminTransactionId = `alloc_deduct_${Date.now()}_${adminUserId}`;
+        const adminTransactionRequest = transaction.request();
+        adminTransactionRequest.input('adminTransactionId', adminTransactionId);
+        adminTransactionRequest.input('adminUserId', adminUserId);
+        adminTransactionRequest.input('organizationId', adminBalance.organization_id);
+        adminTransactionRequest.input('amount', amount);
+        adminTransactionRequest.input('adminBalanceBefore', adminBalance.current_balance);
+        adminTransactionRequest.input('adminBalanceAfter', adminNewBalance);
+        adminTransactionRequest.input('notes', notes);
+        await adminTransactionRequest.query(`
+          INSERT INTO tblCreditTransactions (
+            transaction_id, user_id, organization_id, type, amount,
+            balance_before, balance_after, service_type,
+            reference_type, created_by, notes
+          ) VALUES (
+            @adminTransactionId, @adminUserId, @organizationId, 'debit', @amount,
+            @adminBalanceBefore, @adminBalanceAfter, 'manual',
+            'admin_allocation_deduction', @adminUserId, @notes
+          )
+        `);
+
         await transaction.commit();
 
         return {
@@ -422,6 +607,8 @@ class CreditService {
             balanceBefore: balance.current_balance,
             balanceAfter: newBalance,
             amountAllocated: amount,
+            adminBalanceBefore: adminBalance.current_balance,
+            adminBalanceAfter: adminNewBalance,
             timestamp: new Date().toISOString()
           }
         };
@@ -558,6 +745,136 @@ class CreditService {
       return {
         success: false,
         error: 'Failed to adjust credits'
+      };
+    }
+  }
+
+  /**
+   * Replace credits for a user (used for plan changes)
+   * This sets the balance to a specific amount instead of adding to it
+   */
+  static async replaceCredits(userId, newAmount, adminId, reason = '') {
+    try {
+      const sql = require('mssql');
+      const transaction = await databaseService.beginTransaction(sql.ISOLATION_LEVEL.SERIALIZABLE);
+
+      try {
+        // Get current balance
+        const request = transaction.request();
+        request.input('userId', userId);
+        const balanceResult = await request.query(`
+          SELECT id, current_balance, allocated_credits, organization_id
+          FROM tblCreditBalances
+          WHERE user_id = @userId
+        `);
+
+        let balance;
+        if (!balanceResult.recordset || balanceResult.recordset.length === 0) {
+          // Initialize if doesn't exist
+          console.log(`   ℹ️  No credit balance found for user ${userId}, initializing...`);
+
+          const userRequest = transaction.request();
+          userRequest.input('userId', userId);
+          const userResult = await userRequest.query(`
+            SELECT organization_id FROM tblUsers WHERE id = @userId
+          `);
+
+          if (!userResult.recordset || userResult.recordset.length === 0) {
+            await transaction.rollback();
+            return {
+              success: false,
+              error: 'User not found'
+            };
+          }
+
+          const organizationId = userResult.recordset[0].organization_id || 'org_default_123';
+
+          const nextMonth = new Date();
+          nextMonth.setMonth(nextMonth.getMonth() + 1);
+          nextMonth.setDate(1);
+          nextMonth.setHours(0, 0, 0, 0);
+
+          const initRequest = transaction.request();
+          initRequest.input('userId', userId);
+          initRequest.input('organizationId', organizationId);
+          initRequest.input('allocationResetDate', nextMonth);
+          await initRequest.query(`
+            INSERT INTO tblCreditBalances (
+              user_id, organization_id, current_balance, allocated_credits,
+              used_credits, monthly_allocation, monthly_used, allocation_reset_date
+            ) VALUES (
+              @userId, @organizationId, 0, 0, 0, 0, 0, @allocationResetDate
+            )
+          `);
+
+          balance = {
+            current_balance: 0,
+            allocated_credits: 0,
+            organization_id: organizationId
+          };
+        } else {
+          balance = balanceResult.recordset[0];
+        }
+
+        const balanceBefore = balance.current_balance;
+
+        // ✅ FIX: Replace credits (set to new amount instead of adding)
+        const request2 = transaction.request();
+        request2.input('userId', userId);
+        request2.input('newBalance', newAmount);
+        request2.input('newAllocatedCredits', newAmount);
+        await request2.query(`
+          UPDATE tblCreditBalances
+          SET
+            current_balance = @newBalance,
+            allocated_credits = @newAllocatedCredits,
+            last_updated = GETDATE()
+          WHERE user_id = @userId
+        `);
+
+        // Create transaction record
+        const transactionId = `replace_${Date.now()}_${userId}`;
+        const request3 = transaction.request();
+        request3.input('transactionId', transactionId);
+        request3.input('userId', userId);
+        request3.input('organizationId', balance.organization_id);
+        request3.input('amount', newAmount);
+        request3.input('type', 'allocation');
+        request3.input('serviceType', 'system');
+        request3.input('notes', reason);
+        request3.input('createdBy', adminId);
+        request3.input('balanceBefore', balanceBefore);
+        request3.input('balanceAfter', newAmount);
+        await request3.query(`
+          INSERT INTO tblCreditTransactions (
+            transaction_id, user_id, organization_id, type, amount,
+            balance_before, balance_after, service_type, notes, created_by, created_at
+          ) VALUES (
+            @transactionId, @userId, @organizationId, @type, @amount,
+            @balanceBefore, @balanceAfter, @serviceType, @notes, @createdBy, GETDATE()
+          )
+        `);
+
+        await transaction.commit();
+
+        return {
+          success: true,
+          data: {
+            transactionId,
+            balanceBefore,
+            balanceAfter: newAmount,
+            amountReplaced: newAmount
+          }
+        };
+      } catch (error) {
+        await transaction.rollback();
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error replacing credits:', error);
+      return {
+        success: false,
+        error: 'Failed to replace credits'
       };
     }
   }

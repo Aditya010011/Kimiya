@@ -1,0 +1,245 @@
+{
+  "name": "Healthcare AI Agent Workflow",
+  "description": null,
+  "nodes": [
+    {
+      "id": "start_node",
+      "type": "startNode",
+      "position": {
+        "x": -75,
+        "y": -255
+      },
+      "data": {
+        "firstMessage": "Welcome to HealthCare Services! I'm your AI health assistant. I'm here to help you schedule appointments, answer health questions, and provide medical guidance. How can I assist you today?",
+        "globalPrompt": "You are a professional healthcare AI assistant. Be empathetic, knowledgeable, and professional. Help patients schedule appointments, answer health questions, and provide guidance. Always maintain patient confidentiality and encourage them to seek professional medical advice when needed.",
+        "label": "Welcome & Greeting"
+      }
+    },
+    {
+      "id": "service_type_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Determine their healthcare needs:\n\n1. Do they need to schedule an appointment?\n2. Are they calling about a health concern?\n3. Do they need prescription refills?\n4. Are they inquiring about services?\n5. Do they need medical advice?\n\nBe empathetic and understand their primary need.",
+        "label": "Service Type"
+      }
+    },
+    {
+      "id": "health_concern_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -570,
+        "y": 570
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Gather health concern information:\n\n1. What symptoms are they experiencing?\n2. How long have they had these symptoms?\n3. Severity level? (mild, moderate, severe)\n4. Any recent injuries or incidents?\n5. Current medications?\n6. Any allergies?\n7. Previous similar issues?\n8. When did it start?\n\nBe compassionate and thorough in understanding their concerns.",
+        "label": "Health Concern Assessment"
+      }
+    },
+    {
+      "id": "urgency_assessment_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 945,
+        "y": 555
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Assess urgency level:\n\n1. Is this an emergency? (chest pain, difficulty breathing, severe injury)\n2. Do they need immediate care?\n3. Can it wait for a scheduled appointment?\n4. Do they need urgent care or ER?\n5. Provide appropriate guidance\n6. Recommend next steps\n7. Explain when to seek emergency care\n\nPrioritize patient safety.",
+        "label": "Urgency Assessment"
+      }
+    },
+    {
+      "id": "appointment_scheduling_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 345,
+        "y": 870
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Schedule appointment if appropriate:\n\n1. What type of appointment? (general, specialist, follow-up)\n2. Preferred date and time?\n3. Any provider preference?\n4. Telehealth or in-person?\n5. Any accessibility needs?\n6. Insurance information?\n7. Confirm appointment details\n\nMake scheduling easy and clear.",
+        "label": "Appointment Scheduling"
+      }
+    },
+    {
+      "id": "patient_information_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -315,
+        "y": 1725
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Collect patient information:\n\n1. Full Name: First and last name\n2. Date of Birth: For verification\n3. Phone Number: Contact number\n4. Email: For confirmation\n5. Insurance: Provider and ID\n6. Emergency Contact: Name and phone\n7. Medical History: Relevant conditions\n8. Current Medications: List of medications\n\nConfirm all information is correct and secure.",
+        "label": "Patient Information"
+      }
+    },
+    {
+      "id": "appointment_confirmation_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 600,
+        "y": 1605
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Provide appointment confirmation:\n\n1. Confirm all appointment details\n2. Provide confirmation number\n3. Explain cancellation policy\n4. Provide location and directions\n5. Mention what to bring (ID, insurance card)\n6. Explain arrival time (arrive 15 min early)\n7. Provide contact number for questions\n8. Thank them for scheduling\n\nMake them feel prepared and confident!",
+        "label": "Appointment Confirmation"
+      }
+    },
+    {
+      "id": "end_call_node",
+      "type": "endCall",
+      "position": {
+        "x": -420,
+        "y": 2490
+      },
+      "data": {
+        "endMessage": "Thank you for contacting HealthCare Services! We look forward to helping you. Take care!",
+        "label": "End Call"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "source": "start_node",
+      "target": "service_type_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_2",
+      "source": "service_type_node",
+      "target": "health_concern_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Patient has a health concern",
+        "description": "Route to health concern assessment"
+      }
+    },
+    {
+      "id": "edge_3",
+      "source": "health_concern_node",
+      "target": "urgency_assessment_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_4",
+      "source": "urgency_assessment_node",
+      "target": "appointment_scheduling_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Patient needs scheduled appointment (not emergency)",
+        "description": "Schedule appointment if not urgent"
+      }
+    },
+    {
+      "id": "edge_5",
+      "source": "service_type_node",
+      "target": "appointment_scheduling_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Patient wants to schedule appointment",
+        "description": "Route to appointment scheduling"
+      }
+    },
+    {
+      "id": "edge_6",
+      "source": "appointment_scheduling_node",
+      "target": "patient_information_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_7",
+      "source": "patient_information_node",
+      "target": "appointment_confirmation_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_8",
+      "source": "appointment_confirmation_node",
+      "target": "end_call_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    }
+  ],
+  "configs": {
+    "createdAt": "2025-10-21T00:00:00.000Z",
+    "description": "Healthcare workflow for appointment scheduling, health inquiries, and patient assessment",
+    "globalSettings": {
+      "defaultLanguage": "en-US",
+      "timezone": "UTC",
+      "callRecording": true,
+      "transcriptionEnabled": true,
+      "sentimentAnalysis": true,
+      "conversationSummary": true,
+      "maxCallDuration": 30,
+      "silenceTimeout": 10,
+      "interruptionHandling": true
+    },
+    "llm": {
+      "provider": "azure_openai",
+      "azure": {
+        "apiKey": "f6d564a83af3498c9beb46d7d3e3da96",
+        "endpoint": "https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "maxTokens": 1000,
+        "systemPrompt": "You are a professional healthcare assistant. Be empathetic and knowledgeable in helping patients with their healthcare needs."
+      }
+    },
+    "name": "Healthcare AI Agent Workflow",
+    "transcription": {
+      "provider": "deepgram",
+      "deepgram": {
+        "apiKey": "YOUR_DEEPGRAM_API_KEY",
+        "model": "nova-2",
+        "language": "en-US",
+        "punctuate": true,
+        "smartFormat": true
+      }
+    },
+    "twilio": {
+      "accountSid": "",
+      "authToken": "",
+      "phoneNumber": "+17077433838",
+      "recordCalls": true,
+      "callTimeout": 1800
+    },
+    "version": "1.0.0",
+    "voice": {
+      "provider": "default"
+    }
+  },
+  "exportedAt": "2025-10-21T07:11:34.351Z",
+  "version": "1.0"
+}
+

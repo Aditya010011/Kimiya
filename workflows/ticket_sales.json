@@ -1,0 +1,232 @@
+{
+  "name": "Ticket Sales AI Agent Workflow",
+  "description": null,
+  "nodes": [
+    {
+      "id": "start_node",
+      "type": "startNode",
+      "position": {
+        "x": -75,
+        "y": -255
+      },
+      "data": {
+        "firstMessage": "Welcome to EventTickets! I'm your AI ticket assistant. I'm here to help you find and purchase tickets for concerts, movies, and events. What are you looking for today?",
+        "globalPrompt": "You are a professional ticket sales AI assistant. Be enthusiastic about events, knowledgeable about available shows, and focused on helping customers find and purchase tickets. Provide accurate information about dates, times, prices, and seating options.",
+        "label": "Welcome & Greeting"
+      }
+    },
+    {
+      "id": "event_type_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Determine the type of event they're interested in:\n\n1. What type of event? (Concert, movie, theater, sports, comedy, etc.)\n2. Are they looking for a specific artist/show or browsing?\n3. Do they have a preferred date or timeframe?\n4. Are they looking for a specific venue or location?\n5. How many tickets do they need?\n\nBe enthusiastic and help them narrow down their options.",
+        "label": "Event Type Selection"
+      }
+    },
+    {
+      "id": "event_search_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -570,
+        "y": 570
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Help them search for available events:\n\n1. Confirm the event details they're interested in\n2. Present available shows/dates\n3. Provide information about each option (date, time, venue, price range)\n4. Ask about their preferences (best seats, budget, timing)\n5. Highlight popular or sold-out shows\n6. Mention any special offers or discounts\n7. Ask which event interests them most\n\nBe helpful in presenting options clearly.",
+        "label": "Event Search & Availability"
+      }
+    },
+    {
+      "id": "seating_selection_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 945,
+        "y": 555
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Help them select seats and ticket options:\n\n1. Show available seating sections\n2. Explain price differences between sections\n3. Provide seat quality information (view, proximity to stage)\n4. Ask about their seating preferences\n5. Confirm number of tickets needed\n6. Explain ticket types (general admission, VIP, accessible seating)\n7. Show total price with fees\n8. Ask if they want to proceed\n\nMake seating selection easy and transparent.",
+        "label": "Seating & Ticket Selection"
+      }
+    },
+    {
+      "id": "ticket_quantity_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 345,
+        "y": 870
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Confirm ticket quantity and pricing:\n\n1. Confirm number of tickets\n2. Show price per ticket\n3. Calculate total cost\n4. Explain any fees or taxes\n5. Mention group discounts if applicable\n6. Ask about additional services (parking, concessions)\n7. Confirm they're ready to purchase\n\nBe clear about all costs upfront.",
+        "label": "Quantity & Pricing Confirmation"
+      }
+    },
+    {
+      "id": "customer_information_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -315,
+        "y": 1725
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Collect customer information for ticket purchase:\n\n1. Full Name: First and last name\n2. Email Address: For ticket delivery\n3. Phone Number: Contact number\n4. Delivery Method: Digital, mail, or will-call\n5. Payment Method: Credit card or other\n6. Billing Address: If different from delivery\n7. Newsletter: Interested in future events?\n\nAssure them about data security.",
+        "label": "Customer Information"
+      }
+    },
+    {
+      "id": "purchase_confirmation_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 600,
+        "y": 1605
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Provide purchase confirmation:\n\n1. Confirm all ticket details\n2. Provide confirmation number\n3. Explain ticket delivery method and timeline\n4. Provide event details (date, time, venue, address)\n5. Mention parking and arrival recommendations\n6. Explain refund/exchange policy\n7. Provide customer service contact\n8. Thank them for their purchase\n\nMake them excited about the event!",
+        "label": "Purchase Confirmation"
+      }
+    },
+    {
+      "id": "end_call_node",
+      "type": "endCall",
+      "position": {
+        "x": -420,
+        "y": 2490
+      },
+      "data": {
+        "endMessage": "Thank you for purchasing with EventTickets! Enjoy the show and have an amazing time!",
+        "label": "End Call"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "source": "start_node",
+      "target": "event_type_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_2",
+      "source": "event_type_node",
+      "target": "event_search_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_3",
+      "source": "event_search_node",
+      "target": "seating_selection_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_4",
+      "source": "seating_selection_node",
+      "target": "ticket_quantity_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_5",
+      "source": "ticket_quantity_node",
+      "target": "customer_information_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_6",
+      "source": "customer_information_node",
+      "target": "purchase_confirmation_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_7",
+      "source": "purchase_confirmation_node",
+      "target": "end_call_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    }
+  ],
+  "configs": {
+    "createdAt": "2025-10-21T00:00:00.000Z",
+    "description": "Ticket sales workflow for event, concert, and movie ticket purchases",
+    "globalSettings": {
+      "defaultLanguage": "en-US",
+      "timezone": "UTC",
+      "callRecording": true,
+      "transcriptionEnabled": true,
+      "sentimentAnalysis": true,
+      "conversationSummary": true,
+      "maxCallDuration": 30,
+      "silenceTimeout": 10,
+      "interruptionHandling": true
+    },
+    "llm": {
+      "provider": "azure_openai",
+      "azure": {
+        "apiKey": "f6d564a83af3498c9beb46d7d3e3da96",
+        "endpoint": "https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "maxTokens": 1000,
+        "systemPrompt": "You are a professional ticket sales assistant. Be enthusiastic and help customers find and purchase tickets."
+      }
+    },
+    "name": "Ticket Sales AI Agent Workflow",
+    "transcription": {
+      "provider": "deepgram",
+      "deepgram": {
+        "apiKey": "YOUR_DEEPGRAM_API_KEY",
+        "model": "nova-2",
+        "language": "en-US",
+        "punctuate": true,
+        "smartFormat": true
+      }
+    },
+    "twilio": {
+      "accountSid": "",
+      "authToken": "",
+      "phoneNumber": "+17077433838",
+      "recordCalls": true,
+      "callTimeout": 1800
+    },
+    "version": "1.0.0",
+    "voice": {
+      "provider": "default"
+    }
+  },
+  "exportedAt": "2025-10-21T07:11:34.351Z",
+  "version": "1.0"
+}
+

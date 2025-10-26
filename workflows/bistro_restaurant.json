@@ -1,0 +1,256 @@
+{
+  "name": "Bistro Restaurant AI Agent Workflow",
+  "description": null,
+  "nodes": [
+    {
+      "id": "start_node",
+      "type": "startNode",
+      "position": {
+        "x": -75,
+        "y": -255
+      },
+      "data": {
+        "firstMessage": "Welcome to Le Petit Bistro! Thank you for calling. I'm your AI assistant here to help with reservations, menu inquiries, or takeout orders. How can I help you today?",
+        "globalPrompt": "You are a professional restaurant AI assistant for a bistro. Be warm, welcoming, and knowledgeable about the menu and restaurant services. Help customers with reservations, menu questions, and orders. Always maintain a friendly and professional tone.",
+        "label": "Welcome & Greeting"
+      }
+    },
+    {
+      "id": "service_type_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Determine what service they need:\n\n1. Are they calling to make a reservation?\n2. Do they want to place a takeout order?\n3. Are they inquiring about the menu?\n4. Do they have questions about our restaurant?\n5. Are they interested in catering?\n\nBe conversational and understand their primary need.",
+        "label": "Service Type Selection"
+      }
+    },
+    {
+      "id": "menu_inquiry_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -570,
+        "y": 570
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Help with menu inquiries:\n\n1. Ask what type of cuisine they're interested in\n2. Describe our signature dishes\n3. Explain dietary options (vegetarian, vegan, gluten-free)\n4. Discuss wine pairings\n5. Mention daily specials\n6. Explain pricing\n7. Answer questions about ingredients\n8. Make recommendations based on preferences\n\nBe knowledgeable and enthusiastic about our food.",
+        "label": "Menu Inquiry"
+      }
+    },
+    {
+      "id": "takeout_order_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 945,
+        "y": 555
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Process takeout orders:\n\n1. Ask what they'd like to order\n2. Confirm quantities for each item\n3. Ask about any special requests or modifications\n4. Mention sides and beverages\n5. Calculate total with tax\n6. Confirm pickup time or delivery\n7. Get their name and phone number\n8. Confirm the order details\n\nBe clear about pricing and timing.",
+        "label": "Takeout Order Processing"
+      }
+    },
+    {
+      "id": "reservation_details_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 345,
+        "y": 870
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Gather reservation details:\n\n1. What date would they like to dine?\n2. What time do they prefer?\n3. How many guests?\n4. Any special occasions (birthday, anniversary)?\n5. Dietary restrictions or allergies?\n6. Seating preferences (window, quiet corner)?\n7. Any special requests?\n8. Confirm their name and phone number\n\nBe helpful in accommodating their preferences.",
+        "label": "Reservation Details"
+      }
+    },
+    {
+      "id": "customer_information_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -315,
+        "y": 1725
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Collect customer information:\n\n1. Full Name: First and last name\n2. Phone Number: Contact number\n3. Email: For confirmation\n4. Party Size: Confirm number of guests\n5. Special Requests: Any additional notes\n6. Preferred Contact: Phone or email\n7. Loyalty Program: Member?\n\nConfirm all details are correct.",
+        "label": "Customer Information"
+      }
+    },
+    {
+      "id": "confirmation_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 600,
+        "y": 1605
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Provide confirmation:\n\n1. Confirm all details (date, time, party size, name)\n2. Provide confirmation number\n3. Explain cancellation policy\n4. Mention parking information\n5. Suggest arriving 10 minutes early\n6. Mention dress code if applicable\n7. Provide restaurant phone number\n8. Thank them for choosing us\n\nMake them excited about their visit!",
+        "label": "Confirmation"
+      }
+    },
+    {
+      "id": "end_call_node",
+      "type": "endCall",
+      "position": {
+        "x": -420,
+        "y": 2490
+      },
+      "data": {
+        "endMessage": "Thank you for choosing Le Petit Bistro! We look forward to serving you. Bon appétit!",
+        "label": "End Call"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "source": "start_node",
+      "target": "service_type_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_2",
+      "source": "service_type_node",
+      "target": "menu_inquiry_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Customer is inquiring about the menu",
+        "description": "Route to menu inquiry"
+      }
+    },
+    {
+      "id": "edge_3",
+      "source": "service_type_node",
+      "target": "takeout_order_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Customer wants to place a takeout order",
+        "description": "Route to takeout ordering"
+      }
+    },
+    {
+      "id": "edge_4",
+      "source": "service_type_node",
+      "target": "reservation_details_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Customer wants to make a reservation",
+        "description": "Route to reservation"
+      }
+    },
+    {
+      "id": "edge_5",
+      "source": "menu_inquiry_node",
+      "target": "takeout_order_node",
+      "type": "conditional",
+      "data": {
+        "type": "ai_based",
+        "aiCondition": "Customer wants to order after menu inquiry",
+        "description": "Move to ordering if interested"
+      }
+    },
+    {
+      "id": "edge_6",
+      "source": "takeout_order_node",
+      "target": "customer_information_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_7",
+      "source": "reservation_details_node",
+      "target": "customer_information_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_8",
+      "source": "customer_information_node",
+      "target": "confirmation_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_9",
+      "source": "confirmation_node",
+      "target": "end_call_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    }
+  ],
+  "configs": {
+    "createdAt": "2025-10-21T00:00:00.000Z",
+    "description": "Bistro restaurant workflow for handling reservations, menu inquiries, and takeout orders",
+    "globalSettings": {
+      "defaultLanguage": "en-US",
+      "timezone": "UTC",
+      "callRecording": true,
+      "transcriptionEnabled": true,
+      "sentimentAnalysis": true,
+      "conversationSummary": true,
+      "maxCallDuration": 30,
+      "silenceTimeout": 10,
+      "interruptionHandling": true
+    },
+    "llm": {
+      "provider": "azure_openai",
+      "azure": {
+        "apiKey": "f6d564a83af3498c9beb46d7d3e3da96",
+        "endpoint": "https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "maxTokens": 1000,
+        "systemPrompt": "You are a professional restaurant assistant. Be warm and knowledgeable about our menu and services."
+      }
+    },
+    "name": "Bistro Restaurant AI Agent Workflow",
+    "transcription": {
+      "provider": "deepgram",
+      "deepgram": {
+        "apiKey": "YOUR_DEEPGRAM_API_KEY",
+        "model": "nova-2",
+        "language": "en-US",
+        "punctuate": true,
+        "smartFormat": true
+      }
+    },
+    "twilio": {
+      "accountSid": "",
+      "authToken": "",
+      "phoneNumber": "+17077433838",
+      "recordCalls": true,
+      "callTimeout": 1800
+    },
+    "version": "1.0.0",
+    "voice": {
+      "provider": "default"
+    }
+  },
+  "exportedAt": "2025-10-21T07:11:34.351Z",
+  "version": "1.0"
+}
+

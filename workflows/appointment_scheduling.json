@@ -1,0 +1,232 @@
+{
+  "name": "Appointment Scheduling AI Agent Workflow",
+  "description": null,
+  "nodes": [
+    {
+      "id": "start_node",
+      "type": "startNode",
+      "position": {
+        "x": -75,
+        "y": -255
+      },
+      "data": {
+        "firstMessage": "Welcome to our scheduling system! I'm your AI appointment assistant. I'm here to help you book an appointment at your convenience. How can I help you today?",
+        "globalPrompt": "You are a professional appointment scheduling AI assistant. Be efficient, friendly, and focused on finding the perfect time for appointments. Help customers navigate available slots and confirm their bookings. Always maintain a professional and courteous tone.",
+        "label": "Welcome & Greeting"
+      }
+    },
+    {
+      "id": "appointment_type_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 100,
+        "y": 400
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Determine appointment type:\n\n1. What type of appointment do they need?\n2. Is it a first-time visit or follow-up?\n3. How long do they expect it to take?\n4. Any specific provider preference?\n5. Is it urgent or routine?\n\nBe clear about the appointment type.",
+        "label": "Appointment Type"
+      }
+    },
+    {
+      "id": "availability_preferences_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -570,
+        "y": 570
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Gather availability preferences:\n\n1. What dates work for them?\n2. Do they prefer morning, afternoon, or evening?\n3. Any days they can't make it?\n4. How flexible are they with timing?\n5. Any time constraints?\n6. Do they need a specific location?\n\nUnderstand their scheduling needs.",
+        "label": "Availability Preferences"
+      }
+    },
+    {
+      "id": "available_slots_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 945,
+        "y": 555
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Present available appointment slots:\n\n1. Show 3-5 available time slots\n2. Include date, time, and provider\n3. Mention location/format (in-person, virtual)\n4. Ask which slot works best\n5. Offer alternatives if needed\n6. Confirm their selection\n\nMake slot selection easy and clear.",
+        "label": "Available Slots"
+      }
+    },
+    {
+      "id": "special_requirements_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 345,
+        "y": 870
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Gather special requirements:\n\n1. Any accessibility needs?\n2. Mobility assistance required?\n3. Interpreter needed?\n4. Special medical conditions to note?\n5. Medication list needed?\n6. Insurance information?\n7. Any other special requests?\n\nNote all special requirements.",
+        "label": "Special Requirements"
+      }
+    },
+    {
+      "id": "customer_information_node",
+      "type": "conversationNode",
+      "position": {
+        "x": -315,
+        "y": 1725
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Collect customer information:\n\n1. Full Name: First and last name\n2. Date of Birth: For verification\n3. Phone Number: Contact number\n4. Email: For confirmation\n5. Address: Current address\n6. Insurance: Insurance provider and ID\n7. Emergency Contact: Name and phone\n8. Preferred Contact: Phone or email\n\nConfirm all information is correct.",
+        "label": "Customer Information"
+      }
+    },
+    {
+      "id": "appointment_confirmation_node",
+      "type": "conversationNode",
+      "position": {
+        "x": 600,
+        "y": 1605
+      },
+      "data": {
+        "model": "gpt-4o-mini",
+        "prompt": "Provide appointment confirmation:\n\n1. Confirm all appointment details\n2. Provide confirmation number\n3. Explain cancellation/rescheduling policy\n4. Provide location and directions\n5. Mention what to bring (ID, insurance card)\n6. Explain arrival time (arrive 15 min early)\n7. Provide contact number for questions\n8. Thank them for scheduling\n\nMake them feel prepared and confident!",
+        "label": "Appointment Confirmation"
+      }
+    },
+    {
+      "id": "end_call_node",
+      "type": "endCall",
+      "position": {
+        "x": -420,
+        "y": 2490
+      },
+      "data": {
+        "endMessage": "Thank you for scheduling your appointment! We look forward to seeing you. Have a great day!",
+        "label": "End Call"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_1",
+      "source": "start_node",
+      "target": "appointment_type_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_2",
+      "source": "appointment_type_node",
+      "target": "availability_preferences_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_3",
+      "source": "availability_preferences_node",
+      "target": "available_slots_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_4",
+      "source": "available_slots_node",
+      "target": "special_requirements_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_5",
+      "source": "special_requirements_node",
+      "target": "customer_information_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_6",
+      "source": "customer_information_node",
+      "target": "appointment_confirmation_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    },
+    {
+      "id": "edge_7",
+      "source": "appointment_confirmation_node",
+      "target": "end_call_node",
+      "type": "conditional",
+      "data": {
+        "type": "none",
+        "isDefault": true
+      }
+    }
+  ],
+  "configs": {
+    "createdAt": "2025-10-21T00:00:00.000Z",
+    "description": "Appointment scheduling workflow for booking and confirming appointments",
+    "globalSettings": {
+      "defaultLanguage": "en-US",
+      "timezone": "UTC",
+      "callRecording": true,
+      "transcriptionEnabled": true,
+      "sentimentAnalysis": true,
+      "conversationSummary": true,
+      "maxCallDuration": 30,
+      "silenceTimeout": 10,
+      "interruptionHandling": true
+    },
+    "llm": {
+      "provider": "azure_openai",
+      "azure": {
+        "apiKey": "f6d564a83af3498c9beb46d7d3e3da96",
+        "endpoint": "https://innochattemp.openai.azure.com/openai/deployments/gpt4omini/chat/completions?api-version=2025-01-01-preview",
+        "model": "gpt-4o-mini",
+        "temperature": 0.7,
+        "maxTokens": 1000,
+        "systemPrompt": "You are a professional appointment scheduling assistant. Be efficient and friendly in booking appointments."
+      }
+    },
+    "name": "Appointment Scheduling AI Agent Workflow",
+    "transcription": {
+      "provider": "deepgram",
+      "deepgram": {
+        "apiKey": "YOUR_DEEPGRAM_API_KEY",
+        "model": "nova-2",
+        "language": "en-US",
+        "punctuate": true,
+        "smartFormat": true
+      }
+    },
+    "twilio": {
+      "accountSid": "",
+      "authToken": "",
+      "phoneNumber": "+17077433838",
+      "recordCalls": true,
+      "callTimeout": 1800
+    },
+    "version": "1.0.0",
+    "voice": {
+      "provider": "default"
+    }
+  },
+  "exportedAt": "2025-10-21T07:11:34.351Z",
+  "version": "1.0"
+}
+

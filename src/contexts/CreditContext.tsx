@@ -135,7 +135,10 @@ export const CreditProvider: React.FC<CreditProviderProps> = ({ children }) => {
           if (transactionsResponse.ok) {
             const transactionsData = await transactionsResponse.json();
             if (transactionsData.success && transactionsData.data) {
-              transactions = transactionsData.data;
+              // Handle both array and object responses
+              transactions = Array.isArray(transactionsData.data)
+                ? transactionsData.data
+                : (transactionsData.data.transactions || []);
             }
           }
 
@@ -161,7 +164,16 @@ export const CreditProvider: React.FC<CreditProviderProps> = ({ children }) => {
             recent_transactions: transactions,
             projected_usage: {
               estimated_monthly_usage: balanceData.data.projectedMonthlyUsage || 0,
-              days_remaining_at_current_rate: Math.max(1, Math.floor((balanceData.data.currentBalance || 0) / Math.max(1, (balanceData.data.monthlyUsed || 0) / new Date().getDate()))),
+              days_remaining_at_current_rate: (() => {
+                // Calculate days remaining until allocation reset date (billing cycle end)
+                if (balanceData.data.allocationResetDate) {
+                  const resetDate = new Date(balanceData.data.allocationResetDate);
+                  const now = new Date();
+                  const daysRemaining = Math.ceil((resetDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+                  return Math.max(0, daysRemaining);
+                }
+                return 30; // Default to 30 days if no reset date
+              })(),
               recommended_top_up: 0
             },
             alerts: {
