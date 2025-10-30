@@ -1367,4 +1367,64 @@ async function getCompleteWorkflowFlow(workflowId) {
   return { nodes, edges, configs };
 }
 
+/**
+ * GET /api/workflows/stats/dashboard
+ * Get dashboard statistics with actual database counts
+ * Returns: myWorkflowsCount, activeWorkflowsCount, totalNodesCount
+ */
+router.get('/stats/dashboard', authenticateToken, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get total count of user's workflows
+    const myWorkflowsResult = await databaseService.query(`
+      SELECT COUNT(*) as total
+      FROM tblWorkflows
+      WHERE created_by = @userId AND is_active = 1
+    `, { userId });
+
+    const myWorkflowsCount = myWorkflowsResult.recordset[0]?.total || 0;
+
+    // Get count of active workflows for the user
+    const activeWorkflowsResult = await databaseService.query(`
+      SELECT COUNT(*) as total
+      FROM tblWorkflows
+      WHERE created_by = @userId AND is_active = 1
+    `, { userId });
+
+    const activeWorkflowsCount = activeWorkflowsResult.recordset[0]?.total || 0;
+
+    // Get total nodes count across all user's workflows
+    const totalNodesResult = await databaseService.query(`
+      SELECT COALESCE(SUM(node_count), 0) as total
+      FROM (
+        SELECT COUNT(*) as node_count
+        FROM tblFlowNodes fn
+        INNER JOIN tblWorkflows w ON fn.workflow_id = w.id
+        WHERE w.created_by = @userId AND w.is_active = 1
+        GROUP BY fn.workflow_id
+      ) as node_counts
+    `, { userId });
+
+    const totalNodesCount = totalNodesResult.recordset[0]?.total || 0;
+
+    res.json({
+      success: true,
+      data: {
+        myWorkflowsCount,
+        activeWorkflowsCount,
+        totalNodesCount
+      }
+    });
+
+  } catch (error) {
+    console.error('Get dashboard stats error:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to fetch dashboard statistics',
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;

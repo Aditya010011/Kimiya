@@ -94,6 +94,30 @@ export interface PaginatedWorkflowsResponse {
   };
 }
 
+export interface WorkflowTemplate {
+  id: number;
+  name: string;
+  description?: string;
+  category?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  created_by_email: string;
+  template_data?: Record<string, any>;
+}
+
+export interface PaginatedTemplatesResponse {
+  templates: WorkflowTemplate[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+    hasNext: boolean;
+    hasPrev: boolean;
+  };
+}
+
 export class WorkflowService {
   private static baseUrl = getApiBaseUrl();
 
@@ -644,5 +668,308 @@ export class WorkflowService {
         }
       }
     }
+  }
+
+  /**
+   * Get all workflow templates
+   */
+  static async getTemplates(page = 1, limit = 10): Promise<PaginatedTemplatesResponse> {
+    const token = TokenManager.getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    if (page < 1) {
+      throw new Error('Page number must be greater than 0');
+    }
+    if (limit < 1 || limit > 100) {
+      throw new Error('Limit must be between 1 and 100');
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/templates?page=${page}&limit=${limit}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        TokenManager.clearTokens();
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to fetch templates: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch templates');
+    }
+
+    return data.data;
+  }
+
+  /**
+   * Get a specific template
+   */
+  static async getTemplate(templateId: number): Promise<WorkflowTemplate> {
+    const token = TokenManager.getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/templates/${templateId}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        TokenManager.clearTokens();
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to fetch template: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch template');
+    }
+
+    return data.data;
+  }
+
+  /**
+   * Create a new workflow template (admin only)
+   */
+  static async createTemplate(templateData: {
+    name: string;
+    description?: string;
+    category?: string;
+    template_data: Record<string, any>;
+  }): Promise<WorkflowTemplate> {
+    const token = TokenManager.getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/templates`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(templateData)
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        TokenManager.clearTokens();
+        throw new Error('Session expired. Please log in again.');
+      }
+      if (response.status === 403) {
+        throw new Error('You do not have permission to create templates.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to create template: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to create template');
+    }
+
+    return data.data;
+  }
+
+  /**
+   * Update a workflow template (admin only)
+   */
+  static async updateTemplate(templateId: number, templateData: {
+    name: string;
+    description?: string;
+    category?: string;
+    template_data?: Record<string, any>;
+  }): Promise<WorkflowTemplate> {
+    const token = TokenManager.getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/templates/${templateId}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(templateData)
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        TokenManager.clearTokens();
+        throw new Error('Session expired. Please log in again.');
+      }
+      if (response.status === 403) {
+        throw new Error('You do not have permission to update templates.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to update template: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to update template');
+    }
+
+    return data.data;
+  }
+
+  /**
+   * Delete a workflow template (admin only)
+   */
+  static async deleteTemplate(templateId: number): Promise<void> {
+    const token = TokenManager.getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/templates/${templateId}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        TokenManager.clearTokens();
+        throw new Error('Session expired. Please log in again.');
+      }
+      if (response.status === 403) {
+        throw new Error('You do not have permission to delete templates.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to delete template: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to delete template');
+    }
+  }
+
+  /**
+   * Clone a template to create a new workflow
+   */
+  static async cloneTemplate(templateId: number, workflowName?: string): Promise<{ workflow: Workflow; cloned: { nodeCount: number; edgeCount: number; configCount: number } }> {
+    const token = TokenManager.getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/templates/${templateId}/clone`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ workflowName })
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        TokenManager.clearTokens();
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to clone template: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to clone template');
+    }
+
+    return data.data;
+  }
+
+  /**
+   * Get dashboard statistics with actual database counts
+   */
+  static async getDashboardStats(): Promise<{
+    myWorkflowsCount: number;
+    activeWorkflowsCount: number;
+    totalNodesCount: number;
+  }> {
+    const token = TokenManager.getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/workflows/stats/dashboard`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        TokenManager.clearTokens();
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to fetch dashboard stats: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch dashboard stats');
+    }
+
+    return data.data;
+  }
+
+  /**
+   * Get total count of available templates
+   */
+  static async getTemplatesCount(): Promise<number> {
+    const token = TokenManager.getAccessToken();
+    if (!token) {
+      throw new Error('Authentication required. Please log in again.');
+    }
+
+    const response = await fetch(`${this.baseUrl}/api/templates/stats/count`, {
+      method: 'GET',
+      headers: {
+        'Authorization': `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        TokenManager.clearTokens();
+        throw new Error('Session expired. Please log in again.');
+      }
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to fetch templates count: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    if (!data.success) {
+      throw new Error(data.message || 'Failed to fetch templates count');
+    }
+
+    return data.data.templatesCount;
   }
 }

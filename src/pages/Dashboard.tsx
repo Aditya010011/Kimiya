@@ -14,148 +14,236 @@ import {
   Download,
   Upload,
   User,
-  Loader2
+  Loader2,
+  Copy
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useFlowStore } from '../stores/flowStore';
-import { WorkflowService, Workflow } from '../services/workflowService';
+import { WorkflowService, Workflow, WorkflowTemplate } from '../services/workflowService';
 import DashboardHeader from '@/components/layout/DashboardHeader';
+import WorkflowCard from '@/components/workflows/WorkflowCard';
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { createWorkflow } = useFlowStore();
 
-  // State for workflows
-  const [allWorkflows, setAllWorkflows] = useState<Workflow[]>([]);
+  // State for workflows and templates
   const [myWorkflows, setMyWorkflows] = useState<Workflow[]>([]);
-  const [isLoadingAll, setIsLoadingAll] = useState(true);
+  const [templates, setTemplates] = useState<WorkflowTemplate[]>([]);
   const [isLoadingMy, setIsLoadingMy] = useState(true);
+  const [isLoadingTemplates, setIsLoadingTemplates] = useState(true);
   const [isCreating, setIsCreating] = useState(false);
+  const [activeTab, setActiveTab] = useState<'workflows' | 'templates'>('workflows');
+  const [userRole, setUserRole] = useState<string>('user');
+
+  // Pagination state
+  const [workflowPage, setWorkflowPage] = useState(1);
+  const [templatePage, setTemplatePage] = useState(1);
+  const [workflowsTotal, setWorkflowsTotal] = useState(0);
+  const [templatesTotal, setTemplatesTotal] = useState(0);
+  const [isLoadingMoreWorkflows, setIsLoadingMoreWorkflows] = useState(false);
+  const [isLoadingMoreTemplates, setIsLoadingMoreTemplates] = useState(false);
+
+  // Statistics state (from database)
+  const [stats, setStats] = useState({
+    myWorkflowsCount: 0,
+    activeWorkflowsCount: 0,
+    totalNodesCount: 0,
+    templatesCount: 0
+  });
+  const [isLoadingStats, setIsLoadingStats] = useState(true);
+
+  const ITEMS_PER_PAGE = 3;
 
 
 
 
 
-  // Helper function to render workflow list
-  const renderWorkflowList = (workflows: Workflow[], isLoading: boolean, emptyMessage: string) => {
+  // Helper function to render card grid with load more
+  const renderCardGrid = (
+    items: (Workflow | WorkflowTemplate)[],
+    isLoading: boolean,
+    isLoadingMore: boolean,
+    emptyMessage: string,
+    isTemplate: boolean = false,
+    total: number = 0,
+    onLoadMore?: () => void
+  ) => {
     if (isLoading) {
       return (
-        <div className="flex items-center justify-center py-8">
+        <div className="flex items-center justify-center py-12">
           <Loader2 className="h-8 w-8 animate-spin text-gray-400" />
-          <span className="ml-2 text-gray-500">Loading workflows...</span>
+          <span className="ml-2 text-gray-500">Loading {isTemplate ? 'templates' : 'workflows'}...</span>
         </div>
       );
     }
 
-    if (workflows.length === 0) {
+    if (items.length === 0) {
       return (
-        <div className="text-center py-8">
+        <div className="text-center py-12">
           <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No workflows yet</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            No {isTemplate ? 'templates' : 'workflows'} yet
+          </h3>
           <p className="text-gray-500 mb-4">{emptyMessage}</p>
-          <Button onClick={handleNewWorkflow} disabled={isCreating}>
-            <Plus className="h-4 w-4 mr-2" />
-            {isCreating ? 'Creating...' : 'Create Workflow'}
-          </Button>
+          {!isTemplate && (
+            <Button onClick={handleNewWorkflow} disabled={isCreating}>
+              <Plus className="h-4 w-4 mr-2" />
+              {isCreating ? 'Creating...' : 'Create Workflow'}
+            </Button>
+          )}
         </div>
       );
     }
+
+    const hasMore = items.length < total;
 
     return (
-      <div className="space-y-4">
-        {workflows.map((workflow) => (
-          <div key={workflow.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-            <div className="flex items-center justify-between">
-              <div className="flex-1">
-                <div className="flex items-center space-x-3 mb-2">
-                  <h3 className="text-lg font-semibold text-gray-900">{workflow.name}</h3>
-                  <Badge className={getStatusColor(workflow.is_active)}>
-                    {getStatusText(workflow.is_active)}
-                  </Badge>
-                </div>
-                <p className="text-gray-600 mb-3">{workflow.description || 'No description'}</p>
-                <div className="flex items-center space-x-6 text-sm text-gray-500">
-                  <div className="flex items-center">
-                    <Clock className="h-4 w-4 mr-1" />
-                    Modified {formatDate(workflow.updated_at)}
-                  </div>
-                  <div className="flex items-center">
-                    <FileText className="h-4 w-4 mr-1" />
-                    {workflow.node_count || 0} nodes
-                  </div>
-                  <div className="flex items-center">
-                    <TrendingUp className="h-4 w-4 mr-1" />
-                    {workflow.edge_count || 0} edges
-                  </div>
-                  <div className="flex items-center">
-                    <User className="h-4 w-4 mr-1" />
-                    {workflow.created_by_email}
-                  </div>
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleEditWorkflow(workflow.id)}
-                >
-                  <Edit className="h-4 w-4 mr-1" />
-                  Edit
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleExportWorkflow(workflow.id, workflow.name)}
-                >
-                  <Download className="h-4 w-4 mr-1" />
-                  Export
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleDeleteWorkflow(workflow.id, workflow.name)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                >
-                  <Trash2 className="h-4 w-4 mr-1" />
-                  Delete
-                </Button>
-              </div>
-            </div>
+      <div>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+          {items.map((item) => (
+            <WorkflowCard
+              key={item.id}
+              id={item.id}
+              name={item.name}
+              description={item.description}
+              created_at={item.created_at}
+              updated_at={item.updated_at}
+              created_by_email={item.created_by_email}
+              node_count={'node_count' in item ? item.node_count : 0}
+              edge_count={'edge_count' in item ? item.edge_count : 0}
+              is_active={item.is_active}
+              isTemplate={isTemplate}
+              isAdmin={userRole === 'admin'}
+              onEdit={isTemplate ? handleEditTemplate : handleEditWorkflow}
+              onDelete={isTemplate ? handleDeleteTemplate : handleDeleteWorkflow}
+              onClone={isTemplate ? handleCloneTemplate : undefined}
+            />
+          ))}
+        </div>
+
+        {hasMore && (
+          <div className="flex justify-center pt-4">
+            <Button
+              onClick={onLoadMore}
+              disabled={isLoadingMore}
+              variant="outline"
+              className="w-full md:w-auto"
+            >
+              {isLoadingMore ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Loading more...
+                </>
+              ) : (
+                <>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Load More ({items.length} of {total})
+                </>
+              )}
+            </Button>
           </div>
-        ))}
+        )}
       </div>
     );
   };
-  // Load workflows from database
-  useEffect(() => {
-    loadAllWorkflows();
-    loadMyWorkflows();
-  }, []);
-
-  const loadAllWorkflows = async () => {
+  // Load statistics from database
+  const loadDashboardStats = async () => {
     try {
-      setIsLoadingAll(true);
-      const data = await WorkflowService.getWorkflows(1, 100);
-      setAllWorkflows(data.workflows);
+      setIsLoadingStats(true);
+      const [workflowStats, templatesCount] = await Promise.all([
+        WorkflowService.getDashboardStats(),
+        WorkflowService.getTemplatesCount()
+      ]);
+
+      setStats({
+        myWorkflowsCount: workflowStats.myWorkflowsCount,
+        activeWorkflowsCount: workflowStats.activeWorkflowsCount,
+        totalNodesCount: workflowStats.totalNodesCount,
+        templatesCount: templatesCount
+      });
     } catch (error) {
-      console.error('Failed to load all workflows:', error);
-      toast.error('Failed to load all workflows');
+      console.error('Failed to load dashboard stats:', error);
+      // Don't show error toast for stats - they're secondary
     } finally {
-      setIsLoadingAll(false);
+      setIsLoadingStats(false);
     }
   };
 
-  const loadMyWorkflows = async () => {
+  // Load workflows and templates from database
+  useEffect(() => {
+    loadMyWorkflows();
+    loadTemplates();
+    loadDashboardStats();
+    // Get user role from localStorage or auth service
+    const userInfo = localStorage.getItem('userInfo');
+    if (userInfo) {
+      try {
+        const parsed = JSON.parse(userInfo);
+        setUserRole(parsed.role || 'user');
+      } catch (e) {
+        console.error('Failed to parse user info:', e);
+      }
+    }
+  }, []);
+
+  const loadMyWorkflows = async (page = 1, append = false) => {
     try {
-      setIsLoadingMy(true);
-      const data = await WorkflowService.getMyWorkflows(1, 100);
-      setMyWorkflows(data.workflows);
+      if (!append) setIsLoadingMy(true);
+      else setIsLoadingMoreWorkflows(true);
+
+      const data = await WorkflowService.getMyWorkflows(page, ITEMS_PER_PAGE);
+
+      if (append) {
+        setMyWorkflows(prev => [...prev, ...data.workflows]);
+      } else {
+        setMyWorkflows(data.workflows);
+      }
+
+      setWorkflowsTotal(data.pagination.total);
+      setWorkflowPage(page);
     } catch (error) {
       console.error('Failed to load my workflows:', error);
       toast.error('Failed to load my workflows');
     } finally {
       setIsLoadingMy(false);
+      setIsLoadingMoreWorkflows(false);
     }
+  };
+
+  const loadTemplates = async (page = 1, append = false) => {
+    try {
+      if (!append) setIsLoadingTemplates(true);
+      else setIsLoadingMoreTemplates(true);
+
+      const data = await WorkflowService.getTemplates(page, ITEMS_PER_PAGE);
+
+      const templatesData = data.templates;
+      const totalCount = data.pagination.total;
+
+      if (append) {
+        setTemplates(prev => [...prev, ...templatesData]);
+      } else {
+        setTemplates(templatesData);
+      }
+
+      setTemplatesTotal(totalCount);
+      setTemplatePage(page);
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+      toast.error('Failed to load templates');
+    } finally {
+      setIsLoadingTemplates(false);
+      setIsLoadingMoreTemplates(false);
+    }
+  };
+
+  const handleLoadMoreWorkflows = () => {
+    loadMyWorkflows(workflowPage + 1, true);
+  };
+
+  const handleLoadMoreTemplates = () => {
+    loadTemplates(templatePage + 1, true);
   };
 
   const handleNewWorkflow = async () => {
@@ -174,9 +262,10 @@ const Dashboard: React.FC = () => {
       toast.success('New workflow created successfully!');
       // Navigate to builder with the new workflow ID
       navigate(`/builder?workflowId=${newWorkflow.id}`);
-      // Refresh workflows lists
+      // Refresh workflows lists and stats
       loadAllWorkflows();
       loadMyWorkflows();
+      loadDashboardStats();
     } catch (error) {
       console.error('Failed to create workflow:', error);
       toast.error(`Failed to create workflow: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -210,9 +299,10 @@ const Dashboard: React.FC = () => {
           const itemsText = importedItems.length > 0 ? ` (${importedItems.join(', ')})` : '';
           toast.success(`Workflow "${result.workflow.name}" imported and saved to database!${itemsText}`);
 
-          // Refresh workflows lists to show the new imported workflow
+          // Refresh workflows lists and stats to show the new imported workflow
           loadAllWorkflows();
           loadMyWorkflows();
+          loadDashboardStats();
 
           // Navigate to the builder with the imported workflow
           navigate(`/builder?workflowId=${result.workflow.id}`);
@@ -238,12 +328,49 @@ const Dashboard: React.FC = () => {
     try {
       await WorkflowService.deleteWorkflow(workflowId);
       toast.success(`Workflow "${workflowName}" deleted successfully`);
-      // Refresh workflows lists
-      loadAllWorkflows();
+      // Refresh workflows list and stats
       loadMyWorkflows();
+      loadDashboardStats();
     } catch (error) {
       console.error('Failed to delete workflow:', error);
       toast.error('Failed to delete workflow');
+    }
+  };
+
+  const handleEditTemplate = (templateId: number) => {
+    // Navigate to template editor (if available) or show edit modal
+    toast.info('Template editing coming soon');
+  };
+
+  const handleDeleteTemplate = async (templateId: number, templateName: string) => {
+    if (!confirm(`Are you sure you want to delete template "${templateName}"? This action cannot be undone.`)) {
+      return;
+    }
+
+    try {
+      await WorkflowService.deleteTemplate(templateId);
+      toast.success(`Template "${templateName}" deleted successfully`);
+      // Refresh templates list and stats
+      loadTemplates();
+      loadDashboardStats();
+    } catch (error) {
+      console.error('Failed to delete template:', error);
+      toast.error(`Failed to delete template: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  const handleCloneTemplate = async (templateId: number) => {
+    try {
+      const result = await WorkflowService.cloneTemplate(templateId);
+      toast.success(`Template cloned successfully! Created workflow: "${result.workflow.name}"`);
+      // Refresh workflows list and stats
+      loadMyWorkflows();
+      loadDashboardStats();
+      // Navigate to the new workflow
+      navigate(`/builder?workflowId=${result.workflow.id}`);
+    } catch (error) {
+      console.error('Failed to clone template:', error);
+      toast.error(`Failed to clone template: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -301,30 +428,30 @@ const Dashboard: React.FC = () => {
     return date.toLocaleDateString();
   };
 
-  const stats = [
+  const statsCards = [
     {
       title: 'My Workflows',
-      value: myWorkflows.length.toString(),
+      value: stats.myWorkflowsCount.toString(),
       icon: User,
       description: 'Workflows you created'
     },
     {
-      title: 'All Workflows',
-      value: allWorkflows.length.toString(),
+      title: 'Available Templates',
+      value: stats.templatesCount.toString(),
       icon: FileText,
-      description: 'All workflows in the system'
+      description: 'Templates to clone from'
     },
     {
       title: 'Active Workflows',
-      value: allWorkflows.filter(w => w.is_active).length.toString(),
+      value: stats.activeWorkflowsCount.toString(),
       icon: Play,
-      description: 'Currently active workflows'
+      description: 'Your active workflows'
     },
     {
       title: 'Total Nodes',
-      value: allWorkflows.reduce((sum, w) => sum + (w.node_count || 0), 0).toString(),
+      value: stats.totalNodesCount.toString(),
       icon: TrendingUp,
-      description: 'Across all workflows'
+      description: 'Across your workflows'
     }
   ];
 
@@ -342,7 +469,7 @@ const Dashboard: React.FC = () => {
       <div className="p-6 max-w-7xl mx-auto">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat, index) => (
+          {statsCards.map((stat, index) => (
             <Card key={index}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">
@@ -351,7 +478,13 @@ const Dashboard: React.FC = () => {
                 <stat.icon className="h-4 w-4 text-gray-400" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {isLoadingStats ? (
+                    <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+                  ) : (
+                    stat.value
+                  )}
+                </div>
                 <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
               </CardContent>
             </Card>
@@ -394,31 +527,72 @@ const Dashboard: React.FC = () => {
           </CardContent>
         </Card>
 
-        {/* My Workflows Section */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <User className="h-5 w-5 mr-2" />
-              My Workflows
-            </CardTitle>
-            <CardDescription>Workflows you created</CardDescription>
-          </CardHeader>
-          <CardContent>
-            {renderWorkflowList(myWorkflows, isLoadingMy, "Create your first workflow to get started")}
-          </CardContent>
-        </Card>
-
-        {/* All Workflows Section */}
+        {/* Workflows and Templates Tabs */}
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <FileText className="h-5 w-5 mr-2" />
-              All Workflows
-            </CardTitle>
-            <CardDescription>All workflows in the system (shared across all users)</CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle>Workflows & Templates</CardTitle>
+                <CardDescription>Manage your workflows and explore templates</CardDescription>
+              </div>
+              {activeTab === 'workflows' && (
+                <Button onClick={handleNewWorkflow} disabled={isCreating}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  {isCreating ? 'Creating...' : 'New Workflow'}
+                </Button>
+              )}
+            </div>
           </CardHeader>
           <CardContent>
-            {renderWorkflowList(allWorkflows, isLoadingAll, "No workflows exist yet. Create the first one!")}
+            {/* Tab Navigation */}
+            <div className="flex border-b mb-6">
+              <button
+                onClick={() => setActiveTab('workflows')}
+                className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+                  activeTab === 'workflows'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <User className="h-4 w-4 inline mr-2" />
+                My Workflows ({myWorkflows.length}{workflowsTotal > myWorkflows.length ? `/${workflowsTotal}` : ''})
+              </button>
+              <button
+                onClick={() => setActiveTab('templates')}
+                className={`px-4 py-2 font-medium border-b-2 transition-colors ${
+                  activeTab === 'templates'
+                    ? 'border-blue-500 text-blue-600'
+                    : 'border-transparent text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                <FileText className="h-4 w-4 inline mr-2" />
+                Templates ({templates.length}{templatesTotal > templates.length ? `/${templatesTotal}` : ''})
+              </button>
+            </div>
+
+            {/* Tab Content */}
+            {activeTab === 'workflows' && (
+              renderCardGrid(
+                myWorkflows,
+                isLoadingMy,
+                isLoadingMoreWorkflows,
+                'Create your first workflow to get started',
+                false,
+                workflowsTotal,
+                handleLoadMoreWorkflows
+              )
+            )}
+            {activeTab === 'templates' && (
+              renderCardGrid(
+                templates,
+                isLoadingTemplates,
+                isLoadingMoreTemplates,
+                'No templates available yet',
+                true,
+                templatesTotal,
+                handleLoadMoreTemplates
+              )
+            )}
           </CardContent>
         </Card>
       </div>

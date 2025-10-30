@@ -311,6 +311,13 @@ const UserManagement: React.FC = () => {
                 <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
                 Live
               </div>
+              <Button
+                onClick={() => navigate('/admin/workflows')}
+                variant="outline"
+                className="flex items-center gap-2"
+              >
+                View All Workflows
+              </Button>
               <Button onClick={() => loadUsers(false)} variant="outline" className="flex items-center gap-2">
                 <RefreshCw className="h-4 w-4" />
                 Refresh

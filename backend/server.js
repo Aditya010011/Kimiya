@@ -213,6 +213,10 @@ app.use('/api/billing', billingRoutes);
 const workflowRoutes = require('./routes/workflows');
 app.use('/api/workflows', workflowRoutes);
 
+// Workflow template routes
+const templateRoutes = require('./routes/templates');
+app.use('/api/templates', templateRoutes);
+
 // Inbound call routes (TwiML-based, separate from ConversationRelay)
 const inboundRoutes = require('./routes/inbound-routes');
 app.use('/api/inbound', inboundRoutes);

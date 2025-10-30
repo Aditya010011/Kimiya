@@ -14,6 +14,7 @@ import InboundCallTesting from "./pages/InboundCallTesting";
 import CreditDashboard from "./pages/CreditDashboard";
 import AdminCreditManagement from "./pages/AdminCreditManagement";
 import AdminCreditPlans from "./pages/AdminCreditPlans";
+import AdminWorkflowsView from "./pages/AdminWorkflowsView";
 import BillingSuccess from "./pages/BillingSuccess";
 import BillingCancel from "./pages/BillingCancel";
 import NotFound from "./pages/NotFound";
@@ -62,6 +63,11 @@ const App = () => (
           <Route path="/admin/users/:userId/analytics" element={
             <ProtectedRoute requiredRole="admin">
               <UserAnalyticsDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/workflows" element={
+            <ProtectedRoute requiredRole="admin">
+              <AdminWorkflowsView />
             </ProtectedRoute>
           } />
           <Route path="/inbound-testing" element={
