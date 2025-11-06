@@ -12,7 +12,8 @@ import {
   CreditCard,
   Receipt,
   Phone,
-  Workflow
+  Workflow,
+  Database
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuthStore } from '@/stores/authStore';
@@ -177,6 +178,10 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({
               <DropdownMenuItem onClick={() => navigate('/inbound-testing')}>
                 <Phone className="mr-2 h-4 w-4" />
                 <span>Inbound Testing</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate('/knowledge-base')}>
+                <Database className="mr-2 h-4 w-4" />
+                <span>Knowledge Base</span>
               </DropdownMenuItem>
               {user?.role === 'admin' && (
                 <>

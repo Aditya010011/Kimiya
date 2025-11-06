@@ -95,7 +95,7 @@ export const getEnvConfig = (): EnvConfig => {
       const hostname = window.location.hostname;
 
       // Check if we're accessing through the development domain
-      if (hostname === 'dev-ai-phone-call.kimiyi.ai') {
+      if (hostname === 'dev-ai-phone-call2.kimiyi.ai' || hostname === 'dev-ai-phone-call.kimiyi.ai') {
         // Development domain - backend is proxied through Nginx
         return `${protocol}//${hostname}`;
       }
@@ -107,7 +107,7 @@ export const getEnvConfig = (): EnvConfig => {
           return `http://localhost:${backendPort}`;
         } else {
           // Fallback to development domain
-          return 'https://dev-ai-phone-call.kimiyi.ai';
+          return 'https://dev-ai-phone-call2.kimiyi.ai';
         }
       } else {
         // Production/Staging: Use current host (proxied through Nginx)
@@ -125,7 +125,7 @@ export const getEnvConfig = (): EnvConfig => {
 
     // Server-side rendering fallback
     if (environment === 'development') {
-      return getEnvVar('VITE_BACKEND_URL') || 'https://dev-ai-phone-call.kimiyi.ai';
+      return getEnvVar('VITE_BACKEND_URL') || 'https://dev-ai-phone-call2.kimiyi.ai';
     } else {
       return getEnvVar('VITE_BACKEND_URL') || 'https://ai-phone-call.kimiyi.ai';
     }

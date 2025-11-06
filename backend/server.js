@@ -217,6 +217,10 @@ app.use('/api/workflows', workflowRoutes);
 const templateRoutes = require('./routes/templates');
 app.use('/api/templates', templateRoutes);
 
+// Knowledge Base routes (RAG functionality)
+const knowledgeBaseRoutes = require('./routes/knowledge-base');
+app.use('/api/knowledge-base', knowledgeBaseRoutes);
+
 // Inbound call routes (TwiML-based, separate from ConversationRelay)
 const inboundRoutes = require('./routes/inbound-routes');
 app.use('/api/inbound', inboundRoutes);

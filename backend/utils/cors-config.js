@@ -51,16 +51,16 @@ function getAllowedOrigins(environment = process.env.NODE_ENV || 'development') 
     'http://127.0.0.1:8080',
     'http://127.0.0.1:8443',
     
-    // Legacy/compatibility origins
-    'https://kimiya-ai.vercel.app',
-    'http://kimiya-ai.vercel.app'
   ];
 
   // Add environment-specific origins
   if (environment === 'development') {
     baseOrigins.push(
+      'http://localhost:3000',
       'http://dev-ai-phone-call.kimiyi.ai',
       'https://dev-ai-phone-call.kimiyi.ai',
+      'http://dev-ai-phone-call2.kimiyi.ai',
+      'https://dev-ai-phone-call2.kimiyi.ai',
       'http://dev.ai-phone-call.kimiyi.ai',
       'https://dev.ai-phone-call.kimiyi.ai'
     );

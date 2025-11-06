@@ -17,6 +17,7 @@ import AdminCreditPlans from "./pages/AdminCreditPlans";
 import AdminWorkflowsView from "./pages/AdminWorkflowsView";
 import BillingSuccess from "./pages/BillingSuccess";
 import BillingCancel from "./pages/BillingCancel";
+import KnowledgeBase from "./pages/KnowledgeBase";
 import NotFound from "./pages/NotFound";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import { CreditProvider } from "./contexts/CreditContext";
@@ -98,6 +99,11 @@ const App = () => (
           <Route path="/billing/cancel" element={
             <ProtectedRoute>
               <BillingCancel />
+            </ProtectedRoute>
+          } />
+          <Route path="/knowledge-base" element={
+            <ProtectedRoute>
+              <KnowledgeBase />
             </ProtectedRoute>
           } />
 
