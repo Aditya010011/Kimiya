@@ -8,8 +8,8 @@ echo ""
 
 # Check DNS resolution
 echo "📡 DNS Resolution:"
-echo "  Domain: dev-ai-phone-call2.kimiyi.ai"
-DNS_IP=$(dig dev-ai-phone-call2.kimiyi.ai +short | head -1)
+echo "  Domain: dev-ai-phone-call.kimiyi.ai"
+DNS_IP=$(dig dev-ai-phone-call.kimiyi.ai +short | head -1)
 echo "  Resolves to: $DNS_IP"
 echo ""
 
@@ -33,7 +33,7 @@ else
     echo "   DNS points to: $DNS_IP"
     echo "   Server is at:  $PUBLIC_IP"
     echo ""
-    echo "🔧 FIX: Update your DNS A record for 'dev-ai-phone-call2' to: $PUBLIC_IP"
+    echo "🔧 FIX: Update your DNS A record for 'dev-ai-phone-call' to: $PUBLIC_IP"
 fi
 echo ""
 
@@ -103,14 +103,14 @@ elif [[ "$DNS_IP" =~ ^[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+$ ]] && [ "$DNS_IP" != "$PUB
     ISSUES_FOUND=true
     echo "⚠️  ISSUE 1: DNS Configuration Error"
     echo ""
-    echo "Your domain dev-ai-phone-call2.kimiyi.ai is pointing to the wrong IP."
+    echo "Your domain dev-ai-phone-call.kimiyi.ai is pointing to the wrong IP."
     echo ""
     echo "Current DNS: $DNS_IP"
     echo "Should be:   $PUBLIC_IP (or use Cloudflare proxy)"
     echo ""
     echo "To fix this:"
     echo "1. Log into Cloudflare (or your DNS provider)"
-    echo "2. Update the A record for 'dev-ai-phone-call2' subdomain"
+    echo "2. Update the A record for 'dev-ai-phone-call' subdomain"
     echo "3. Change IP from $DNS_IP to $PUBLIC_IP"
     echo "4. OR enable Cloudflare proxy (Orange Cloud)"
     echo "5. Wait 5-10 minutes for DNS propagation"
@@ -143,6 +143,6 @@ if [ "$ISSUES_FOUND" = false ]; then
     echo "✅ All checks passed! Your server should be accessible."
     echo ""
     echo "Test your site:"
-    echo "  https://dev-ai-phone-call2.kimiyi.ai"
+    echo "  https://dev-ai-phone-call.kimiyi.ai"
 fi
 

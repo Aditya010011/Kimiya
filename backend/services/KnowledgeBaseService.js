@@ -379,11 +379,13 @@ class KnowledgeBaseService {
         // Ensure collection exists
         await vectorStoreService.createCollection(collectionName);
 
-        // Process document with the knowledge base's embedding model
+        // Process document with the knowledge base's settings
         const result = await documentProcessingService.processDocument(
           document.file_path,
           document.file_type,
-          document.embedding_model
+          document.embedding_model,
+          document.chunk_size,
+          document.chunk_overlap
         );
 
         // Store chunks in vector database

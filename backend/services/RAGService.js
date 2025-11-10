@@ -4,8 +4,20 @@ const vectorStoreService = require('./VectorStoreService');
 
 class RAGService {
   constructor() {
-    this.azureOpenAIEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
-    this.azureOpenAIKey = process.env.AZURE_OPENAI_KEY;
+    // Use BASE_ENDPOINT if available, otherwise extract base from full ENDPOINT
+    const fullEndpoint = process.env.AZURE_OPENAI_ENDPOINT;
+    const baseEndpoint = process.env.AZURE_OPENAI_BASE_ENDPOINT;
+
+    if (baseEndpoint) {
+      this.azureOpenAIEndpoint = baseEndpoint;
+    } else if (fullEndpoint) {
+      // Extract base URL from full endpoint (remove /openai/deployments/... part)
+      this.azureOpenAIEndpoint = fullEndpoint.split('/openai/deployments')[0];
+    } else {
+      this.azureOpenAIEndpoint = null;
+    }
+
+    this.azureOpenAIKey = process.env.AZURE_OPENAI_KEY || process.env.AZURE_OPENAI_API_KEY;
     this.azureOpenAIChatDeployment = process.env.AZURE_OPENAI_CHAT_DEPLOYMENT || 'gpt-4';
   }
 

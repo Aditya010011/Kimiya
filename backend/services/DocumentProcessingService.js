@@ -280,11 +280,15 @@ class DocumentProcessingService {
   /**
    * Process a document: extract text, chunk, and generate embeddings
    */
-  async processDocument(filePath, fileType, embeddingModel = null) {
+  async processDocument(filePath, fileType, embeddingModel = null, chunkSize = null, chunkOverlap = null) {
     try {
       const model = embeddingModel || this.defaultEmbeddingModel;
+      const effectiveChunkSize = chunkSize || this.chunkSize;
+      const effectiveChunkOverlap = chunkOverlap || this.chunkOverlap;
+
       console.log(`[DocumentProcessing] Starting document processing: ${filePath}`);
       console.log(`[DocumentProcessing] Using embedding model: ${model}`);
+      console.log(`[DocumentProcessing] Using chunk size: ${effectiveChunkSize}, overlap: ${effectiveChunkOverlap}`);
 
       // Step 1: Extract text
       const text = await this.extractText(filePath, fileType);
@@ -293,8 +297,8 @@ class DocumentProcessingService {
         throw new Error('No text extracted from document');
       }
 
-      // Step 2: Chunk text
-      const chunks = this.chunkText(text);
+      // Step 2: Chunk text with custom size and overlap
+      const chunks = this.chunkText(text, effectiveChunkSize, effectiveChunkOverlap);
 
       // Step 3: Generate embeddings
       const embeddings = await this.generateEmbeddingsBatch(chunks, model);

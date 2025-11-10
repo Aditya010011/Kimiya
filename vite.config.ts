@@ -27,10 +27,11 @@ export default defineConfig(({ mode }) => ({
     strictPort: true, // Fail if port is already in use
 
     // Hot Module Replacement (HMR) configuration
-    // Disable WebSocket HMR for development domain to avoid connection issues
-    hmr: environment === 'development' ? false : {
-      port: frontendPort + 1,
-      host: 'localhost'
+    // Configure HMR to work with nginx proxy
+    hmr: {
+      protocol: 'wss', // Use secure WebSocket
+      host: 'dev-ai-phone-call.kimiyi.ai', // Use the domain name
+      clientPort: 443, // Use HTTPS port
     },
 
     // Development server options

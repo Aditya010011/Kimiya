@@ -63,3 +63,11 @@ docs/archive/
 # Legacy directories (if moved back to root)
 /conversationRelayNode/
 /twilio/
+
+# Qdrant vector database storage
+qdrant_storage/
+/qdrant_storage/
+
+# Uploaded documents and files
+backend/uploads/
+/backend/uploads/
