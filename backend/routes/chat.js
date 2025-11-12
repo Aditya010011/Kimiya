@@ -1,5 +1,6 @@
 const fetch = require('node-fetch');
 const { deductCreditsAfterSuccess } = require('../middleware/creditMiddleware');
+const conversationKBService = require('../services/ConversationKBService');
 
 // Backend chat endpoint for playground conversations
 module.exports = async function chatHandler(req, res) {
@@ -8,7 +9,7 @@ module.exports = async function chatHandler(req, res) {
   console.log('Request body:', req.body);
 
   try {
-    const { messages, workflowId, globalPrompt, currentNodeId } = req.body;
+    const { messages, workflowId, globalPrompt, currentNodeId, knowledgeBases, kbRetrievalConfig } = req.body;
 
     if (!messages || !Array.isArray(messages)) {
       return res.status(400).json({
@@ -21,23 +22,25 @@ module.exports = async function chatHandler(req, res) {
       workflowId,
       messageCount: messages.length,
       hasGlobalPrompt: !!globalPrompt,
-      currentNodeId
+      currentNodeId,
+      hasKnowledgeBases: !!(knowledgeBases && knowledgeBases.length > 0)
     });
 
     // Get workflow data for context if available
     const workflowData = global.workflowData && global.workflowData[workflowId];
     let systemPrompt = globalPrompt || 'You are a helpful AI assistant in a chat conversation.';
-    
+    let currentNode = null;
+
     if (workflowData) {
       console.log('Found workflow data for chat context');
-      
+
       if (workflowData.globalPrompt) {
         systemPrompt = workflowData.globalPrompt;
       }
-      
+
       // Add current node context if available
       if (currentNodeId) {
-        const currentNode = workflowData.nodes.find(node => node.id === currentNodeId);
+        currentNode = workflowData.nodes.find(node => node.id === currentNodeId);
         if (currentNode && currentNode.data) {
           if (currentNode.data.prompt) {
             systemPrompt += `\n\nCurrent node context: ${currentNode.data.prompt}`;
@@ -47,6 +50,51 @@ module.exports = async function chatHandler(req, res) {
           }
         }
       }
+    }
+
+    // === KNOWLEDGE BASE INTEGRATION ===
+    // Check if node has knowledge bases configured
+    let kbContext = '';
+    let kbResults = [];
+    const nodeKBs = currentNode?.data?.knowledgeBases || knowledgeBases;
+    const nodeKBConfig = currentNode?.data?.kbRetrievalConfig || kbRetrievalConfig;
+
+    if (nodeKBs && nodeKBs.length > 0 && req.user) {
+      console.log(`[Chat] Querying ${nodeKBs.length} knowledge bases for user ${req.user.id}`);
+
+      try {
+        const kbResponse = await conversationKBService.getConversationContext(
+          messages,
+          nodeKBs,
+          req.user.id,
+          {
+            topK: nodeKBConfig?.topK || 3,
+            similarityThreshold: nodeKBConfig?.similarityThreshold || 0.6,
+            enableQueryRewriting: nodeKBConfig?.enableQueryRewriting !== false,
+            includeScores: true,
+            includeKBNames: true
+          }
+        );
+
+        kbContext = kbResponse.context;
+        kbResults = kbResponse.results;
+
+        if (kbContext) {
+          console.log(`[Chat] Retrieved ${kbResults.length} KB chunks, adding to system prompt`);
+        } else {
+          console.log('[Chat] No relevant KB context found');
+        }
+      } catch (kbError) {
+        console.error('[Chat] Error querying knowledge bases:', kbError);
+        // Continue without KB context - don't fail the entire request
+      }
+    } else if (nodeKBs && nodeKBs.length > 0 && !req.user) {
+      console.warn('[Chat] Knowledge bases configured but user not authenticated - skipping KB query');
+    }
+
+    // Add KB context to system prompt
+    if (kbContext) {
+      systemPrompt += kbContext;
     }
 
     // Prepare messages for Azure OpenAI
@@ -94,6 +142,15 @@ module.exports = async function chatHandler(req, res) {
         creditsDeducted: req.creditInfo.requiredCredits,
         remainingBalance: creditDeductResult.data.balanceAfter,
         transactionId: creditDeductResult.data.transactionId
+      };
+    }
+
+    // Add KB information to response if KB was used
+    if (kbResults.length > 0) {
+      response.knowledgeBaseInfo = {
+        chunksUsed: kbResults.length,
+        knowledgeBases: [...new Set(kbResults.map(r => r.knowledgeBaseName))],
+        averageRelevance: (kbResults.reduce((sum, r) => sum + r.score, 0) / kbResults.length * 100).toFixed(0) + '%'
       };
     }
 

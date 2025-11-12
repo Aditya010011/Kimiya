@@ -299,8 +299,7 @@ class CreditService {
           service_type = @serviceType,
           service_details = @serviceDetails,
           reference_id = @referenceId,
-          reference_type = @referenceType,
-          updated_at = GETDATE()
+          reference_type = @referenceType
         WHERE transaction_id = @transactionId
       `, {
         transactionId,

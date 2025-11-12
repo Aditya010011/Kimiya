@@ -301,12 +301,25 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
 
   const callBackendChatAPI = async (messages: any[]): Promise<string> => {
     try {
+      // Get current node to check for KB configuration
+      const currentNode = currentNodeId ? nodes.find(n => n.id === currentNodeId) : null;
+
       const requestBody: any = {
         messages: messages,
         workflowId: workflowConfig?.id || `workflow-${Date.now()}`,
         globalPrompt: globalPrompt,
         currentNodeId: currentNodeId
       };
+
+      // Add knowledge base configuration if present in current node
+      if (currentNode?.data?.knowledgeBases && currentNode.data.knowledgeBases.length > 0) {
+        requestBody.knowledgeBases = currentNode.data.knowledgeBases;
+        requestBody.kbRetrievalConfig = currentNode.data.kbRetrievalConfig || {
+          topK: 3,
+          similarityThreshold: 0.6
+        };
+        console.log('📚 KB: Including knowledge bases in chat request:', requestBody.knowledgeBases);
+      }
 
       // Add analytics-specific fields if analytics is enabled
       if (isAnalyticsEnabled) {

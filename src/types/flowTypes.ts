@@ -85,6 +85,14 @@ export interface PlayAudioNodeData extends BaseNodeData {
 export interface AINodeData extends BaseNodeData {
   flowId?: string;
   openAIKey?: string;
+  model?: string;
+  prompt?: string;
+  knowledgeBases?: string[]; // Array of knowledge base IDs
+  kbRetrievalConfig?: {
+    topK?: number; // Number of chunks to retrieve (1-10)
+    similarityThreshold?: number; // Minimum similarity score (0-1)
+    enableQueryRewriting?: boolean; // Whether to rewrite queries for better matching
+  };
 }
 
 export interface EndCallNodeData extends BaseNodeData {
