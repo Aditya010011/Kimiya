@@ -263,7 +263,6 @@ const Dashboard: React.FC = () => {
       // Navigate to builder with the new workflow ID
       navigate(`/builder?workflowId=${newWorkflow.id}`);
       // Refresh workflows lists and stats
-      loadAllWorkflows();
       loadMyWorkflows();
       loadDashboardStats();
     } catch (error) {
@@ -300,7 +299,6 @@ const Dashboard: React.FC = () => {
           toast.success(`Workflow "${result.workflow.name}" imported and saved to database!${itemsText}`);
 
           // Refresh workflows lists and stats to show the new imported workflow
-          loadAllWorkflows();
           loadMyWorkflows();
           loadDashboardStats();
 

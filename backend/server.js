@@ -187,6 +187,14 @@ app.use('/api/database', databaseRoutes);
 const chatAnalyticsRoutes = require('./routes/chat-analytics');
 app.use('/api/chat-analytics', chatAnalyticsRoutes);
 
+// Real-time Metrics routes
+const realtimeMetricsRoutes = require('./routes/realtime-metrics');
+app.use('/api/realtime-metrics', realtimeMetricsRoutes);
+
+// User Analytics routes
+const userAnalyticsRoutes = require('./routes/user-analytics');
+app.use('/api/user-analytics', userAnalyticsRoutes);
+
 // Authentication routes
 const authRoutes = require('./routes/auth');
 app.use('/api/auth', authRoutes);

@@ -152,9 +152,9 @@ router.post('/login',
     try {
       const { email, password } = req.body;
 
-      // Find user by email
+      // Find user by email (check all users, not just active ones)
       const userResult = await databaseService.query(`
-        SELECT * FROM tblUsers WHERE email = @email AND is_active = 1
+        SELECT * FROM tblUsers WHERE email = @email
       `, { email });
 
       if (userResult.recordset.length === 0) {
@@ -166,6 +166,23 @@ router.post('/login',
       }
 
       const user = userResult.recordset[0];
+
+      // Check if account is deactivated BEFORE verifying password
+      if (!user.is_active) {
+        // Log deactivated account login attempt
+        await databaseService.query(`
+          INSERT INTO tblLogs (message, level, source, created_at)
+          VALUES (@message, 'WARN', 'AUTH', GETDATE())
+        `, {
+          message: `Login attempt for deactivated account: ${email}`
+        });
+
+        return res.status(403).json({
+          success: false,
+          error: 'Account deactivated',
+          message: 'Your account has been deactivated. Please contact support for assistance.'
+        });
+      }
 
       // Verify password
       const isPasswordValid = await passwordUtils.comparePassword(password, user.password_hash);

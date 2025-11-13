@@ -352,12 +352,23 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
       });
 
       if (!response.success) {
-        throw new Error(response.error || 'Chat request failed');
+        // Check if this is a credit-related error (already handled by useChatWithCredits)
+        const isCreditError = response.error?.toLowerCase().includes('insufficient credits') ||
+                             response.error?.toLowerCase().includes('credit');
+
+        const error: any = new Error(response.error || 'Chat request failed');
+        error.isCreditError = isCreditError;
+        throw error;
       }
 
       return response.response || 'No response generated';
-    } catch (error) {
+    } catch (error: any) {
       console.error('Backend chat API error:', error);
+      // Mark credit errors so they can be handled differently
+      if (error.message?.toLowerCase().includes('insufficient credits') ||
+          error.message?.toLowerCase().includes('credit')) {
+        error.isCreditError = true;
+      }
       throw error;
     }
   };
@@ -584,8 +595,12 @@ Conversation turns in this node: ${conversationTurns}`
             }
           }, 1000); // Reduced delay to move through workflow faster
         }
-      } catch (error) {
-        toast.error('Failed to get AI response');
+      } catch (error: any) {
+        // Don't show generic error toast if this is a credit error
+        // (credit errors are already handled by useChatWithCredits hook)
+        if (!error.isCreditError) {
+          toast.error('Failed to get AI response');
+        }
         console.error('AI response error:', error);
         return;
       }

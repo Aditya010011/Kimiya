@@ -148,20 +148,30 @@ const CreditBalanceWidget: React.FC<CreditBalanceWidgetProps> = ({
   const { current_balance, projected_usage, alerts, current_plan } = effectiveCreditSummary;
   const balanceStatus = getBalanceStatus(current_balance.available_credits, current_balance.total_credits);
   const usagePercentage = (current_balance.total_credits - current_balance.available_credits) / current_balance.total_credits * 100;
+  const hasZeroCredits = current_balance.available_credits === 0;
 
   // Minimal variant for compact spaces
   if (variant === 'minimal') {
     return (
-      <div className={`flex items-center space-x-3 p-3 bg-white rounded-lg border w-[240px] ${className}`}>
-        <div className={`p-2 rounded-full flex-shrink-0 ${balanceStatus.bgColor}`}>
-          <Zap className={`h-4 w-4 ${balanceStatus.color}`} />
+      <div className={`flex items-center space-x-3 p-3 bg-white rounded-lg border w-[240px] ${className} ${hasZeroCredits ? 'border-red-500 bg-red-50' : ''}`}>
+        <div className={`p-2 rounded-full flex-shrink-0 ${hasZeroCredits ? 'bg-red-100' : balanceStatus.bgColor}`}>
+          <Zap className={`h-4 w-4 ${hasZeroCredits ? 'text-red-600' : balanceStatus.color}`} />
         </div>
         <div className="flex-1 min-w-[140px] max-w-[140px]">
-          <div className="text-sm font-medium tabular-nums text-right leading-tight">{formatNumber(current_balance.available_credits)} Credits</div>
-          <div className="text-xs text-gray-500 text-right leading-tight">Available</div>
+          {hasZeroCredits ? (
+            <>
+              <div className="text-sm font-semibold text-red-600 text-right leading-tight">Insufficient funds</div>
+              <div className="text-xs text-red-500 text-right leading-tight">0 Credits</div>
+            </>
+          ) : (
+            <>
+              <div className="text-sm font-medium tabular-nums text-right leading-tight">{formatNumber(current_balance.available_credits)} Credits</div>
+              <div className="text-xs text-gray-500 text-right leading-tight">Available</div>
+            </>
+          )}
         </div>
         <div className="w-4 h-4 flex-shrink-0">
-          {alerts.low_balance && (
+          {(alerts.low_balance || hasZeroCredits) && (
             <AlertTriangle className="h-4 w-4 text-red-500" />
           )}
         </div>
@@ -177,11 +187,11 @@ const CreditBalanceWidget: React.FC<CreditBalanceWidgetProps> = ({
   // Compact variant for sidebars
   if (variant === 'compact') {
     return (
-      <Card className={`${className}`}>
+      <Card className={`${className} ${hasZeroCredits ? 'border-red-500' : ''}`}>
         <CardContent className="pt-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center space-x-2">
-              <Zap className={`h-4 w-4 ${balanceStatus.color}`} />
+              <Zap className={`h-4 w-4 ${hasZeroCredits ? 'text-red-600' : balanceStatus.color}`} />
               <span className="text-sm font-medium">Credits</span>
             </div>
             <TooltipProvider>
@@ -196,29 +206,44 @@ const CreditBalanceWidget: React.FC<CreditBalanceWidgetProps> = ({
             </TooltipProvider>
           </div>
 
-          <div className="space-y-2">
-            <div className="text-2xl font-bold tabular-nums min-w-[120px]">{formatNumber(current_balance.available_credits)}</div>
-            <Progress value={(current_balance.available_credits / current_balance.total_credits) * 100} className="h-2" />
-            <div className="text-xs text-gray-500 tabular-nums">
-              {formatNumber(current_balance.total_credits - current_balance.available_credits)} used of {formatNumber(current_balance.total_credits)}
+          {hasZeroCredits ? (
+            <div className="space-y-2">
+              <div className="text-2xl font-bold text-red-600">Insufficient funds</div>
+              <div className="text-sm text-red-500 tabular-nums">0 Credits Available</div>
+              <Alert variant="destructive" className="mt-3">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  You have no credits remaining. Add credits to continue using services.
+                </AlertDescription>
+              </Alert>
             </div>
-          </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold tabular-nums min-w-[120px]">{formatNumber(current_balance.available_credits)}</div>
+                <Progress value={(current_balance.available_credits / current_balance.total_credits) * 100} className="h-2" />
+                <div className="text-xs text-gray-500 tabular-nums">
+                  {formatNumber(current_balance.total_credits - current_balance.available_credits)} used of {formatNumber(current_balance.total_credits)}
+                </div>
+              </div>
 
-          {showAlerts && (alerts.low_balance || alerts.high_usage) && (
-            <div className="mt-3 pt-3 border-t">
-              {alerts.low_balance && (
-                <div className="flex items-center space-x-2 text-red-600">
-                  <AlertTriangle className="h-3 w-3" />
-                  <span className="text-xs">Low balance</span>
+              {showAlerts && (alerts.low_balance || alerts.high_usage) && (
+                <div className="mt-3 pt-3 border-t">
+                  {alerts.low_balance && (
+                    <div className="flex items-center space-x-2 text-red-600">
+                      <AlertTriangle className="h-3 w-3" />
+                      <span className="text-xs">Low balance</span>
+                    </div>
+                  )}
+                  {alerts.high_usage && (
+                    <div className="flex items-center space-x-2 text-yellow-600">
+                      <TrendingUp className="h-3 w-3" />
+                      <span className="text-xs">High usage</span>
+                    </div>
+                  )}
                 </div>
               )}
-              {alerts.high_usage && (
-                <div className="flex items-center space-x-2 text-yellow-600">
-                  <TrendingUp className="h-3 w-3" />
-                  <span className="text-xs">High usage</span>
-                </div>
-              )}
-            </div>
+            </>
           )}
 
           {onViewDetails && (
@@ -233,11 +258,11 @@ const CreditBalanceWidget: React.FC<CreditBalanceWidgetProps> = ({
 
   // Detailed variant (default)
   return (
-    <Card className={`${className}`}>
+    <Card className={`${className} ${hasZeroCredits ? 'border-red-500' : ''}`}>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center space-x-2">
-            <Zap className={`h-5 w-5 ${balanceStatus.color}`} />
+            <Zap className={`h-5 w-5 ${hasZeroCredits ? 'text-red-600' : balanceStatus.color}`} />
             <span>Credit Balance</span>
           </div>
           <Button variant="ghost" size="sm" onClick={loadCreditData}>
@@ -250,19 +275,30 @@ const CreditBalanceWidget: React.FC<CreditBalanceWidgetProps> = ({
           )}
         </CardDescription>
       </CardHeader>
-      
+
       <CardContent className="space-y-4">
         {/* Balance Display */}
-        <div className={`p-4 rounded-lg border-l-4 ${balanceStatus.bgColor} ${balanceStatus.borderColor}`}>
+        <div className={`p-4 rounded-lg border-l-4 ${hasZeroCredits ? 'bg-red-50 border-red-500' : `${balanceStatus.bgColor} ${balanceStatus.borderColor}`}`}>
           <div className="flex items-center justify-between mb-2">
-            <div className="text-3xl font-bold tabular-nums min-w-[160px]">{formatNumber(current_balance.available_credits)}</div>
-            <Badge variant={balanceStatus.status === 'critical' ? 'destructive' : 'secondary'} className="flex-shrink-0">
-              {balanceStatus.status === 'critical' ? 'Critical' :
-               balanceStatus.status === 'low' ? 'Low' :
-               balanceStatus.status === 'medium' ? 'Medium' : 'Good'}
-            </Badge>
+            {hasZeroCredits ? (
+              <>
+                <div className="text-3xl font-bold text-red-600 min-w-[160px]">Insufficient funds</div>
+                <Badge variant="destructive" className="flex-shrink-0">
+                  No Credits
+                </Badge>
+              </>
+            ) : (
+              <>
+                <div className="text-3xl font-bold tabular-nums min-w-[160px]">{formatNumber(current_balance.available_credits)}</div>
+                <Badge variant={balanceStatus.status === 'critical' ? 'destructive' : 'secondary'} className="flex-shrink-0">
+                  {balanceStatus.status === 'critical' ? 'Critical' :
+                   balanceStatus.status === 'low' ? 'Low' :
+                   balanceStatus.status === 'medium' ? 'Medium' : 'Good'}
+                </Badge>
+              </>
+            )}
           </div>
-          <div className="text-sm text-gray-600 mb-3">Available Credits</div>
+          <div className="text-sm text-gray-600 mb-3">{hasZeroCredits ? '0 Credits Available' : 'Available Credits'}</div>
           <Progress value={(current_balance.available_credits / current_balance.total_credits) * 100} className="h-2" />
           <div className="flex justify-between text-xs text-gray-500 mt-1 tabular-nums">
             <span>{formatNumber(current_balance.total_credits - current_balance.available_credits)} used</span>
@@ -304,9 +340,17 @@ const CreditBalanceWidget: React.FC<CreditBalanceWidgetProps> = ({
         )}
 
         {/* Alerts */}
-        {showAlerts && (alerts.low_balance || alerts.high_usage || alerts.expiring_credits) && (
+        {showAlerts && (hasZeroCredits || alerts.low_balance || alerts.high_usage || alerts.expiring_credits) && (
           <div className="space-y-2">
-            {alerts.low_balance && (
+            {hasZeroCredits && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Insufficient funds!</strong> You have no credits remaining. All services are currently unavailable. Please add credits immediately to continue.
+                </AlertDescription>
+              </Alert>
+            )}
+            {!hasZeroCredits && alerts.low_balance && (
               <Alert variant="destructive">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>

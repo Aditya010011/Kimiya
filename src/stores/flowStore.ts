@@ -20,6 +20,7 @@ interface FlowState {
   lastSaved: Date | null;
   hasUnsavedChanges: boolean;
   workflowConfigs: Record<string, any>;
+  nameUpdateTimeout?: NodeJS.Timeout;
 
   // Workflow configuration
   workflowConfig: WorkflowConfig | null;
@@ -85,6 +86,7 @@ interface FlowState {
   loadWorkflow: (workflowId: number) => Promise<void>;
   saveWorkflowToDatabase: () => Promise<void>;
   autoSaveToDatabase: () => void;
+  updateWorkflowMetadata: (name?: string, description?: string) => Promise<void>;
   setCurrentWorkflow: (workflow: Workflow | null) => void;
   markUnsavedChanges: () => void;
   clearUnsavedChanges: () => void;
@@ -217,8 +219,27 @@ export const useFlowStore = create<FlowState>()(
       setEdges: (edges) => set((state) => ({
         edges: typeof edges === 'function' ? edges(state.edges) : edges
       })),
-      
-      setWorkflowName: (name) => set({ workflowName: name }),
+
+      setWorkflowName: (name) => {
+        set({ workflowName: name, hasUnsavedChanges: true });
+        // Debounce the database update
+        const { currentWorkflowId } = get();
+        if (currentWorkflowId) {
+          // Clear existing timeout
+          if ((get() as any).nameUpdateTimeout) {
+            clearTimeout((get() as any).nameUpdateTimeout);
+          }
+          // Set new timeout to update after 1 second of no changes
+          const timeout = setTimeout(async () => {
+            try {
+              await get().updateWorkflowMetadata(name);
+            } catch (error) {
+              console.error('Failed to update workflow name:', error);
+            }
+          }, 1000);
+          set({ nameUpdateTimeout: timeout } as any);
+        }
+      },
 
       // Workflow configuration
       setWorkflowConfig: (config) => {
@@ -923,6 +944,32 @@ export const useFlowStore = create<FlowState>()(
           hasUnsavedChanges: false,
           lastSaved: new Date()
         });
+      },
+
+      updateWorkflowMetadata: async (name?: string, description?: string) => {
+        const { currentWorkflowId, currentWorkflow, workflowName } = get();
+        if (!currentWorkflowId) {
+          throw new Error('No current workflow to update');
+        }
+
+        try {
+          const updatedWorkflow = await WorkflowService.updateWorkflow(currentWorkflowId, {
+            name: name || workflowName,
+            description: description || currentWorkflow?.description || '',
+          });
+
+          // Update the current workflow with the new data
+          set({
+            currentWorkflow: updatedWorkflow,
+            workflowName: updatedWorkflow.name,
+            hasUnsavedChanges: false
+          });
+
+          console.log('✅ Workflow metadata updated');
+        } catch (error) {
+          console.error('❌ Failed to update workflow metadata:', error);
+          throw error;
+        }
       },
 
       setCurrentWorkflow: (workflow: Workflow | null) => {

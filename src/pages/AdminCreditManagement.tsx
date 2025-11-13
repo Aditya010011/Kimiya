@@ -59,7 +59,8 @@ const AdminCreditManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAllocateDialogOpen, setIsAllocateDialogOpen] = useState(false);
   const [isAllocating, setIsAllocating] = useState(false);
-  
+  const [isRunningResetJob, setIsRunningResetJob] = useState(false);
+
   // Credit allocation form state
   const [allocationForm, setAllocationForm] = useState({
     selectedUser: null as any,
@@ -161,6 +162,45 @@ const AdminCreditManagement: React.FC = () => {
     toast.success('Credit report export started. You will receive an email when ready.');
   };
 
+  const handleRunResetJob = async () => {
+    if (!confirm('Are you sure you want to run the monthly credit reset job? This will reset monthly_used to 0 and allocate new credits to all eligible users.')) {
+      return;
+    }
+
+    try {
+      setIsRunningResetJob(true);
+      const token = localStorage.getItem('kimiya_access_token');
+
+      const response = await fetch('/api/admin/credits/run-reset-job', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+
+      const data = await response.json();
+
+      if (response.ok && data.success) {
+        toast.success(`Monthly reset job completed successfully! ${data.resetsProcessed} users processed.`);
+
+        // Reload overview to show updated data
+        await loadOverview();
+
+        // Refresh credit context
+        await refreshBalance();
+        await refreshSummary();
+      } else {
+        toast.error(data.error || 'Failed to run reset job');
+      }
+    } catch (error) {
+      toast.error('Failed to run reset job');
+      console.error('Error running reset job:', error);
+    } finally {
+      setIsRunningResetJob(false);
+    }
+  };
+
   useEffect(() => {
     loadOverview();
   }, []);
@@ -250,6 +290,24 @@ const AdminCreditManagement: React.FC = () => {
               <Button onClick={handleExportReport} variant="outline">
                 <Download className="h-4 w-4 mr-2" />
                 Export Report
+              </Button>
+              <Button
+                onClick={handleRunResetJob}
+                variant="outline"
+                disabled={isRunningResetJob}
+                className="border-orange-300 text-orange-700 hover:bg-orange-50"
+              >
+                {isRunningResetJob ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Running...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Run Monthly Reset Job
+                  </>
+                )}
               </Button>
               <Dialog open={isAllocateDialogOpen} onOpenChange={setIsAllocateDialogOpen}>
                 <DialogTrigger asChild>
@@ -527,7 +585,7 @@ const AdminCreditManagement: React.FC = () => {
               <Button
                 variant="outline"
                 className="h-20 flex flex-col items-center justify-center"
-                onClick={() => navigate('/admin/credit-settings')}
+                onClick={() => navigate('/credits')}
               >
                 <Settings className="h-6 w-6 mb-2" />
                 Credit Settings

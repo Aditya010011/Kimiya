@@ -50,16 +50,18 @@ export const useAuthStore = create<AuthState>()(
 
             return { success: true };
           } else {
+            // Prefer the user-friendly 'message' field over 'error' field
+            const errorMessage = response.message || response.error || 'Login failed';
             set({
               user: null,
               isAuthenticated: false,
               isLoading: false,
-              error: response.error || 'Login failed',
+              error: errorMessage,
             });
 
             return {
               success: false,
-              error: response.error || 'Login failed',
+              error: errorMessage,
             };
           }
         } catch (error) {

@@ -108,16 +108,16 @@ const VariableExtractor: React.FC<VariableExtractorProps> = ({
       {variables.map((variable, index) => (
         <div key={variable.name} className="border rounded-lg p-4 space-y-3">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Badge variant="secondary">{variable.name}</Badge>
-              <Badge variant="outline">{variable.type}</Badge>
+            <div className="flex items-center gap-2 min-w-0 flex-1">
+              <Badge variant="secondary" className="truncate max-w-[150px]" title={variable.name}>{variable.name}</Badge>
+              <Badge variant="outline" className="flex-shrink-0">{variable.type}</Badge>
             </div>
             <Button
               type="button"
               variant="outline"
               size="sm"
               onClick={() => handleRemoveVariable(variable.name)}
-              className="px-2"
+              className="px-2 flex-shrink-0"
             >
               <X className="w-4 h-4" />
             </Button>

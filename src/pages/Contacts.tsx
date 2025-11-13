@@ -107,6 +107,7 @@ const Contacts: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<string>('all');
+  const [selectedTag, setSelectedTag] = useState<string>('all');
   const [showFavoritesOnly, setShowFavoritesOnly] = useState(false);
   const [sortBy, setSortBy] = useState('first_name');
   const [sortOrder, setSortOrder] = useState<'ASC' | 'DESC'>('ASC');
@@ -151,6 +152,10 @@ const Contacts: React.FC = () => {
 
       if (selectedGroup !== 'all') {
         params.append('group_id', selectedGroup);
+      }
+
+      if (selectedTag !== 'all') {
+        params.append('tag_id', selectedTag);
       }
 
       if (showFavoritesOnly) {
@@ -356,7 +361,7 @@ const Contacts: React.FC = () => {
 
   useEffect(() => {
     fetchContacts();
-  }, [currentPage, searchTerm, selectedGroup, showFavoritesOnly, sortBy, sortOrder]);
+  }, [currentPage, searchTerm, selectedGroup, selectedTag, showFavoritesOnly, sortBy, sortOrder]);
 
   useEffect(() => {
     fetchGroupsAndTags();
@@ -422,12 +427,34 @@ const Contacts: React.FC = () => {
                   <SelectItem key={group.id} value={group.id.toString()}>
                     <div className="flex items-center gap-2">
                       {group.color && (
-                        <div 
-                          className="w-3 h-3 rounded-full" 
+                        <div
+                          className="w-3 h-3 rounded-full"
                           style={{ backgroundColor: group.color }}
                         />
                       )}
                       {group.name}
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedTag} onValueChange={setSelectedTag}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="All Tags" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tags</SelectItem>
+                {tags.map((tag) => (
+                  <SelectItem key={tag.id} value={tag.id.toString()}>
+                    <div className="flex items-center gap-2">
+                      {tag.color && (
+                        <div
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                      )}
+                      {tag.name}
                     </div>
                   </SelectItem>
                 ))}
@@ -505,7 +532,7 @@ const Contacts: React.FC = () => {
               <ContactIcon className="h-12 w-12 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No contacts found</h3>
               <p className="text-gray-500 mb-4">
-                {searchTerm || selectedGroup !== 'all' || showFavoritesOnly
+                {searchTerm || selectedGroup !== 'all' || selectedTag !== 'all' || showFavoritesOnly
                   ? 'Try adjusting your filters or search terms.'
                   : 'Get started by adding your first contact.'}
               </p>
@@ -736,6 +763,7 @@ const Contacts: React.FC = () => {
         currentFilters={{
           search: searchTerm || undefined,
           groupId: selectedGroup !== 'all' ? parseInt(selectedGroup) : undefined,
+          tagId: selectedTag !== 'all' ? parseInt(selectedTag) : undefined,
           isFavorite: showFavoritesOnly || undefined
         }}
       />

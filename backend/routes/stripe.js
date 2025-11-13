@@ -695,6 +695,50 @@ async function handleInvoicePaymentSucceeded(invoice) {
       console.log(`   ℹ️  No credits to allocate (monthlyCredits: ${plan?.monthlyCredits})`);
     }
 
+    // Create billing history record
+    console.log(`   📝 Creating billing history record...`);
+    try {
+      const invoiceNumber = invoice.number || `INV-${Date.now()}-${Math.random().toString(36).substr(2, 6).toUpperCase()}`;
+
+      // Get subscription details for billing period
+      const subscriptionResult = await databaseService.query(`
+        SELECT id, current_period_start, current_period_end FROM tblSubscriptions
+        WHERE stripe_subscription_id = @stripeSubscriptionId
+      `, { stripeSubscriptionId: invoice.subscription });
+
+      const subscription = subscriptionResult.recordset[0];
+
+      await databaseService.query(`
+        INSERT INTO tblBillingHistory (
+          organization_id, subscription_id, invoice_number, amount_usd,
+          tax_amount_usd, total_amount_usd, plan_name, plan_id,
+          billing_period_start, billing_period_end, status, stripe_invoice_id
+        ) VALUES (
+          @organizationId, @subscriptionId, @invoiceNumber, @amountUsd,
+          @taxAmount, @totalAmount, @planName, @planId,
+          @periodStart, @periodEnd, @status, @stripeInvoiceId
+        )
+      `, {
+        organizationId,
+        subscriptionId: subscription.id,
+        invoiceNumber,
+        amountUsd: invoice.amount_paid / 100,
+        taxAmount: (invoice.tax || 0) / 100,
+        totalAmount: invoice.total / 100,
+        planName: plan.name,
+        planId,
+        periodStart: subscription.current_period_start,
+        periodEnd: subscription.current_period_end,
+        status: 'paid',
+        stripeInvoiceId: invoice.id
+      });
+
+      console.log(`   ✅ Billing history record created: ${invoiceNumber}`);
+    } catch (billingError) {
+      console.error(`   ❌ Failed to create billing history record:`, billingError);
+      // Don't throw - we still want to mark the webhook as processed
+    }
+
     console.log(`✅ Credits allocated for invoice ${invoice.id}`);
   } catch (error) {
     console.error('❌ Error handling invoice.payment_succeeded:', error);

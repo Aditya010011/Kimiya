@@ -24,6 +24,7 @@ interface ExportContactsModalProps {
   currentFilters?: {
     search?: string;
     groupId?: number;
+    tagId?: number;
     isFavorite?: boolean;
   };
 }
@@ -120,6 +121,9 @@ const ExportContactsModal: React.FC<ExportContactsModalProps> = ({
         }
         if (currentFilters.groupId) {
           params.append('groupId', currentFilters.groupId.toString());
+        }
+        if (currentFilters.tagId) {
+          params.append('tagId', currentFilters.tagId.toString());
         }
         if (currentFilters.isFavorite !== undefined) {
           params.append('isFavorite', currentFilters.isFavorite.toString());
@@ -268,7 +272,7 @@ const ExportContactsModal: React.FC<ExportContactsModalProps> = ({
                   </Label>
                 </div>
 
-                {(currentFilters.search || currentFilters.groupId || currentFilters.isFavorite !== undefined) && (
+                {(currentFilters.search || currentFilters.groupId || currentFilters.tagId || currentFilters.isFavorite !== undefined) && (
                   <div className="flex items-center space-x-2">
                     <input
                       type="radio"

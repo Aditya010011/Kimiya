@@ -17,6 +17,7 @@ router.get('/', authenticateToken, async (req, res) => {
       search = '',
       group_id = null,
       is_favorite = null,
+      tag_id = null,
       sort_by = 'first_name',
       sort_order = 'ASC'
     } = req.query;
@@ -45,6 +46,15 @@ router.get('/', authenticateToken, async (req, res) => {
     if (is_favorite !== null) {
       whereClause += ` AND c.is_favorite = @isFavorite`;
       params.isFavorite = is_favorite === 'true' ? 1 : 0;
+    }
+
+    // Filter by tag
+    if (tag_id) {
+      whereClause += ` AND EXISTS (
+        SELECT 1 FROM tblContactTagAssignments cta
+        WHERE cta.contact_id = c.id AND cta.tag_id = @tagId
+      )`;
+      params.tagId = tag_id;
     }
 
     // Validate sort_by to prevent SQL injection
@@ -91,19 +101,36 @@ router.get('/', authenticateToken, async (req, res) => {
 
     const contacts = await databaseService.query(query, params);
 
+    // Get tags for each contact
+    const contactsWithTags = await Promise.all(
+      contacts.recordset.map(async (contact) => {
+        const tagsQuery = `
+          SELECT ct.id, ct.name, ct.color
+          FROM tblContactTags ct
+          INNER JOIN tblContactTagAssignments cta ON ct.id = cta.tag_id
+          WHERE cta.contact_id = @contactId
+        `;
+        const tagsResult = await databaseService.query(tagsQuery, { contactId: contact.id });
+        return {
+          ...contact,
+          tags: tagsResult.recordset
+        };
+      })
+    );
+
     // Get total count for pagination
     const countQuery = `
       SELECT COUNT(*) as total
       FROM tblContacts c
       ${whereClause}
     `;
-    
+
     const countResult = await databaseService.query(countQuery, params);
     const total = countResult.recordset[0].total;
 
     res.json({
       success: true,
-      data: contacts.recordset,
+      data: contactsWithTags,
       pagination: {
         page: parseInt(page),
         limit: parseInt(limit),

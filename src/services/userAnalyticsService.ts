@@ -28,8 +28,98 @@ export class UserAnalyticsService {
    * Get comprehensive analytics data for a specific user
    */
   static async getUserAnalytics(userId: number, filters?: AnalyticsFilters): Promise<UserAnalyticsData> {
-    // For now, return mock data. In production, this would make API calls
-    return this.generateMockAnalyticsData(userId, filters);
+    try {
+      const token = TokenManager.getAccessToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/user-analytics/${userId}`, {
+        method: 'GET',
+        headers
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        // Map backend data to frontend format
+        const backendData = result.data;
+        return {
+          user_profile: backendData.user_profile,
+          twilio_metrics: {
+            phone_numbers_used: [],
+            total_calls_made: backendData.twilio_metrics.total_calls_made,
+            total_call_duration: backendData.twilio_metrics.total_call_duration,
+            average_call_duration: backendData.twilio_metrics.average_call_duration,
+            successful_calls: backendData.twilio_metrics.successful_calls,
+            failed_calls: backendData.twilio_metrics.failed_calls,
+            api_requests_count: 0,
+            monthly_usage: [],
+            cost_breakdown: {
+              voice_calls: 0,
+              sms: 0,
+              api_requests: 0,
+              total: parseFloat(backendData.cost_metrics.estimated_monthly_cost)
+            }
+          },
+          conversation_analytics: {
+            total_conversations: backendData.conversation_analytics.total_conversations,
+            average_conversation_length: backendData.conversation_analytics.average_conversation_length,
+            total_messages_sent: 0,
+            total_messages_received: 0,
+            conversation_topics: [],
+            sentiment_analysis: { positive: 0, neutral: 0, negative: 0 },
+            recent_conversations: []
+          },
+          call_management: {
+            total_calls: backendData.twilio_metrics.total_calls_made,
+            successful_calls: backendData.twilio_metrics.successful_calls,
+            failed_calls: backendData.twilio_metrics.failed_calls,
+            average_duration: backendData.twilio_metrics.average_call_duration,
+            total_duration: backendData.twilio_metrics.total_call_duration,
+            call_sessions: [],
+            call_trends: [],
+            peak_hours: []
+          },
+          token_usage: {
+            twilio_tokens: { used: 0, limit: 0, cost: 0, last_reset: new Date().toISOString() },
+            openai_tokens: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0, cost: 0, model_usage: [] },
+            usage_trends: [],
+            monthly_limits: { twilio_limit: 0, openai_limit: 0, current_usage_percentage: 0 }
+          },
+          workflow_activity: {
+            created_workflows: backendData.workflow_activity.created_workflows,
+            active_workflows: backendData.workflow_activity.active_workflows,
+            total_executions: backendData.workflow_activity.total_executions,
+            successful_executions: backendData.workflow_activity.successful_executions,
+            failed_executions: backendData.workflow_activity.failed_executions,
+            workflows: [],
+            execution_history: []
+          },
+          system_analytics: {
+            login_patterns: { total_logins: 0, unique_days: 0, average_session_duration: 0, login_history: [], login_trends: [] },
+            feature_usage: { workflow_builder: 0, dashboard_views: 0, api_calls: 0, exports: 0, imports: 0 },
+            error_logs: [],
+            performance_metrics: { average_page_load_time: 0, api_response_times: [], uptime_percentage: 100 }
+          },
+          last_updated: backendData.last_updated
+        };
+      } else {
+        throw new Error(result.error || 'Failed to fetch user analytics');
+      }
+    } catch (error) {
+      console.error('Failed to fetch user analytics, falling back to mock data:', error);
+      // Fallback to mock data if API fails
+      return this.generateMockAnalyticsData(userId, filters);
+    }
   }
 
   /**
@@ -60,15 +150,54 @@ export class UserAnalyticsService {
    * Get real-time metrics (called frequently)
    */
   static async getRealtimeMetrics(): Promise<RealtimeMetrics> {
-    return this.generateMockRealtimeMetrics();
+    try {
+      const token = TokenManager.getAccessToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/realtime-metrics`, {
+        method: 'GET',
+        headers
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        return result.data;
+      } else {
+        throw new Error(result.error || 'Failed to fetch real-time metrics');
+      }
+    } catch (error) {
+      console.error('Failed to fetch real-time metrics:', error);
+      // Return fallback data instead of throwing
+      return {
+        active_users_now: 0,
+        active_sessions: 0,
+        current_calls: 0,
+        api_requests_per_minute: 0,
+        error_rate_last_hour: 0,
+        system_health: 'critical', // System is critical if we can't fetch metrics
+        last_updated: new Date().toISOString()
+      };
+    }
   }
 
   /**
    * Stream real-time data updates
    */
   static subscribeToRealtimeUpdates(callback: (data: RealtimeMetrics) => void): () => void {
-    const interval = setInterval(() => {
-      callback(this.generateMockRealtimeMetrics());
+    const interval = setInterval(async () => {
+      const metrics = await this.getRealtimeMetrics();
+      callback(metrics);
     }, 5000); // Update every 5 seconds
 
     return () => clearInterval(interval);
