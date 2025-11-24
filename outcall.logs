@@ -1,0 +1,1591 @@
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: === OPTIMIZED MAKE CALL REQUEST ===
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: Timestamp: 2025-11-20T16:06:00.452Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: Request body keys: [
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'to',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'from',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'workflowId',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'nodes',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'edges',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'globalPrompt',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'config',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'record',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'timeout',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'twilioAccountSid',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   'twilioAuthToken'
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [PredictiveCache] Initialized with config: { maxCacheSize: 10000, maxAge: 86400000, semanticThreshold: 0.85 }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [LanguageOptimizer] Initialized with support for 53 languages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [LanguageOptimizer] Cantonese specialization enabled
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [StreamingAudioProcessor] Initialized with config: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   sampleRate: 8000,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   audioFormat: 'mulaw',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   streamingMode: 'bidirectional',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   optimizations: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:     noiseReduction: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:     echoCancellation: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:     voiceActivityDetection: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [StreamingAudioProcessor] Initialized with config: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   sampleRate: 8000,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   audioFormat: 'mulaw',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   streamingMode: 'bidirectional',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   optimizations: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:     noiseReduction: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:     echoCancellation: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:     voiceActivityDetection: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] Initialized with bidirectional streaming
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [PerformanceOrchestrator] Initialized with all optimizations enabled
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [PerformanceOrchestrator] Starting optimized conversation for call call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] Starting conversation for call call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] Workflow data: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   workflowId: 'workflow-1763654758147',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   nodesCount: 11,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   edgesCount: 12,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   hasGlobalPrompt: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] 🎯 Found start node: start_node (type: startNode)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] 🎯 Start node identified: start_node (type: startNode)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] 🔄 Updating existing call data for call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] 🎯 Found start node: start_node (type: startNode)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] WebSocket connection setup for call call_1763654760453_h9wlqoyxi (using TwiML bridge)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] Audio pipeline configured
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] Stream initialized for call call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] Bidirectional streaming setup complete for call call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [ConversationRelay] Conversation started in 0.835408000042662ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: [PerformanceOrchestrator] Optimized conversation started in 1.0866099999984726ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: Performance optimization initialized: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   success: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   callSid: 'call_1763654760453_h9wlqoyxi',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   optimizations: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:     conversationRelay: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:     predictiveCache: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:     languageOptimization: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:     providerFailover: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   },
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   expectedLatency: '150-250ms'
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: Optimized Twilio API call parameters: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   To: '+919649770017',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   From: '+17077433838',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   ApplicationSid: 'AP12715ea88e210a323f0d03ce59f1a233',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   TwiMLAppUsed: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   OptimizationEnabled: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   ExpectedLatency: '150-250ms',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   TrackingId: 'call_1763654760453_h9wlqoyxi'
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: Twilio call created successfully: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   callSid: 'CA814ab91fa0255d5deb0dd77d3e018cb3',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   status: 'queued',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   to: '+919649770017',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   from: '+17077433838',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   optimizationEnabled: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00:   trackingId: 'call_1763654760453_h9wlqoyxi'
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:00: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:03: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:03: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:03:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:03:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:03:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:03: [Optimized Route] GET /balance - 304 - 139ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:07: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:07: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:07:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:07:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:07:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:07: [Optimized Route] GET /balance - 304 - 139ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:13: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:13: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:13:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:13:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:13:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:13: [Optimized Route] GET /balance - 304 - 137ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:14: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:14: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:14:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:14:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:14:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:14: [Optimized Route] GET /balance - 304 - 139ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [TwiML-Optimized] Retrieved metadata from CallSid: CA814ab91fa0255d5deb0dd77d3e018cb3
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [TwiML-Optimized] Workflow data available: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [TwiML-Optimized] ===== FAST TWIML REQUEST =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [TwiML-Optimized] Call: CA814ab91fa0255d5deb0dd77d3e018cb3, Workflow: workflow-1763654758147, Tracking: call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [generateFastTwiML] ===== CREATING TWIML =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [generateFastTwiML] Workflow: workflow-1763654758147, Tracking: call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [generateFastTwiML] WebSocket URL: wss://dev-ai-phone-call.kimiyi.ai/api/conversationrelay-ws?workflowId=workflow-1763654758147&trackingId=call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [extractWelcomeGreeting] Using start node's firstMessage
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [generateFastTwiML] Welcome Greeting: "Hello! Thank you for calling Premier Properties. I'm your AI assistant here to help you find your perfect property. How may I assist you today?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [generateFastTwiML] ===== TWIML GENERATED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [generateFastTwiML] TwiML length: 560 chars
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [generateFastTwiML] WebSocket URL encoded: wss://dev-ai-phone-call.kimiyi.ai/api/conversationrelay-ws?workflowId=workflow-1763654758147&amp;trackingId=call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [generateFastTwiML] ACTUAL TWIML CONTENT:
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: <?xml version="1.0" encoding="UTF-8"?>
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: <Response>
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17:     <Connect>
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17:         <ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17:             url="wss://dev-ai-phone-call.kimiyi.ai/api/conversationrelay-ws?workflowId=workflow-1763654758147&amp;trackingId=call_1763654760453_h9wlqoyxi"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17:             welcomeGreeting="Hello! Thank you for calling Premier Properties. I&apos;m your AI assistant here to help you find your perfect property. How may I assist you today?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17:             ttsProvider="Google"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17:             voice="en-US-Journey-O"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17:             language="en-US"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17:         />
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17:     </Connect>
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: </Response>
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [TwiML-Optimized] FAST TwiML generated in 0.77ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:17: [TwiML-Optimized] Background orchestrator ready for call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔍 Verifying WebSocket client connection
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔍 Origin: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔍 URL: /api/conversationrelay-ws?workflowId=workflow-1763654758147&trackingId=call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔍 User-Agent: Jetty/11.0.24
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔍 Sec-WebSocket-Protocol: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] ✅ Detected Twilio ConversationRelay connection attempt
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🎉 ===== NEW WEBSOCKET CONNECTION ESTABLISHED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔗 Request URL: /api/conversationrelay-ws?workflowId=workflow-1763654758147&trackingId=call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔗 Request method: GET
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔗 Connection time: 2025-11-20T16:06:18.150Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔗 Remote address: ::ffff:127.0.0.1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔗 User-Agent: Jetty/11.0.24
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔗 Protocol: 
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] ===== CONNECTION PARAMETERS =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] TrackingId: call_1763654760453_h9wlqoyxi
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] WorkflowId: workflow-1763654758147
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] All URL params: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   workflowId: 'workflow-1763654758147',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   trackingId: 'call_1763654760453_h9wlqoyxi'
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] ===== REQUEST HEADERS =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] User-Agent: Jetty/11.0.24
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Origin: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Protocol: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Host: dev-ai-phone-call.kimiyi.ai
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] All headers: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   upgrade: 'websocket',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   connection: 'upgrade',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   host: 'dev-ai-phone-call.kimiyi.ai',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'x-real-ip': '104.23.211.175',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'x-forwarded-for': '54.226.68.117, 104.23.211.175',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'x-forwarded-proto': 'https',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'cf-ray': '9a1931977d37d739-IAD',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'cdn-loop': 'cloudflare; loops=1',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'accept-encoding': 'gzip, br',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   pragma: 'no-cache',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'sec-websocket-key': 'iIR/b0OMHQazjHmIuAc2pw==',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'cf-ipcountry': 'US',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'cf-visitor': '{"scheme":"https"}',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'cf-connecting-ip': '54.226.68.117',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'sec-websocket-version': '13',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'cache-control': 'no-cache',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'x-twilio-signature': 'gWgwjEVTw11NMX/AMMiO6bTdqp4=',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'user-agent': 'Jetty/11.0.24'
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] ✅ ConversationRelay session ready for call_1763654778150 - waiting for setup message
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Message count: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Message size: 407 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Timestamp: 2025-11-20T16:06:18.423Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Session active: false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Full message structure: [
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'type',           'sessionId',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'callSid',        'parentCallSid',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'from',           'to',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'forwardedFrom',  'callerName',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'direction',      'callType',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'callStatus',     'accountSid',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   'applicationSid', 'customParameters'
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Message preview: {"type":"setup","sessionId":"VXd7f37f6c4d5a51bc66db55d939e6cbe8","callSid":"CA814ab91fa0255d5deb0dd77d3e018cb3","parentCallSid":"","from":"+17077433838","to":"+919649770017","forwardedFrom":"","caller...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔧 Handling SETUP message - ConversationRelay initialization
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🔧 SETUP message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] Setup details: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "type": "setup",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "sessionId": "VXd7f37f6c4d5a51bc66db55d939e6cbe8",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "callSid": "CA814ab91fa0255d5deb0dd77d3e018cb3",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "parentCallSid": "",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "from": "+17077433838",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "to": "+919649770017",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "forwardedFrom": "",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "callerName": "",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "direction": "outbound-api",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "callType": "PSTN",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "callStatus": "IN_PROGRESS",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "accountSid": "AC64208c7087a03b475ea7fa9337b692f8",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "applicationSid": "AP12715ea88e210a323f0d03ce59f1a233",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   "customParameters": {}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🎯 Initializing full flow engine for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] ✅ Found orchestrator for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 📊 Workflow data: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   workflowId: 'workflow-1763654758147',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   trackingId: 'call_1763654760453_h9wlqoyxi',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   nodesCount: 11,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   edgesCount: 12,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   hasGlobalPrompt: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [StreamingAudioProcessor] Initialized with config: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   sampleRate: 8000,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   audioFormat: 'mulaw',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   streamingMode: 'bidirectional',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   optimizations: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:     noiseReduction: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:     echoCancellation: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:     voiceActivityDetection: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] Initialized with bidirectional streaming
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] Starting conversation for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] Workflow data: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   workflowId: 'workflow-1763654758147',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   nodesCount: 11,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   edgesCount: 12,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18:   hasGlobalPrompt: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] 🎯 Found start node: start_node (type: startNode)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] 🎯 Start node identified: start_node (type: startNode)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] 🔄 Updating existing call data for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] 🎯 Found start node: start_node (type: startNode)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] WebSocket connection setup for call call_1763654778150 (using TwiML bridge)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] Audio pipeline configured
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] Stream initialized for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] Bidirectional streaming setup complete for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay] Conversation started in 0.32670299999881536ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🎉 Full flow engine initialized successfully for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 🚀 Ready to process transcripts with workflow logic
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] ✅ Setup complete for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] TwiML welcomeGreeting will handle initial greeting automatically
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] ⏳ Waiting for user to speak...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:18: [ConversationRelay-WS] 📝 Note: STT/TTS configuration is done in TwiML, not via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:23: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:23: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:23: [Optimized Route] POST /heartbeat - 200 - 145ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:23: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:23:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:23:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:23:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:23: [Optimized Route] GET /balance - 304 - 145ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:24: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:24: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:24:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:24:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:24:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:24: [Optimized Route] GET /balance - 304 - 135ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26: [ConversationRelay-WS] 💬 User hasn't responded yet - sending gentle prompt
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "I'm here when you're ready."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26:   "token": "I'm here when you're ready.",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"I'm here when you're ready.","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:26: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:33: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:33: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:33: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:33:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:33:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:33:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:33: [Optimized Route] GET /balance - 304 - 136ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:33: [Optimized Route] POST /heartbeat - 200 - 180ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Message count: 2
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Message size: 91 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Timestamp: 2025-11-20T16:06:34.163Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":"I'm looking to buy a property.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] User speech: I'm looking to buy a property.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Processing speech transcript: "I'm looking to buy a property."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] 📊 Conversation history: 0 messages → 0 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] Processing transcript: "I'm looking to buy a property." for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   conversationHistoryLength: 0,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   currentNode: 'start_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 🎯 Processing workflow logic for input: "I'm looking to buy a property."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 📊 Current node: start_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 🎯 Executing node: startNode (start_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 🔧 Executing node type: startNode
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] 🎬 Executing start node: start_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] ➡️  Moving to next node: inquiry_type_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay] Transcript processed in 1.24ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Transcript processed in 1.79ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Response text: "Hello! Thank you for calling Premier Properties. I'm your AI assistant here to help you find your perfect property. How may I assist you today?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Added to conversation history. Total messages: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Hello! Thank you for calling Premier Properties. I'm your AI assistant here to help you find your perfect property. How may I assist you today?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   "token": "Hello! Thank you for calling Premier Properties. I'm your AI assistant here to help you find your perfect property. How may I assist you today?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Hello! Thank you for calling Premier Properties. I'm your AI assistant here to help you find your perfect property. How may I assist you today?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [ConversationRelay-WS] Response preview: "Hello! Thank you for calling Premier Properties. I'm your AI assistant here to help you find your pe..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:34: [Optimized Route] GET /balance - 304 - 136ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:43: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:43: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:43:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:43:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:43:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:43: [Optimized Route] GET /balance - 304 - 135ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:44: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:44: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:44:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:44:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:44:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:44: [Optimized Route] GET /balance - 304 - 134ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:48: [ConversationRelay-WS] 🏓 Sent ping to keep connection alive for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:48: [ConversationRelay-WS] 🏓 Received pong from call_1763654778150 - connection alive
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Message count: 3
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Message size: 114 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Timestamp: 2025-11-20T16:06:49.260Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" As I already said, I'm looking to purchase property.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] User speech:  As I already said, I'm looking to purchase property.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Processing speech transcript: " As I already said, I'm looking to purchase property."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] 📊 Conversation history: 3 messages → 3 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] Processing transcript: " As I already said, I'm looking to purchase property." for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   conversationHistoryLength: 2,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   currentNode: 'inquiry_type_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🎯 Processing workflow logic for input: " As I already said, I'm looking to purchase property."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 📊 Current node: inquiry_type_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🎯 Executing node: conversationNode (inquiry_type_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🔧 Executing node type: conversationNode
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🤖 Executing conversation node: inquiry_type_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 💬 Generating AI response with 5 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🤖 Calling Azure OpenAI with 5 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay] 🤖 Azure OpenAI response: Got it! You're looking to buy a property. Can you share what type of property you're interested in? ...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay] ➡️  Moving to next node: buyer_requirements_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay] Transcript processed in 1970.26ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] Transcript processed in 1970.58ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] Response text: "Got it! You're looking to buy a property. Can you share what type of property you're interested in? For example, are you looking for a home, an investment property, or something else?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] Added to conversation history. Total messages: 4
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Got it! You're looking to buy a property. Can you share what type of property you're interested in? For example, are you looking for a home, an investment property, or something else?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51:   "token": "Got it! You're looking to buy a property. Can you share what type of property you're interested in? For example, are you looking for a home, an investment property, or something else?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Got it! You're looking to buy a property. Can you share what type of property you're interested in? For example, are you looking for a home, an investment property, or something else?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] Response preview: "Got it! You're looking to buy a property. Can you share what type of property you're interested in? ..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53: [Optimized Route] GET /balance - 304 - 135ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:54: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:54: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Processing speech transcript: " As I already said, I'm looking to purchase property."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay-WS] 📊 Conversation history: 3 messages → 3 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] Processing transcript: " As I already said, I'm looking to purchase property." for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   conversationHistoryLength: 2,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   currentNode: 'inquiry_type_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🎯 Processing workflow logic for input: " As I already said, I'm looking to purchase property."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 📊 Current node: inquiry_type_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🎯 Executing node: conversationNode (inquiry_type_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🔧 Executing node type: conversationNode
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🤖 Executing conversation node: inquiry_type_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 💬 Generating AI response with 5 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:49: [ConversationRelay] 🤖 Calling Azure OpenAI with 5 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay] 🤖 Azure OpenAI response: Got it! You're looking to buy a property. Can you share what type of property you're interested in? ...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay] ➡️  Moving to next node: buyer_requirements_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay] Transcript processed in 1970.26ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] Transcript processed in 1970.58ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] Response text: "Got it! You're looking to buy a property. Can you share what type of property you're interested in? For example, are you looking for a home, an investment property, or something else?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] Added to conversation history. Total messages: 4
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Got it! You're looking to buy a property. Can you share what type of property you're interested in? For example, are you looking for a home, an investment property, or something else?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51:   "token": "Got it! You're looking to buy a property. Can you share what type of property you're interested in? For example, are you looking for a home, an investment property, or something else?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Got it! You're looking to buy a property. Can you share what type of property you're interested in? For example, are you looking for a home, an investment property, or something else?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:51: [ConversationRelay-WS] Response preview: "Got it! You're looking to buy a property. Can you share what type of property you're interested in? ..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:53: [Optimized Route] GET /balance - 304 - 135ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:54: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:54: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:54:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:54:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:54:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:06:54: [Optimized Route] GET /balance - 304 - 134ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:03: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:03: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:03:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:03:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:03:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:03: [Optimized Route] GET /balance - 304 - 134ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Message count: 4
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Message size: 77 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Timestamp: 2025-11-20T16:07:07.735Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" uh, looking for","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] User speech:  uh, looking for
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Processing speech transcript: " uh, looking for"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay-WS] 📊 Conversation history: 6 messages → 6 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] Processing transcript: " uh, looking for" for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07:   conversationHistoryLength: 4,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07:   currentNode: 'buyer_requirements_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 🎯 Processing workflow logic for input: " uh, looking for"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 📊 Current node: buyer_requirements_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 🎯 Executing node: conversationNode (buyer_requirements_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 🔧 Executing node type: conversationNode
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 🤖 Executing conversation node: buyer_requirements_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 💬 Generating AI response with 7 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:07: [ConversationRelay] 🤖 Calling Azure OpenAI with 7 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Message count: 5
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Message size: 81 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Timestamp: 2025-11-20T16:07:09.982Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" investment purpose.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] User speech:  investment purpose.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Processing speech transcript: " investment purpose."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay-WS] 📊 Conversation history: 6 messages → 6 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] Processing transcript: " investment purpose." for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09:   conversationHistoryLength: 5,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09:   currentNode: 'buyer_requirements_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 🎯 Processing workflow logic for input: " investment purpose."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 📊 Current node: buyer_requirements_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 🎯 Executing node: conversationNode (buyer_requirements_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 🔧 Executing node type: conversationNode
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 🤖 Executing conversation node: buyer_requirements_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 💬 Generating AI response with 7 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:09: [ConversationRelay] 🤖 Calling Azure OpenAI with 7 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay] 🤖 Azure OpenAI response: No problem! Take your time. Are you leaning towards a house, an apartment, or maybe a townhouse?...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay] ➡️  Moving to next node: contact_details_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay] Transcript processed in 2660.00ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] Transcript processed in 2660.20ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] Response text: "No problem! Take your time. Are you leaning towards a house, an apartment, or maybe a townhouse?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] Added to conversation history. Total messages: 7
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "No problem! Take your time. Are you leaning towards a house, an apartment, or maybe a townhouse?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10:   "token": "No problem! Take your time. Are you leaning towards a house, an apartment, or maybe a townhouse?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"No problem! Take your time. Are you leaning towards a house, an apartment, or maybe a townhouse?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:10: [ConversationRelay-WS] Response preview: "No problem! Take your time. Are you leaning towards a house, an apartment, or maybe a townhouse?..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:13: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:13: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:13:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:13:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:13:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:13: [Optimized Route] GET /balance - 304 - 137ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay] 🤖 Azure OpenAI response: Great choice! Investment properties can be a wonderful opportunity. Do you have a specific budget ra...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay] ➡️  Moving to next node: contact_details_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay] Transcript processed in 4623.29ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] Transcript processed in 4623.58ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] Response text: "Great choice! Investment properties can be a wonderful opportunity. Do you have a specific budget range in mind for this investment?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] Added to conversation history. Total messages: 10
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Great choice! Investment properties can be a wonderful opportunity. Do you have a specific budget range in mind for this investment?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14:   "token": "Great choice! Investment properties can be a wonderful opportunity. Do you have a specific budget range in mind for this investment?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Great choice! Investment properties can be a wonderful opportunity. Do you have a specific budget range in mind for this investment?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:14: [ConversationRelay-WS] Response preview: "Great choice! Investment properties can be a wonderful opportunity. Do you have a specific budget ra..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:18: [ConversationRelay-WS] 🏓 Sent ping to keep connection alive for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:18: [ConversationRelay-WS] 🏓 Received pong from call_1763654778150 - connection alive
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Message count: 6
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Message size: 213 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Timestamp: 2025-11-20T16:07:21.854Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Full message structure: [ 'type', 'utteranceUntilInterrupt', 'durationUntilInterruptMs' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Message preview: {"type":"interrupt","utteranceUntilInterrupt":"Great choice! Investment properties can be a wonderful opportunity. Do you have a specific budget range in mind for this investment?","durationUntilInter...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] ⚡ Handling INTERRUPT message - User interruption
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] ⚡ INTERRUPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Interrupt details: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21:   "type": "interrupt",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21:   "utteranceUntilInterrupt": "Great choice! Investment properties can be a wonderful opportunity. Do you have a specific budget range in mind for this investment?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21:   "durationUntilInterruptMs": 2229
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 💬 Interrupt after 2229ms - acknowledging
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Yes, I'm listening."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21:   "token": "Yes, I'm listening.",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Yes, I'm listening.","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Message count: 7
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Message size: 65 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Timestamp: 2025-11-20T16:07:21.855Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" Uh,","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] User speech:  Uh,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] 🔇 Skipping filler word: " Uh,"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:21: [ConversationRelay-WS] ⏳ Waiting for actual user input...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:23: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:23: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:23:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:23:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:23:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:23: [Optimized Route] GET /balance - 304 - 133ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:23: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:23: [Optimized Route] POST /heartbeat - 200 - 157ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:33: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:33: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:33: [Optimized Route] POST /heartbeat - 200 - 136ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:33: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:33:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:33:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:33:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:33: [Optimized Route] GET /balance - 304 - 132ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:43: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:43: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:43:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:43:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:43:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:43: [Optimized Route] GET /balance - 304 - 137ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Message count: 8
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Message size: 75 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Timestamp: 2025-11-20T16:07:46.530Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":"Are you there?","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] User speech: Are you there?
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Processing speech transcript: "Are you there?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay-WS] 📊 Conversation history: 12 messages → 10 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] Processing transcript: "Are you there?" for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46:   conversationHistoryLength: 8,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46:   currentNode: 'contact_details_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 🎯 Processing workflow logic for input: "Are you there?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 📊 Current node: contact_details_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 🎯 Executing node: conversationNode (contact_details_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 🔧 Executing node type: conversationNode
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 🤖 Executing conversation node: contact_details_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 💬 Generating AI response with 7 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:46: [ConversationRelay] 🤖 Calling Azure OpenAI with 7 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] 🏓 Sent ping to keep connection alive for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay] 🤖 Azure OpenAI response: Yes, I'm here! I'm ready to help you with your investment needs. Could you share your budget range f...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay] ➡️  Moving to next node: summary_confirmation_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay] Transcript processed in 1669.31ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] Transcript processed in 1670.30ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] Response text: "Yes, I'm here! I'm ready to help you with your investment needs. Could you share your budget range for the investment property?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] Added to conversation history. Total messages: 13
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Yes, I'm here! I'm ready to help you with your investment needs. Could you share your budget range for the investment property?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48:   "token": "Yes, I'm here! I'm ready to help you with your investment needs. Could you share your budget range for the investment property?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Yes, I'm here! I'm ready to help you with your investment needs. Could you share your budget range for the investment property?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] Response preview: "Yes, I'm here! I'm ready to help you with your investment needs. Could you share your budget range f..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:48: [ConversationRelay-WS] 🏓 Received pong from call_1763654778150 - connection alive
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:53: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:53: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:53:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:53:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:53:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:53: [Optimized Route] GET /balance - 304 - 134ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:57: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:57: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:57:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:57:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:57:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:07:57: [Optimized Route] GET /balance - 304 - 136ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] Message count: 9
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] Message size: 65 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] Timestamp: 2025-11-20T16:08:00.121Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" Uh,","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] User speech:  Uh,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] 🔇 Skipping filler word: " Uh,"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] ⏳ Waiting for actual user input...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Message count: 10
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Message size: 72 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Timestamp: 2025-11-20T16:08:01.946Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" 1 million.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] User speech:  1 million.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Processing speech transcript: " 1 million."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 📊 Conversation history: 15 messages → 10 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] Processing transcript: " 1 million." for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   conversationHistoryLength: 10,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   currentNode: 'summary_confirmation_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🎯 Processing workflow logic for input: " 1 million."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 📊 Current node: summary_confirmation_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🎯 Executing node: conversationNode (summary_confirmation_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🔧 Executing node type: conversationNode
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🤖 Executing conversation node: summary_confirmation_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 💬 Generating AI response with 7 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🤖 Calling Azure OpenAI with 7 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03: [Optimized Route] GET /balance - 304 - 138ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay] 🤖 Azure OpenAI response: Thank you for sharing that! To summarize, you're looking for an investment property with a budget of...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay] ➡️  Moving to next node: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay] Transcript processed in 3983.96ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] Transcript processed in 3984.37ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] Response text: "Thank you for sharing that! To summarize, you're looking for an investment property with a budget of up to $1 million. Next steps will include identifying suitable properties within your budget, discussing potential locations that align with your investment goals, and setting up viewings for properties that meet your criteria. 
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: 
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: I’ll follow up with some options in the next few days. Do you have any final questions? You can reach me anytime at [your contact information]. I’m excited to assist you on this journey!"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] Added to conversation history. Total messages: 16
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Thank you for sharing that! To summarize, you're looking for an investment property with a budget of up to $1 million. Next steps will include identifying suitable properties within your budget, discussing potential locations that align with your investment goals, and setting up viewings for properties that meet your criteria. 
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: 
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: I’ll follow up with some options in the next few days. Do you have any final questions? You can reach me anytime at [your contact information]. I’m excited to assist you on this journey!"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05:   "token": "Thank you for sharing that! To summarize, you're looking for an investment property with a budget of up to $1 million. Next steps will include identifying suitable properties within your budget, discussing potential locations that align with your investment goals, and setting up viewings for properties that meet your criteria. \n\nI’ll follow up with some options in the next few days. Do you have any final questions? You can reach me anytime at [your contact information]. I’m excited to assist you on this journey!",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Thank you for sharing that! To summarize, you're looking for an investment property with a budget of up to $1 million. Next steps will include identifying suitable properties within your budget, discussing potential locations that align with your investment goals, and setting up viewings for properties that meet your criteria. \n\nI’ll follow up with some options in the next few days. Do you have any final questions? You can reach me anytime at [your contact information]. I’m excited to assist you on this journey!","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] Response preview: "Thank you for sharing that! To summarize, you're looking for an investment property with a budget of..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13: [Optimized Route] GET /balance - 304 - 139ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:18: [ConversationRelay-WS] 🏓 Sent ping to keep connection alive for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:18: [ConversationRelay-WS] 🏓 Received pong from call_1763654778150 - connection alive
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23: [Optimized Route] GET /balance - 304 - 201ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23: [Optimized Route] POST /heartbeat - 200 - 267ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] ⏰ SILENCE TIMEOUT for call_1763654778150 - no speech detected for 30000ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 🔇 Handling silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Are you there? Feel free to speak - I'm here to help with any questions you have."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31:   "token": "Are you there? Feel free to speak - I'm here to help with any questions you have.",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Are you there? Feel free to speak - I'm here to help with any questions you have.","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Message count: 14
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Message size: 71 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Timestamp: 2025-11-20T16:08:43.342Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" Yes, yes.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] User speech:  Yes, yes.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🔇 Skipping filler word: " Yes, yes."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] ⏳ Waiting for actual user input...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [Optimized Route] GET /balance - 304 - 136ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:48: [ConversationRelay-WS] 🏓 Sent ping to keep connection alive for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:48: [ConversationRelay-WS] 🏓 Received pong from call_1763654778150 - connection alive
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 🎯 Processing workflow logic for input: "What next?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 📊 Current node: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 🎯 Executing node: transferCall (transfer_to_agent_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 🔧 Executing node type: transferCall
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] ⚠️  Transfer node not yet functional: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 📞 Transfer feature coming soon - continuing conversation
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] ℹ️  No outgoing edges from node transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] Transcript processed in 0.52ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Transcript processed in 0.76ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Response text: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Added to conversation history. Total messages: 22
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   "token": "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Response preview: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 🗑️  Conversation history has 24 messages - will optimize on next request
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57: [Optimized Route] GET /balance - 304 - 138ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:02: [Optimized Route] POST /logout-tab - 401 - 1ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:02: [Optimized Route] POST /logout-tab - 401 - 1ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:02: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:02: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" Uh,","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] User speech:  Uh,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] 🔇 Skipping filler word: " Uh,"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:00: [ConversationRelay-WS] ⏳ Waiting for actual user input...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Message count: 10
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Message size: 72 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Timestamp: 2025-11-20T16:08:01.946Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" 1 million.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] User speech:  1 million.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Processing speech transcript: " 1 million."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay-WS] 📊 Conversation history: 15 messages → 10 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] Processing transcript: " 1 million." for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   conversationHistoryLength: 10,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   currentNode: 'summary_confirmation_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🎯 Processing workflow logic for input: " 1 million."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 📊 Current node: summary_confirmation_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🎯 Executing node: conversationNode (summary_confirmation_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🔧 Executing node type: conversationNode
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🤖 Executing conversation node: summary_confirmation_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 💬 Generating AI response with 7 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:01: [ConversationRelay] 🤖 Calling Azure OpenAI with 7 messages
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:03: [Optimized Route] GET /balance - 304 - 138ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay] 🤖 Azure OpenAI response: Thank you for sharing that! To summarize, you're looking for an investment property with a budget of...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay] ➡️  Moving to next node: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay] Transcript processed in 3983.96ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] Transcript processed in 3984.37ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] Response text: "Thank you for sharing that! To summarize, you're looking for an investment property with a budget of up to $1 million. Next steps will include identifying suitable properties within your budget, discussing potential locations that align with your investment goals, and setting up viewings for properties that meet your criteria. 
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: 
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: I’ll follow up with some options in the next few days. Do you have any final questions? You can reach me anytime at [your contact information]. I’m excited to assist you on this journey!"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] Added to conversation history. Total messages: 16
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Thank you for sharing that! To summarize, you're looking for an investment property with a budget of up to $1 million. Next steps will include identifying suitable properties within your budget, discussing potential locations that align with your investment goals, and setting up viewings for properties that meet your criteria. 
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: 
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: I’ll follow up with some options in the next few days. Do you have any final questions? You can reach me anytime at [your contact information]. I’m excited to assist you on this journey!"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05:   "token": "Thank you for sharing that! To summarize, you're looking for an investment property with a budget of up to $1 million. Next steps will include identifying suitable properties within your budget, discussing potential locations that align with your investment goals, and setting up viewings for properties that meet your criteria. \n\nI’ll follow up with some options in the next few days. Do you have any final questions? You can reach me anytime at [your contact information]. I’m excited to assist you on this journey!",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Thank you for sharing that! To summarize, you're looking for an investment property with a budget of up to $1 million. Next steps will include identifying suitable properties within your budget, discussing potential locations that align with your investment goals, and setting up viewings for properties that meet your criteria. \n\nI’ll follow up with some options in the next few days. Do you have any final questions? You can reach me anytime at [your contact information]. I’m excited to assist you on this journey!","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:05: [ConversationRelay-WS] Response preview: "Thank you for sharing that! To summarize, you're looking for an investment property with a budget of..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:13: [Optimized Route] GET /balance - 304 - 139ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:18: [ConversationRelay-WS] 🏓 Sent ping to keep connection alive for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:18: [ConversationRelay-WS] 🏓 Received pong from call_1763654778150 - connection alive
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23: [Optimized Route] GET /balance - 304 - 201ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:23: [Optimized Route] POST /heartbeat - 200 - 267ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] ⏰ SILENCE TIMEOUT for call_1763654778150 - no speech detected for 30000ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 🔇 Handling silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Are you there? Feel free to speak - I'm here to help with any questions you have."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31:   "token": "Are you there? Feel free to speak - I'm here to help with any questions you have.",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Are you there? Feel free to speak - I'm here to help with any questions you have.","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:31: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:33: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:33: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:33: [Optimized Route] POST /heartbeat - 200 - 138ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:33: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:33:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:33:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:33:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:33: [Optimized Route] GET /balance - 304 - 134ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Message count: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Message size: 162 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Timestamp: 2025-11-20T16:08:40.957Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Full message structure: [ 'type', 'utteranceUntilInterrupt', 'durationUntilInterruptMs' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Message preview: {"type":"interrupt","utteranceUntilInterrupt":"Are you there? Feel free to speak - I'm here to help with any questions you have.","durationUntilInterruptMs":2118}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ⚡ Handling INTERRUPT message - User interruption
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ⚡ INTERRUPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Interrupt details: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "type": "interrupt",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "utteranceUntilInterrupt": "Are you there? Feel free to speak - I'm here to help with any questions you have.",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "durationUntilInterruptMs": 2118
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 💬 Interrupt after 2118ms - acknowledging
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Yes, I'm listening."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "token": "Yes, I'm listening.",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Yes, I'm listening.","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Message count: 12
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Message size: 67 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Timestamp: 2025-11-20T16:08:40.958Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" Sure.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] User speech:  Sure.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Processing speech transcript: " Sure."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 📊 Conversation history: 18 messages → 10 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] Processing transcript: " Sure." for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   conversationHistoryLength: 12,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   currentNode: 'transfer_to_agent_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 🎯 Processing workflow logic for input: " Sure."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 📊 Current node: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 🎯 Executing node: transferCall (transfer_to_agent_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 🔧 Executing node type: transferCall
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] ⚠️  Transfer node not yet functional: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] 📞 Transfer feature coming soon - continuing conversation
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] ℹ️  No outgoing edges from node transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay] Transcript processed in 0.43ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Transcript processed in 0.65ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Response text: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Added to conversation history. Total messages: 19
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "token": "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] Response preview: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:40: [ConversationRelay-WS] 🗑️  Conversation history has 21 messages - will optimize on next request
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Message count: 13
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Message size: 236 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Timestamp: 2025-11-20T16:08:43.341Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Full message structure: [ 'type', 'utteranceUntilInterrupt', 'durationUntilInterruptMs' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Message preview: {"type":"interrupt","utteranceUntilInterrupt":"I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you wit...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] ⚡ Handling INTERRUPT message - User interruption
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] ⚡ INTERRUPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Interrupt details: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:   "type": "interrupt",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:   "utteranceUntilInterrupt": "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:   "durationUntilInterruptMs": 2133
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 💬 Interrupt after 2133ms - acknowledging
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "Yes, I'm listening."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:   "token": "Yes, I'm listening.",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"Yes, I'm listening.","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Message count: 14
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Message size: 71 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Timestamp: 2025-11-20T16:08:43.342Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" Yes, yes.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] User speech:  Yes, yes.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] 🔇 Skipping filler word: " Yes, yes."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [ConversationRelay-WS] ⏳ Waiting for actual user input...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:43: [Optimized Route] GET /balance - 304 - 136ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:48: [ConversationRelay-WS] 🏓 Sent ping to keep connection alive for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:48: [ConversationRelay-WS] 🏓 Received pong from call_1763654778150 - connection alive
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:53: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:53: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:53:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:53:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:53:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:53: [Optimized Route] GET /balance - 304 - 133ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Message count: 15
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Message size: 71 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Timestamp: 2025-11-20T16:08:55.058Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":"What next?","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] User speech: What next?
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Processing speech transcript: "What next?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 📊 Conversation history: 21 messages → 10 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] Processing transcript: "What next?" for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   conversationHistoryLength: 14,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   currentNode: 'transfer_to_agent_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 🎯 Processing workflow logic for input: "What next?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 📊 Current node: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 🎯 Executing node: transferCall (transfer_to_agent_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 🔧 Executing node type: transferCall
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] ⚠️  Transfer node not yet functional: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] 📞 Transfer feature coming soon - continuing conversation
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] ℹ️  No outgoing edges from node transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay] Transcript processed in 0.52ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Transcript processed in 0.76ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Response text: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Added to conversation history. Total messages: 22
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   "token": "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] Response preview: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:55: [ConversationRelay-WS] 🗑️  Conversation history has 24 messages - will optimize on next request
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:08:57: [Optimized Route] GET /balance - 304 - 138ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:02: [Optimized Route] POST /logout-tab - 401 - 1ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:02: [Optimized Route] POST /logout-tab - 401 - 1ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:02: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:02: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:03: [Optimized Route] POST /logout - 200 - 271ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:03: [Optimized Route] POST /logout - 200 - 277ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Message count: 16
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Message size: 115 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Timestamp: 2025-11-20T16:09:14.533Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" Okay, bye. Uh, you can reschedule the call for later.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] User speech:  Okay, bye. Uh, you can reschedule the call for later.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Processing speech transcript: " Okay, bye. Uh, you can reschedule the call for later."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 📊 Conversation history: 24 messages → 10 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] Processing transcript: " Okay, bye. Uh, you can reschedule the call for later." for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   conversationHistoryLength: 16,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   currentNode: 'transfer_to_agent_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 🎯 Processing workflow logic for input: " Okay, bye. Uh, you can reschedule the call for later."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 📊 Current node: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 🎯 Executing node: transferCall (transfer_to_agent_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 🔧 Executing node type: transferCall
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] ⚠️  Transfer node not yet functional: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] 📞 Transfer feature coming soon - continuing conversation
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] ℹ️  No outgoing edges from node transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay] Transcript processed in 0.45ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Transcript processed in 0.91ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Response text: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Added to conversation history. Total messages: 25
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   "token": "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] Response preview: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:14: [ConversationRelay-WS] 🗑️  Conversation history has 27 messages - will optimize on next request
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:18: [ConversationRelay-WS] 🏓 Sent ping to keep connection alive for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:18: [ConversationRelay-WS] 🏓 Received pong from call_1763654778150 - connection alive
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:23: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:23: [Optimized Route] POST /heartbeat - 200 - 203ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Message count: 17
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Message size: 107 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Timestamp: 2025-11-20T16:09:29.889Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" Okay, bye. I will uh, reach out to you later.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] User speech:  Okay, bye. I will uh, reach out to you later.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Processing speech transcript: " Okay, bye. I will uh, reach out to you later."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 📊 Conversation history: 27 messages → 10 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] Processing transcript: " Okay, bye. I will uh, reach out to you later." for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   conversationHistoryLength: 18,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   currentNode: 'transfer_to_agent_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 🎯 Processing workflow logic for input: " Okay, bye. I will uh, reach out to you later."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 📊 Current node: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 🎯 Executing node: transferCall (transfer_to_agent_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 🔧 Executing node type: transferCall
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] ⚠️  Transfer node not yet functional: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] 📞 Transfer feature coming soon - continuing conversation
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] ℹ️  No outgoing edges from node transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay] Transcript processed in 0.50ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Transcript processed in 1.00ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Response text: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Added to conversation history. Total messages: 28
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   "token": "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] Response preview: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:29: [ConversationRelay-WS] 🗑️  Conversation history has 30 messages - will optimize on next request
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] ===== MESSAGE RECEIVED =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Event: undefined
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Message count: 18
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Message size: 79 bytes
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Timestamp: 2025-11-20T16:09:41.962Z
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Full message structure: [ 'type', 'voicePrompt', 'lang', 'last' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Message preview: {"type":"prompt","voicePrompt":" And end the call.","lang":"en-US","last":true}...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 🎤 Handling PROMPT message - User speech transcription
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 🎤 PROMPT message received for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] User speech:  And end the call.
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 🕐 Started silence timeout for call_1763654778150 (30000ms)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 🔄 Reset silence timeout for call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Processing speech transcript: " And end the call."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 🔍 Checking for ConversationRelay service...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Service found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Service type: ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Has processTranscript: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] ✅ Using full flow engine for transcript processing
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 📊 Conversation history: 30 messages → 10 messages (optimized)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] Processing transcript: " And end the call." for call call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 🔍 Active calls in memory: [ 'call_1763654778150' ]
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 🔍 Looking for callSid: "call_1763654778150"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 🔍 Call data found: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 🔍 Call data structure: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   hasWorkflowData: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   hasConversationHistory: true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   conversationHistoryType: 'object',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   conversationHistoryLength: 20,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   currentNode: 'transfer_to_agent_node',
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   isActive: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 🎯 Processing workflow logic for input: " And end the call."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 📊 Current node: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 📊 Available nodes: 11
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 📋 Node IDs in workflow: start_node (startNode), inquiry_type_node (conversationNode), buyer_requirements_node (conversationNode), seller_details_node (conversationNode), rental_requirements_node (conversationNode), investment_consultation_node (conversationNode), contact_details_node (conversationNode), summary_confirmation_node (conversationNode), transfer_to_agent_node (transferCall), end_call_node (endCall), node_1 (apiRequest)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 🎯 Executing node: transferCall (transfer_to_agent_node)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 🔧 Executing node type: transferCall
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] ⚠️  Transfer node not yet functional: transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] 📞 Transfer feature coming soon - continuing conversation
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] ℹ️  No outgoing edges from node transfer_to_agent_node
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay] Transcript processed in 0.50ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Transcript processed in 0.83ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] ===== SENDING AI RESPONSE =====
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] CallSid: call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Response text: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] WebSocket state: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Session active: true
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Added to conversation history. Total messages: 31
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 📤 Sending text message to call_1763654778150: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?"
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 📋 Full message being sent: {
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   "type": "text",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   "token": "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?",
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   "last": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   "interruptible": true,
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41:   "preemptible": false
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: }
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 🔄 Attempting to send message via WebSocket
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] WebSocket state: 1 (1=OPEN, 2=CLOSING, 3=CLOSED)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 📡 Sending to Twilio ConversationRelay: {"type":"text","token":"I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?","last":true,"interruptible":true,"preemptible":false}
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] ✅ Message sent successfully to ConversationRelay
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] ✅ Text message sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] ✅ AI response sent successfully to call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] Response preview: "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue..."
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:41: [ConversationRelay-WS] 🗑️  Conversation history has 33 messages - will optimize on next request
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:46: [ConversationRelay-WS] 🔌 Connection closed for CallSid=call_1763654778150, Code=1000, Reason=Closing websocket session
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:46: [ConversationRelay-WS] Session duration: 208559ms, State: waiting_for_speech
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:46: [ConversationRelay-WS] 🛑 Cleared silence timeout for closed session call_1763654778150
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:47: [Optimized Route] POST / - 404 - 1ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:57: ✅ User authenticated: admin@kimiyavoice.com, organization_id: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:57: 📊 CreditService.getUserCreditBalance called for userId: 1
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:57:    Organization ID: org_default_123
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:57:    Current Balance: 19932
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:57:    Allocation Reset Date: Thu Dec 11 2025 00:00:00 GMT+0000 (Coordinated Universal Time)
+0|kimiya-voice-backend-dev  | 2025-11-20T16:09:57: [Optimized Route] GET /balance - 304 - 622ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:10:07: 💓 Starting inactive sessions cleanup...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:10:07: 🧹 Starting expired sessions cleanup...
+0|kimiya-voice-backend-dev  | 2025-11-20T16:10:07: ⏱️  inactive cleanup completed in 66ms
+0|kimiya-voice-backend-dev  | 2025-11-20T16:10:07: ⏱️  expired cleanup completed in 194ms

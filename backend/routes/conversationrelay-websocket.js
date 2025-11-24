@@ -457,13 +457,24 @@ class ConversationRelayWebSocket {
       // Get ConversationRelay service for this session
       const conversationService = this.conversationServices.get(session.callSid);
 
-      if (conversationService) {
+      console.log(`[ConversationRelay-WS] 🔍 Checking for ConversationRelay service...`);
+      console.log(`[ConversationRelay-WS] Service found: ${!!conversationService}`);
+      console.log(`[ConversationRelay-WS] Service type: ${conversationService ? conversationService.constructor.name : 'N/A'}`);
+      console.log(`[ConversationRelay-WS] Has processTranscript: ${conversationService && typeof conversationService.processTranscript === 'function'}`);
+
+      if (conversationService && typeof conversationService.processTranscript === 'function') {
+        console.log(`[ConversationRelay-WS] ✅ Using full flow engine for transcript processing`);
+
+        // Optimize conversation history before sending to AI
+        const optimizedHistory = this.optimizeConversationHistory(session.conversationHistory || []);
+        console.log(`[ConversationRelay-WS] 📊 Conversation history: ${(session.conversationHistory || []).length} messages → ${optimizedHistory.length} messages (optimized)`);
+
         // Use ConversationRelay service for workflow-aware processing
         const result = await conversationService.processTranscript(transcript, {
           callSid: session.callSid,
           workflowId: session.workflowId,
           trackingId: session.trackingId,
-          conversationHistory: session.conversationHistory || []
+          conversationHistory: optimizedHistory
         });
 
         const processingTime = performance.now() - startTime;
@@ -478,6 +489,11 @@ class ConversationRelayWebSocket {
           { role: 'user', content: transcript, timestamp: Date.now() },
           { role: 'assistant', content: result.response, timestamp: Date.now() }
         );
+
+        // Trim history if it gets too long (keep in session but optimize for next call)
+        if (session.conversationHistory.length > 20) {
+          console.log(`[ConversationRelay-WS] 🗑️  Conversation history has ${session.conversationHistory.length} messages - will optimize on next request`);
+        }
 
       } else {
         // Fallback to basic processing if no ConversationRelay service
@@ -700,11 +716,19 @@ class ConversationRelayWebSocket {
       // Add current user input
       messages.push({ role: 'user', content: transcript });
 
-      // Generate AI response
-      const aiResponse = await this.callAzureOpenAI(messages);
+      // ✅ USE STREAMING FOR ULTRA-LOW LATENCY
+      // Check if streaming is enabled (default: true for better UX)
+      const useStreaming = process.env.ENABLE_STREAMING !== 'false';
 
-      // Send response
-      await this.sendAIResponse(session, aiResponse);
+      let aiResponse;
+      if (useStreaming) {
+        console.log(`[ConversationRelay-WS] 🌊 Using streaming mode for ultra-low latency`);
+        aiResponse = await this.callAzureOpenAIStreaming(messages, session);
+      } else {
+        console.log(`[ConversationRelay-WS] 📦 Using non-streaming mode`);
+        aiResponse = await this.callAzureOpenAI(messages);
+        await this.sendAIResponse(session, aiResponse);
+      }
 
       // Update conversation history
       session.conversationHistory = session.conversationHistory || [];
@@ -719,7 +743,7 @@ class ConversationRelayWebSocket {
     }
   }
 
-  async callAzureOpenAI(messages) {
+  async callAzureOpenAI(messages, options = {}) {
     try {
       // Validate environment variables
       if (!process.env.AZURE_OPENAI_ENDPOINT || !process.env.AZURE_OPENAI_API_KEY) {
@@ -741,7 +765,8 @@ class ConversationRelayWebSocket {
           temperature: 0.7,
           top_p: 0.95,
           frequency_penalty: 0,
-          presence_penalty: 0
+          presence_penalty: 0,
+          stream: options.stream || false
         })
       });
 
@@ -766,6 +791,107 @@ class ConversationRelayWebSocket {
     } catch (error) {
       console.error('[ConversationRelay-WS] Azure OpenAI call failed:', error);
       return "I apologize, but I'm having trouble understanding. Could you please try again?";
+    }
+  }
+
+  async callAzureOpenAIStreaming(messages, session, onTokenCallback) {
+    try {
+      // Validate environment variables
+      if (!process.env.AZURE_OPENAI_ENDPOINT || !process.env.AZURE_OPENAI_API_KEY) {
+        console.error('[ConversationRelay-WS] Missing Azure OpenAI credentials');
+        await this.sendTextMessage(session, "I'm having trouble connecting to my AI service. Please try again.");
+        return;
+      }
+
+      console.log('[ConversationRelay-WS] 🌊 Starting streaming Azure OpenAI call with', messages.length, 'messages');
+
+      const response = await fetch(process.env.AZURE_OPENAI_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': process.env.AZURE_OPENAI_API_KEY
+        },
+        body: JSON.stringify({
+          messages: Array.isArray(messages) ? messages : [{ role: 'user', content: messages }],
+          max_tokens: 150,
+          temperature: 0.7,
+          top_p: 0.95,
+          frequency_penalty: 0,
+          presence_penalty: 0,
+          stream: true
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[ConversationRelay-WS] Azure OpenAI streaming API error:', response.status, errorText);
+        await this.sendTextMessage(session, "I'm experiencing some technical difficulties. How else can I help you?");
+        return;
+      }
+
+      // Process streaming response
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = '';
+      let fullResponse = '';
+      let tokenCount = 0;
+
+      console.log('[ConversationRelay-WS] 🌊 Streaming response started');
+
+      while (true) {
+        const { done, value } = await reader.read();
+
+        if (done) {
+          console.log('[ConversationRelay-WS] 🌊 Streaming complete. Total tokens:', tokenCount);
+          break;
+        }
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          if (line.trim() === '' || line.trim() === 'data: [DONE]') continue;
+
+          if (line.startsWith('data: ')) {
+            try {
+              const jsonData = JSON.parse(line.substring(6));
+              const content = jsonData.choices?.[0]?.delta?.content;
+
+              if (content) {
+                fullResponse += content;
+                tokenCount++;
+
+                // Send token immediately to reduce latency
+                await this.sendStreamingToken(session, content, false);
+
+                // Call callback if provided
+                if (onTokenCallback) {
+                  onTokenCallback(content, false);
+                }
+              }
+            } catch (parseError) {
+              console.error('[ConversationRelay-WS] Error parsing streaming chunk:', parseError);
+            }
+          }
+        }
+      }
+
+      // Send final token marker
+      if (fullResponse) {
+        await this.sendStreamingToken(session, '', true);
+        if (onTokenCallback) {
+          onTokenCallback('', true);
+        }
+      }
+
+      console.log('[ConversationRelay-WS] 🌊 Full streaming response:', fullResponse.substring(0, 100) + '...');
+      return fullResponse;
+
+    } catch (error) {
+      console.error('[ConversationRelay-WS] Azure OpenAI streaming call failed:', error);
+      await this.sendTextMessage(session, "I apologize, but I'm having trouble understanding. Could you please try again?");
+      return null;
     }
   }
 
@@ -820,18 +946,75 @@ class ConversationRelayWebSocket {
     session.setupData = message;
     session.isActive = true;
 
-    // CRITICAL: Don't send duplicate greeting - TwiML welcomeGreeting handles initial greeting
-    // ConversationRelay will automatically play the welcomeGreeting from TwiML
-    console.log(`[ConversationRelay-WS] ✅ Setup complete, waiting for user input for ${session.callSid}`);
-    console.log(`[ConversationRelay-WS] TwiML welcomeGreeting will handle initial greeting automatically`);
+    // ✅ CRITICAL FIX: Initialize ConversationRelay service HERE (not in handleStart)
+    // ConversationRelay sends 'setup' message, NOT 'start' message
+    console.log(`[ConversationRelay-WS] 🎯 Initializing full flow engine for ${session.callSid}`);
 
-    // After a short delay, send a follow-up prompt to encourage user interaction
-    setTimeout(async () => {
-      if (session.isActive && session.conversationState === 'waiting_for_speech') {
-        console.log(`[ConversationRelay-WS] 💬 Sending follow-up prompt to encourage user interaction`);
-        await this.sendTextMessage(session, "How can I help you today?");
+    // Get orchestrator and workflow configuration
+    const orchestrator = getActiveOrchestrator(session.trackingId);
+
+    if (orchestrator) {
+      console.log(`[ConversationRelay-WS] ✅ Found orchestrator for ${session.callSid}`);
+      console.log(`[ConversationRelay-WS] 📊 Workflow data:`, {
+        workflowId: session.workflowId,
+        trackingId: session.trackingId,
+        nodesCount: orchestrator.workflowData?.nodes?.length || 0,
+        edgesCount: orchestrator.workflowData?.edges?.length || 0,
+        hasGlobalPrompt: !!orchestrator.workflowData?.globalPrompt
+      });
+
+      try {
+        // Initialize ConversationRelay service with workflow configuration
+        const conversationService = new ConversationRelay(
+          { callSid: session.callSid },
+          orchestrator.workflowConfig || {}
+        );
+
+        // Store the service for this session
+        this.conversationServices.set(session.callSid, conversationService);
+
+        // Start the conversation with workflow data
+        await conversationService.startConversation(session.callSid, {
+          workflowId: session.workflowId,
+          trackingId: session.trackingId,
+          nodes: orchestrator.workflowData?.nodes || [],
+          edges: orchestrator.workflowData?.edges || [],
+          globalPrompt: orchestrator.workflowData?.globalPrompt || 'You are a helpful AI assistant.'
+        });
+
+        console.log(`[ConversationRelay-WS] 🎉 Full flow engine initialized successfully for ${session.callSid}`);
+        console.log(`[ConversationRelay-WS] 🚀 Ready to process transcripts with workflow logic`);
+
+      } catch (error) {
+        console.error(`[ConversationRelay-WS] ❌ Error initializing ConversationRelay service:`, error);
+        console.log(`[ConversationRelay-WS] ⚠️  Will fall back to basic processing mode`);
       }
-    }, 3000); // 3 second delay after welcome greeting
+    } else {
+      console.log(`[ConversationRelay-WS] ⚠️  No orchestrator found for trackingId: ${session.trackingId}`);
+      console.log(`[ConversationRelay-WS] ⚠️  Will use basic fallback mode (no workflow logic)`);
+    }
+
+    console.log(`[ConversationRelay-WS] ✅ Setup complete for ${session.callSid}`);
+    console.log(`[ConversationRelay-WS] TwiML welcomeGreeting will handle initial greeting automatically`);
+    console.log(`[ConversationRelay-WS] ⏳ Waiting for user to speak...`);
+    console.log(`[ConversationRelay-WS] 📝 Note: STT/TTS configuration is done in TwiML, not via WebSocket`);
+
+    // IMPROVED: Longer delay and check if user has already spoken
+    // The TwiML welcomeGreeting is usually 5-8 seconds long, so wait longer
+    setTimeout(async () => {
+      // Only send follow-up if:
+      // 1. Session is still active
+      // 2. User hasn't spoken yet (no messages in conversation history)
+      // 3. Still in waiting state
+      if (session.isActive &&
+          session.conversationState === 'waiting_for_speech' &&
+          (!session.conversationHistory || session.conversationHistory.length === 0)) {
+        console.log(`[ConversationRelay-WS] 💬 User hasn't responded yet - sending gentle prompt`);
+        await this.sendTextMessage(session, "I'm here when you're ready.");
+      } else {
+        console.log(`[ConversationRelay-WS] 🔇 Skipping follow-up prompt - user has already engaged`);
+      }
+    }, 8000); // 8 second delay to allow welcome greeting to complete
   }
 
   async handlePrompt(session, message) {
@@ -845,11 +1028,172 @@ class ConversationRelayWebSocket {
     const userSpeech = message.voicePrompt || message.text || message.prompt;
 
     if (userSpeech) {
+      // Check if this is just a filler word
+      if (this.isFillerWord(userSpeech)) {
+        console.log(`[ConversationRelay-WS] 🔇 Skipping filler word: "${userSpeech}"`);
+        console.log(`[ConversationRelay-WS] ⏳ Waiting for actual user input...`);
+        return; // Skip processing filler words
+      }
+
       // Process the user's speech and generate AI response
       await this.processSpeechTranscript(session, userSpeech);
     } else {
       console.log(`[ConversationRelay-WS] ⚠️  No speech content in prompt message`);
     }
+  }
+
+  /**
+   * Check if the user input is just a filler word that should be ignored
+   * @param {string} text - The user's speech text
+   * @returns {boolean} - True if it's a filler word
+   */
+  isFillerWord(text) {
+    if (!text || typeof text !== 'string') return false;
+
+    // Normalize the text: trim, lowercase, remove punctuation
+    const normalized = text.trim().toLowerCase().replace(/[.,!?;:]/g, '');
+
+    // Only actual filler sounds - NOT legitimate answers like "no", "yes", "yeah"
+    const fillerWords = [
+      // English filler sounds
+      'uh', 'um', 'hmm', 'ah', 'er', 'uhm', 'umm', 'hm', 'mhm', 'mm',
+      'eh', 'oh', 'uh huh', 'mm hmm', 'uh uh',
+      // Spanish filler sounds
+      'este', 'pues',
+      // French filler sounds
+      'euh', 'ben', 'alors',
+      // German filler sounds
+      'äh', 'ähm', 'öh',
+      // Other filler sounds
+      'huh'
+    ];
+
+    // Exclude common legitimate words that might match filler patterns
+    const legitimateWords = ['no', 'oh no', 'i', 'a', 'me', 'ma', 'am'];
+    if (legitimateWords.includes(normalized)) {
+      return false;
+    }
+
+    // Check if the entire normalized text is a filler word
+    if (fillerWords.includes(normalized)) {
+      return true;
+    }
+
+    // Check if it's just repeated characters (like "uhhhh" or "mmmm")
+    // Match 3 or more of the same character
+    if (/^(.)\1{2,}$/.test(normalized)) {
+      return true;
+    }
+
+    // Check if it's repeated filler sounds (like "uh uh uh" or "um um")
+    const repeatedPattern = /^(\w{1,3})(\s+\1)+$/;
+    if (repeatedPattern.test(normalized) && normalized.length < 15) {
+      return true;
+    }
+
+    // Check if it's very short (1-2 chars) and contains only vowels or 'h', 'm', 'n'
+    // But exclude common words like "no", "me", "am"
+    if (normalized.length <= 2 && /^[aeiouhmn]+$/.test(normalized)) {
+      return true;
+    }
+
+    // Check if it's a longer string of just filler characters (like "uhhhh", "mmmm", "ahhh")
+    if (normalized.length > 2 && /^[aeiouhmn]+$/.test(normalized)) {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Optimize conversation history to reduce AI latency while maintaining context
+   * Uses a sliding window approach with importance-based retention
+   * @param {Array} history - Full conversation history
+   * @returns {Array} - Optimized conversation history
+   */
+  optimizeConversationHistory(history) {
+    if (!history || history.length === 0) {
+      return [];
+    }
+
+    // Configuration
+    const MAX_MESSAGES = 10; // Maximum messages to send to AI (5 exchanges)
+    const ALWAYS_KEEP_FIRST = 2; // Always keep first exchange (context setting)
+    const RECENT_WINDOW = 6; // Always keep last 3 exchanges
+
+    // If history is small enough, return as-is
+    if (history.length <= MAX_MESSAGES) {
+      return history;
+    }
+
+    const optimized = [];
+
+    // 1. Always keep the first exchange (important for context)
+    if (history.length >= ALWAYS_KEEP_FIRST) {
+      optimized.push(...history.slice(0, ALWAYS_KEEP_FIRST));
+    }
+
+    // 2. Always keep the most recent exchanges
+    const recentMessages = history.slice(-RECENT_WINDOW);
+
+    // 3. If we have room, add important middle messages
+    const remainingSlots = MAX_MESSAGES - ALWAYS_KEEP_FIRST - RECENT_WINDOW;
+    if (remainingSlots > 0 && history.length > ALWAYS_KEEP_FIRST + RECENT_WINDOW) {
+      // Get middle section
+      const middleSection = history.slice(ALWAYS_KEEP_FIRST, -RECENT_WINDOW);
+
+      // Score messages by importance (questions, key information)
+      const scoredMessages = middleSection.map((msg, idx) => ({
+        message: msg,
+        score: this.scoreMessageImportance(msg),
+        index: idx
+      }));
+
+      // Sort by score and take top messages
+      scoredMessages.sort((a, b) => b.score - a.score);
+      const importantMiddle = scoredMessages
+        .slice(0, remainingSlots)
+        .sort((a, b) => a.index - b.index) // Restore chronological order
+        .map(item => item.message);
+
+      optimized.push(...importantMiddle);
+    }
+
+    // 4. Add recent messages
+    optimized.push(...recentMessages);
+
+    return optimized;
+  }
+
+  /**
+   * Score a message's importance for context retention
+   * @param {Object} message - Message object with role and content
+   * @returns {number} - Importance score (higher = more important)
+   */
+  scoreMessageImportance(message) {
+    let score = 0;
+    const content = message.content || '';
+
+    // Questions are important
+    if (content.includes('?')) score += 3;
+
+    // User messages are more important than assistant messages
+    if (message.role === 'user') score += 2;
+
+    // Longer messages likely contain more information
+    if (content.length > 50) score += 1;
+    if (content.length > 100) score += 1;
+
+    // Messages with numbers/data are important
+    if (/\d+/.test(content)) score += 1;
+
+    // Messages with key business terms
+    const keyTerms = ['appointment', 'booking', 'reservation', 'order', 'payment', 'confirm', 'cancel', 'schedule'];
+    if (keyTerms.some(term => content.toLowerCase().includes(term))) {
+      score += 2;
+    }
+
+    return score;
   }
 
   async handleInterrupt(session, message) {
@@ -859,11 +1203,39 @@ class ConversationRelayWebSocket {
     // Reset silence timeout on interrupt
     this.resetSilenceTimeout(session);
 
-    // Handle user interruption - stop current TTS and prepare for new input
+    // Get interrupt duration (how long the AI spoke before being interrupted)
+    const interruptDuration = message.durationUntilInterruptMs || 0;
+
+    // Ignore very quick interrupts (< 100ms) - likely false triggers from noise
+    if (interruptDuration < 100) {
+      console.log(`[ConversationRelay-WS] 🔇 Ignoring very quick interrupt (${interruptDuration}ms) - likely false trigger`);
+      return;
+    }
+
+    // Track interrupt count to detect patterns
+    session.interruptCount = (session.interruptCount || 0) + 1;
+    session.lastInterruptTime = Date.now();
+
+    // If interrupted very early (< 500ms), user might be trying to speak
+    // Don't send acknowledgment, just stop and listen
+    if (interruptDuration < 500) {
+      console.log(`[ConversationRelay-WS] 🤫 Early interrupt (${interruptDuration}ms) - stopping to listen`);
+      session.interrupted = true;
+      return;
+    }
+
+    // For longer interrupts, acknowledge politely
+    console.log(`[ConversationRelay-WS] 💬 Interrupt after ${interruptDuration}ms - acknowledging`);
     session.interrupted = true;
 
-    // Send acknowledgment that we're ready for new input
-    await this.sendTextMessage(session, "Yes, I'm listening. What can I help you with?");
+    // Only send acknowledgment if we haven't sent one recently (within 2 seconds)
+    const timeSinceLastAck = Date.now() - (session.lastAcknowledgmentTime || 0);
+    if (timeSinceLastAck > 2000) {
+      await this.sendTextMessage(session, "Yes, I'm listening.");
+      session.lastAcknowledgmentTime = Date.now();
+    } else {
+      console.log(`[ConversationRelay-WS] 🔇 Skipping acknowledgment - sent one ${timeSinceLastAck}ms ago`);
+    }
   }
 
   async handleConversationRelayError(session, message) {
@@ -889,12 +1261,15 @@ class ConversationRelayWebSocket {
 
     console.log(`[ConversationRelay-WS] 📤 Sending text message to ${session.callSid}: "${text}"`);
 
-    // FIXED: Using built-in Google TTS (no API key required)
-    console.log(`[ConversationRelay-WS] 📤 Sending text message with built-in TTS`);
-
+    // CORRECT FORMAT: Official Twilio ConversationRelay format
+    // Reference: https://www.twilio.com/docs/voice/conversationrelay/websocket-messages#text-tokens-message
+    // Send text tokens that ConversationRelay will convert to speech
     const textMessage = {
       type: 'text',
-      text: text
+      token: text,
+      last: true,
+      interruptible: true,
+      preemptible: false
     };
 
     console.log(`[ConversationRelay-WS] 📋 Full message being sent:`, JSON.stringify(textMessage, null, 2));
@@ -904,7 +1279,37 @@ class ConversationRelayWebSocket {
     console.log(`[ConversationRelay-WS] ✅ Text message sent successfully to ${session.callSid}`);
   }
 
+  async sendStreamingToken(session, token, isLast = false) {
+    // Check if session is still active before sending
+    if (!session.isActive || session.ws.readyState !== WebSocket.OPEN) {
+      console.log(`[ConversationRelay-WS] 🛑 Skipping streaming token - session ${session.callSid} is no longer active`);
+      return;
+    }
+
+    // Send streaming token for ultra-low latency
+    // Tokens are sent as they arrive from Azure OpenAI
+    const tokenMessage = {
+      type: 'text',
+      token: token,
+      last: isLast,
+      interruptible: true,
+      preemptible: false
+    };
+
+    this.sendMessage(session.ws, tokenMessage);
+
+    if (isLast) {
+      console.log(`[ConversationRelay-WS] 🌊 Streaming complete for ${session.callSid}`);
+    }
+  }
+
   async sendMediaMessage(session, mediaUrl) {
+    // Check if session is still active before sending
+    if (!session.isActive || session.ws.readyState !== WebSocket.OPEN) {
+      console.log(`[ConversationRelay-WS] 🛑 Skipping media message - session ${session.callSid} is no longer active`);
+      return;
+    }
+
     console.log(`[ConversationRelay-WS] 🎵 Sending media message to ${session.callSid}: ${mediaUrl}`);
 
     // ConversationRelay media message format
@@ -916,18 +1321,106 @@ class ConversationRelayWebSocket {
     };
 
     this.sendMessage(session.ws, mediaMessage);
+    console.log(`[ConversationRelay-WS] ✅ Media message sent successfully`);
   }
 
-  async sendLanguageMessage(session, language) {
-    console.log(`[ConversationRelay-WS] 🌐 Switching language for ${session.callSid}: ${language}`);
+  async sendPlayMessage(session, audioUrl, loop = false) {
+    // Check if session is still active before sending
+    if (!session.isActive || session.ws.readyState !== WebSocket.OPEN) {
+      console.log(`[ConversationRelay-WS] 🛑 Skipping play message - session ${session.callSid} is no longer active`);
+      return;
+    }
+
+    console.log(`[ConversationRelay-WS] 🔊 Playing audio for ${session.callSid}: ${audioUrl} (loop: ${loop})`);
+
+    // ConversationRelay play message format
+    // Reference: https://www.twilio.com/docs/voice/conversationrelay/websocket-messages#play-message
+    const playMessage = {
+      type: 'play',
+      play: {
+        url: audioUrl,
+        loop: loop ? 0 : 1 // 0 = infinite loop, 1 = play once
+      }
+    };
+
+    this.sendMessage(session.ws, playMessage);
+    console.log(`[ConversationRelay-WS] ✅ Play message sent successfully`);
+  }
+
+  async sendLanguageMessage(session, language, voice = null) {
+    // Check if session is still active before sending
+    if (!session.isActive || session.ws.readyState !== WebSocket.OPEN) {
+      console.log(`[ConversationRelay-WS] 🛑 Skipping language message - session ${session.callSid} is no longer active`);
+      return;
+    }
+
+    console.log(`[ConversationRelay-WS] 🌐 Switching language for ${session.callSid}: ${language}${voice ? ` with voice ${voice}` : ''}`);
 
     // ConversationRelay language message format
+    // Reference: https://www.twilio.com/docs/voice/conversationrelay/websocket-messages#language-message
     const languageMessage = {
       type: 'language',
       language: language
     };
 
+    // Optionally specify voice
+    if (voice) {
+      languageMessage.voice = voice;
+    }
+
     this.sendMessage(session.ws, languageMessage);
+
+    // Update session language
+    session.currentLanguage = language;
+    if (voice) {
+      session.currentVoice = voice;
+    }
+
+    console.log(`[ConversationRelay-WS] ✅ Language switched successfully to ${language}`);
+  }
+
+  async sendDTMFDigits(session, digits) {
+    // Check if session is still active before sending
+    if (!session.isActive || session.ws.readyState !== WebSocket.OPEN) {
+      console.log(`[ConversationRelay-WS] 🛑 Skipping DTMF message - session ${session.callSid} is no longer active`);
+      return;
+    }
+
+    console.log(`[ConversationRelay-WS] 📞 Sending DTMF digits for ${session.callSid}: ${digits}`);
+
+    // ConversationRelay sendDigits message format
+    // Reference: https://www.twilio.com/docs/voice/conversationrelay/websocket-messages#senddigits-message
+    const dtmfMessage = {
+      type: 'sendDigits',
+      digits: digits
+    };
+
+    this.sendMessage(session.ws, dtmfMessage);
+    console.log(`[ConversationRelay-WS] ✅ DTMF digits sent successfully`);
+  }
+
+  async endSession(session, handoffData = null) {
+    // Check if session is still active before sending
+    if (!session.isActive || session.ws.readyState !== WebSocket.OPEN) {
+      console.log(`[ConversationRelay-WS] 🛑 Session ${session.callSid} already inactive`);
+      return;
+    }
+
+    console.log(`[ConversationRelay-WS] 🛑 Ending session for ${session.callSid}`);
+
+    // ConversationRelay end message format
+    // Reference: https://www.twilio.com/docs/voice/conversationrelay/websocket-messages#end-message
+    const endMessage = {
+      type: 'end'
+    };
+
+    // Optionally include handoff data for transferring to another system
+    if (handoffData) {
+      endMessage.handoff = handoffData;
+    }
+
+    this.sendMessage(session.ws, endMessage);
+    console.log(`[ConversationRelay-WS] ✅ End message sent successfully`);
   }
 
   // Silence timeout management to prevent calls from hanging

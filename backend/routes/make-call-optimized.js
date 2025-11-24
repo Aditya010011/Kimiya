@@ -6,6 +6,9 @@ const { setDynamicCorsHeaders } = require('../utils/cors-config');
 // Store active performance orchestrators by call SID
 const activeOrchestrators = new Map();
 
+// Store tracking IDs and workflow data by call SID for TwiML App lookups
+const callMetadata = new Map();
+
 function normalizePhoneNumber(phoneNumber) {
   if (!phoneNumber) return null;
   
@@ -85,11 +88,19 @@ module.exports = async function makeCallOptimizedHandler(req, res) {
     // Get Twilio credentials
     const accountSid = twilioAccountSid || process.env.TWILIO_ACCOUNT_SID;
     const authToken = twilioAuthToken || process.env.TWILIO_AUTH_TOKEN;
+    const twimlAppSid = process.env.TWILIO_TWIML_APP_SID;
 
     if (!accountSid || !authToken) {
       return res.status(400).json({
         success: false,
         error: 'Twilio credentials are required'
+      });
+    }
+
+    if (!twimlAppSid) {
+      return res.status(400).json({
+        success: false,
+        error: 'TWILIO_TWIML_APP_SID is required for ConversationRelay. Please configure a TwiML App in Twilio Console.'
       });
     }
 
@@ -105,6 +116,13 @@ module.exports = async function makeCallOptimizedHandler(req, res) {
       return res.status(400).json({
         success: false,
         error: 'Invalid Twilio Auth Token format'
+      });
+    }
+
+    if (!twimlAppSid.startsWith('AP') || twimlAppSid.length !== 34) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid TwiML App SID format. Must start with AP and be 34 characters.'
       });
     }
 
@@ -192,23 +210,19 @@ module.exports = async function makeCallOptimizedHandler(req, res) {
     const host = req.get('host');
     const protocol = req.get('x-forwarded-proto') || 'https';
 
-    // Use optimized TwiML endpoint that integrates with performance system
-    const optimizedTwiML = twimlUrl || `${protocol}://${host}/api/twiml-optimized?id=${workflowId}&trackingId=${callTrackingId}`;
-
-    console.log(`Using optimized TwiML endpoint: ${optimizedTwiML}`);
-
     // Store orchestrator for later use (only if successfully initialized)
     if (orchestrator) {
       activeOrchestrators.set(callTrackingId, orchestrator);
     }
 
     // Prepare form data for Twilio API
+    // IMPORTANT: Using ApplicationSid (TwiML App) instead of Url for ConversationRelay
+    // The TwiML App's Voice URL is configured in Twilio Console to point to /api/twiml-optimized
     const callTimeout = Math.min(Math.max(timeout || 30, 5), 600);
     const formData = new URLSearchParams();
     formData.append('To', normalizedTo);
     formData.append('From', fromNumber);
-    formData.append('Url', optimizedTwiML);
-    formData.append('Method', 'POST');
+    formData.append('ApplicationSid', twimlAppSid);  // Use TwiML App instead of direct URL
     formData.append('Record', record !== undefined ? record.toString() : 'true');
     formData.append('Timeout', callTimeout.toString());
     formData.append('StatusCallback', `${protocol}://${host}/api/call-status-optimized?trackingId=${callTrackingId}`);
@@ -217,7 +231,8 @@ module.exports = async function makeCallOptimizedHandler(req, res) {
     console.log('Optimized Twilio API call parameters:', {
       To: normalizedTo,
       From: fromNumber,
-      Url: optimizedTwiML,
+      ApplicationSid: twimlAppSid,
+      TwiMLAppUsed: true,
       OptimizationEnabled: true,
       ExpectedLatency: '150-250ms',
       TrackingId: callTrackingId
@@ -262,6 +277,20 @@ module.exports = async function makeCallOptimizedHandler(req, res) {
       optimizationEnabled: true,
       trackingId: callTrackingId
     });
+
+    // Store call metadata for TwiML App lookup
+    // When Twilio calls our TwiML App's Voice URL, we'll use CallSid to retrieve this data
+    callMetadata.set(callData.sid, {
+      trackingId: callTrackingId,
+      workflowId: workflowId,
+      workflowData: workflowData,
+      timestamp: Date.now()
+    });
+
+    // Clean up old metadata after 1 hour
+    setTimeout(() => {
+      callMetadata.delete(callData.sid);
+    }, 60 * 60 * 1000);
 
     // Set up performance monitoring (only if orchestrator exists)
     if (orchestrator) {
@@ -323,4 +352,9 @@ module.exports.removeActiveOrchestrator = (trackingId) => {
     return orchestrator;
   }
   return null;
+};
+
+// Export call metadata for TwiML App lookups
+module.exports.getCallMetadata = (callSid) => {
+  return callMetadata.get(callSid);
 };

@@ -1,0 +1,158 @@
+{
+  "workflowId": "customer-support-flow",
+  "name": "Customer Support Workflow",
+  "description": "A comprehensive customer support workflow with menu navigation, AI assistance, and transfer options",
+  "version": "1.0.0",
+  "globalPrompt": "You are Kimiya, a helpful AI assistant for customer support. You are speaking on a phone call. Provide natural, conversational responses. Keep responses concise and friendly. You can hear and speak clearly.",
+  "nodes": [
+    {
+      "id": "start",
+      "type": "greeting",
+      "data": {
+        "message": "Hello! Welcome to our customer support. I'm Kimiya, your AI assistant."
+      }
+    },
+    {
+      "id": "main-menu",
+      "type": "menu",
+      "data": {
+        "message": "How can I help you today?",
+        "options": [
+          {
+            "label": "Technical Support",
+            "value": "tech",
+            "digit": "1"
+          },
+          {
+            "label": "Billing Questions",
+            "value": "billing",
+            "digit": "2"
+          },
+          {
+            "label": "General Inquiry",
+            "value": "general",
+            "digit": "3"
+          },
+          {
+            "label": "Speak to a Human",
+            "value": "human",
+            "digit": "0"
+          }
+        ]
+      }
+    },
+    {
+      "id": "tech-support",
+      "type": "ai",
+      "data": {
+        "systemPrompt": "You are a technical support specialist. Help users troubleshoot technical issues. Ask clarifying questions and provide step-by-step solutions. Keep responses concise for phone conversations."
+      }
+    },
+    {
+      "id": "billing-support",
+      "type": "ai",
+      "data": {
+        "systemPrompt": "You are a billing specialist. Help users with billing questions, payment issues, and account inquiries. Be professional and helpful. Keep responses concise for phone conversations."
+      }
+    },
+    {
+      "id": "general-inquiry",
+      "type": "ai",
+      "data": {
+        "systemPrompt": "You are a general customer service representative. Answer general questions about products, services, and company information. Be friendly and informative. Keep responses concise for phone conversations."
+      }
+    },
+    {
+      "id": "transfer-to-human",
+      "type": "transfer",
+      "data": {
+        "message": "I'll transfer you to a human agent now. Please hold.",
+        "transferTo": "+1234567890"
+      }
+    },
+    {
+      "id": "end-call",
+      "type": "end",
+      "data": {
+        "message": "Thank you for calling. Have a great day! Goodbye."
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge-1",
+      "source": "start",
+      "target": "main-menu"
+    },
+    {
+      "id": "edge-2",
+      "source": "main-menu",
+      "target": "tech-support",
+      "condition": {
+        "digit": "1",
+        "keywords": ["technical", "tech", "support", "problem", "issue", "not working"]
+      }
+    },
+    {
+      "id": "edge-3",
+      "source": "main-menu",
+      "target": "billing-support",
+      "condition": {
+        "digit": "2",
+        "keywords": ["billing", "payment", "invoice", "charge", "account"]
+      }
+    },
+    {
+      "id": "edge-4",
+      "source": "main-menu",
+      "target": "general-inquiry",
+      "condition": {
+        "digit": "3",
+        "keywords": ["general", "question", "information", "help"]
+      }
+    },
+    {
+      "id": "edge-5",
+      "source": "main-menu",
+      "target": "transfer-to-human",
+      "condition": {
+        "digit": "0",
+        "keywords": ["human", "agent", "person", "representative", "operator"]
+      }
+    },
+    {
+      "id": "edge-6",
+      "source": "tech-support",
+      "target": "end-call",
+      "condition": {
+        "keywords": ["done", "finished", "thank", "goodbye", "bye"]
+      }
+    },
+    {
+      "id": "edge-7",
+      "source": "billing-support",
+      "target": "end-call",
+      "condition": {
+        "keywords": ["done", "finished", "thank", "goodbye", "bye"]
+      }
+    },
+    {
+      "id": "edge-8",
+      "source": "general-inquiry",
+      "target": "end-call",
+      "condition": {
+        "keywords": ["done", "finished", "thank", "goodbye", "bye"]
+      }
+    }
+  ],
+  "settings": {
+    "defaultLanguage": "en-US",
+    "defaultVoice": "en-US-Journey-O",
+    "ttsProvider": "Google",
+    "enableStreaming": true,
+    "enableDTMF": true,
+    "silenceTimeout": 10000,
+    "maxCallDuration": 600000
+  }
+}
+

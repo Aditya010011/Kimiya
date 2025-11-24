@@ -31,11 +31,17 @@ class ConversationRelay extends EventEmitter {
         hasGlobalPrompt: !!workflowData.globalPrompt
       });
 
+      // Find the actual start node by type instead of hardcoded 'start' string
+      const startNode = this.findStartNode(workflowData.nodes);
+      const startNodeId = startNode ? startNode.id : 'start';
+
+      console.log(`[ConversationRelay] 🎯 Start node identified: ${startNodeId} (type: ${startNode?.type || 'unknown'})`);
+
       // Store workflow data for this call
       this.activeCalls.set(callSid, {
         workflowData,
         conversationHistory: [],
-        currentNode: 'start',
+        currentNode: startNodeId,
         startTime: Date.now(),
         isActive: true
       });
@@ -99,14 +105,40 @@ class ConversationRelay extends EventEmitter {
   }
 
   async initializeStream(callSid, workflowData) {
-    // Store call data for processing
-    this.activeCalls.set(callSid, {
-      workflowData,
-      startTime: Date.now(),
-      messageHistory: [],
-      currentNodeId: workflowData?.nodes?.[0]?.id || null,
-      conversationTurns: 0
-    });
+    // Get existing call data (set by startConversation)
+    const existingCallData = this.activeCalls.get(callSid);
+
+    if (existingCallData) {
+      // Update existing call data instead of overwriting
+      console.log(`[ConversationRelay] 🔄 Updating existing call data for ${callSid}`);
+
+      // Find the actual start node
+      const startNode = this.findStartNode(workflowData?.nodes);
+      const startNodeId = startNode ? startNode.id : (workflowData?.nodes?.[0]?.id || 'start');
+
+      existingCallData.messageHistory = [];
+      existingCallData.currentNodeId = startNodeId;
+      existingCallData.currentNode = startNodeId;
+      existingCallData.conversationTurns = 0;
+    } else {
+      // Fallback: create new call data if it doesn't exist
+      console.log(`[ConversationRelay] ⚠️  No existing call data, creating new for ${callSid}`);
+
+      // Find the actual start node
+      const startNode = this.findStartNode(workflowData?.nodes);
+      const startNodeId = startNode ? startNode.id : (workflowData?.nodes?.[0]?.id || 'start');
+
+      this.activeCalls.set(callSid, {
+        workflowData,
+        conversationHistory: [],
+        currentNode: startNodeId,
+        startTime: Date.now(),
+        isActive: true,
+        messageHistory: [],
+        currentNodeId: startNodeId,
+        conversationTurns: 0
+      });
+    }
 
     // Initialize Twilio Media Stream configuration
     const mediaStreamConfig = {
@@ -118,10 +150,10 @@ class ConversationRelay extends EventEmitter {
 
     // Set up WebSocket connection for real-time audio (if available)
     await this.setupWebSocketConnection(callSid);
-    
+
     // Configure audio processing pipeline
     await this.configureAudioPipeline(workflowData);
-    
+
     console.log(`[ConversationRelay] Stream initialized for call ${callSid}`);
   }
 
@@ -297,60 +329,7 @@ class ConversationRelay extends EventEmitter {
   getPerformanceMetrics() {
     return this.performanceMetrics.getCurrentMetrics();
   }
-}
 
-class PerformanceMetrics {
-  constructor() {
-    this.processingTimes = [];
-    this.errors = [];
-    this.warnings = [];
-    this.startTime = Date.now();
-  }
-
-  recordProcessingTime(time) {
-    this.processingTimes.push(time);
-    
-    // Keep only last 100 measurements for memory efficiency
-    if (this.processingTimes.length > 100) {
-      this.processingTimes.shift();
-    }
-  }
-
-  recordError(error) {
-    this.errors.push({ timestamp: Date.now(), error });
-  }
-
-  recordWarning(warning) {
-    this.warnings.push({ timestamp: Date.now(), warning });
-  }
-
-  getCurrentMetrics() {
-    const avgProcessingTime = this.processingTimes.length > 0 
-      ? this.processingTimes.reduce((a, b) => a + b, 0) / this.processingTimes.length 
-      : 0;
-
-    const p95ProcessingTime = this.processingTimes.length > 0
-      ? this.processingTimes.sort((a, b) => a - b)[Math.floor(this.processingTimes.length * 0.95)]
-      : 0;
-
-    return {
-      averageProcessingTime: avgProcessingTime,
-      p95ProcessingTime,
-      totalProcessedChunks: this.processingTimes.length,
-      errorCount: this.errors.length,
-      warningCount: this.warnings.length,
-      uptime: Date.now() - this.startTime
-    };
-  }
-
-  getFinalMetrics() {
-    return {
-      ...this.getCurrentMetrics(),
-      finalProcessingTimes: [...this.processingTimes],
-      allErrors: [...this.errors],
-      allWarnings: [...this.warnings]
-    };
-  }
   async endConversation(callSid) {
     console.log(`[ConversationRelay] Ending conversation for call ${callSid}`);
 
@@ -378,11 +357,26 @@ class PerformanceMetrics {
 
     try {
       console.log(`[ConversationRelay] Processing transcript: "${transcript}" for call ${context.callSid}`);
+      console.log(`[ConversationRelay] 🔍 Active calls in memory:`, Array.from(this.activeCalls.keys()));
+      console.log(`[ConversationRelay] 🔍 Looking for callSid: "${context.callSid}"`);
 
       const callData = this.activeCalls.get(context.callSid);
+      console.log(`[ConversationRelay] 🔍 Call data found:`, !!callData);
+
       if (!callData) {
+        console.error(`[ConversationRelay] ❌ No call data found for ${context.callSid}`);
+        console.error(`[ConversationRelay] ❌ Available call IDs:`, Array.from(this.activeCalls.keys()));
         throw new Error(`No call data found for ${context.callSid}`);
       }
+
+      console.log(`[ConversationRelay] 🔍 Call data structure:`, {
+        hasWorkflowData: !!callData.workflowData,
+        hasConversationHistory: !!callData.conversationHistory,
+        conversationHistoryType: typeof callData.conversationHistory,
+        conversationHistoryLength: callData.conversationHistory?.length,
+        currentNode: callData.currentNode,
+        isActive: callData.isActive
+      });
 
       // Add user message to conversation history
       callData.conversationHistory.push({
@@ -452,11 +446,48 @@ class PerformanceMetrics {
     try {
       const { workflowData } = callData;
 
-      // Build conversation context
+      console.log(`[ConversationRelay] 🎯 Processing workflow logic for input: "${input}"`);
+      console.log(`[ConversationRelay] 📊 Current node: ${callData.currentNode}`);
+      console.log(`[ConversationRelay] 📊 Available nodes: ${workflowData.nodes?.length || 0}`);
+
+      // Debug: Log all node IDs to help diagnose matching issues
+      if (workflowData.nodes && workflowData.nodes.length > 0) {
+        const nodeIds = workflowData.nodes.map(n => `${n.id} (${n.type})`).join(', ');
+        console.log(`[ConversationRelay] 📋 Node IDs in workflow: ${nodeIds}`);
+      }
+
+      // Execute workflow node logic
+      const currentNode = this.findNodeById(workflowData.nodes, callData.currentNode);
+
+      if (currentNode) {
+        console.log(`[ConversationRelay] 🎯 Executing node: ${currentNode.type} (${currentNode.id})`);
+
+        // Execute node-specific logic
+        const nodeResult = await this.executeNode(currentNode, input, callData);
+
+        // Determine next node based on edges and conditions
+        const nextNode = this.determineNextNode(workflowData, currentNode, input, nodeResult);
+
+        if (nextNode) {
+          console.log(`[ConversationRelay] ➡️  Moving to next node: ${nextNode.id}`);
+          callData.currentNode = nextNode.id;
+        }
+
+        return nodeResult.response;
+      }
+
+      // Fallback to AI response if no node found
+      console.log(`[ConversationRelay] ⚠️  No node found with ID "${callData.currentNode}", using AI fallback`);
+      console.log(`[ConversationRelay] 💡 This usually means the currentNode ID doesn't match any node in the workflow`);
+
+      // Build conversation context with enhanced system prompt
+      const systemPrompt = workflowData.globalPrompt || 'You are a helpful AI assistant. Provide concise, helpful responses.';
+      const enhancedSystemPrompt = `${systemPrompt}\n\nIMPORTANT: Keep your responses brief and conversational (2-3 sentences max). You are speaking on a phone call, so be natural and concise.`;
+
       const messages = [
         {
           role: 'system',
-          content: workflowData.globalPrompt || 'You are a helpful AI assistant. Provide concise, helpful responses.'
+          content: enhancedSystemPrompt
         }
       ];
 
@@ -479,32 +510,398 @@ class PerformanceMetrics {
     }
   }
 
+  /**
+   * Find the start node in the workflow
+   * @param {Array} nodes - Array of workflow nodes
+   * @returns {Object|null} - The start node or null
+   */
+  findStartNode(nodes) {
+    if (!nodes || !Array.isArray(nodes)) return null;
+
+    // Look for nodes with type 'startNode' or 'startCall'
+    const startNode = nodes.find(node =>
+      node.type === 'startNode' ||
+      node.type === 'startCall' ||
+      node.type === 'start'
+    );
+
+    if (startNode) {
+      console.log(`[ConversationRelay] 🎯 Found start node: ${startNode.id} (type: ${startNode.type})`);
+      return startNode;
+    }
+
+    // Fallback: return first node if no explicit start node
+    if (nodes.length > 0) {
+      console.log(`[ConversationRelay] ⚠️  No explicit start node found, using first node: ${nodes[0].id}`);
+      return nodes[0];
+    }
+
+    return null;
+  }
+
+  findNodeById(nodes, nodeId) {
+    if (!nodes || !Array.isArray(nodes)) return null;
+    return nodes.find(node => node.id === nodeId);
+  }
+
+  async executeNode(node, input, callData) {
+    // Execute node-specific logic based on node type
+    console.log(`[ConversationRelay] 🔧 Executing node type: ${node.type}`);
+
+    // Normalize node type to lowercase for case-insensitive matching
+    const nodeType = (node.type || '').toLowerCase();
+
+    switch (nodeType) {
+      // ===== START NODE TYPES =====
+      case 'startnode':
+      case 'startcall':
+      case 'start':
+        console.log(`[ConversationRelay] 🎬 Executing start node: ${node.id}`);
+        // Start node typically just initializes the conversation
+        // The firstMessage is already handled by TwiML welcomeGreeting
+        // So we just acknowledge and move to next node
+        return {
+          response: node.data?.firstMessage || "Welcome! How can I help you today?",
+          action: 'speak',
+          metadata: {
+            nodeType: 'start',
+            globalPrompt: node.data?.globalPrompt
+          }
+        };
+
+      // ===== CONVERSATION NODE TYPES (AI-powered) =====
+      case 'conversationnode':
+      case 'ai':
+      case 'llm':
+        console.log(`[ConversationRelay] 🤖 Executing conversation node: ${node.id}`);
+
+        // Build system prompt from node-specific prompt or global prompt
+        const nodePrompt = node.data?.prompt || node.data?.systemPrompt || node.data?.instructions;
+        const globalPrompt = callData.workflowData?.globalPrompt || 'You are a helpful AI assistant.';
+
+        // Combine prompts: global context + node-specific instructions
+        let systemPrompt = globalPrompt;
+        if (nodePrompt) {
+          systemPrompt = `${globalPrompt}\n\nFor this conversation step:\n${nodePrompt}`;
+        }
+
+        // Add phone call context reminder
+        systemPrompt += '\n\nIMPORTANT: Keep your responses brief and conversational (2-3 sentences max). You are speaking on a phone call, so be natural and concise.';
+
+        const conversationMessages = [
+          {
+            role: 'system',
+            content: systemPrompt
+          }
+        ];
+
+        // Add recent conversation history for context
+        if (callData.conversationHistory && callData.conversationHistory.length > 0) {
+          conversationMessages.push(...callData.conversationHistory.slice(-5));
+        }
+
+        // Add current user input
+        conversationMessages.push({ role: 'user', content: input });
+
+        console.log(`[ConversationRelay] 💬 Generating AI response with ${conversationMessages.length} messages`);
+        const conversationResponse = await this.generateAIResponse(conversationMessages);
+
+        return {
+          response: conversationResponse,
+          action: 'speak',
+          metadata: {
+            nodeType: 'conversation',
+            model: node.data?.model || 'default',
+            promptUsed: nodePrompt ? 'node-specific' : 'global'
+          }
+        };
+
+      // ===== END NODE TYPES =====
+      case 'endcall':
+      case 'end':
+      case 'endnode':
+        console.log(`[ConversationRelay] 🏁 Executing end node: ${node.id}`);
+        const endMessage = node.data?.endMessage || node.data?.farewell || node.data?.message || "Thank you for calling. Have a great day!";
+
+        return {
+          response: endMessage,
+          action: 'end',
+          metadata: {
+            nodeType: 'end',
+            reason: node.data?.reason || 'completed'
+          }
+        };
+
+      // ===== TRANSFER NODE TYPES (Not yet functional) =====
+      case 'transfercall':
+      case 'transfer':
+      case 'handoff':
+        console.log(`[ConversationRelay] ⚠️  Transfer node not yet functional: ${node.id}`);
+        console.log(`[ConversationRelay] 📞 Transfer feature coming soon - continuing conversation`);
+
+        // Inform user that transfer is not available and continue conversation
+        const transferMessage = "I'd like to transfer you to a specialist, but that feature is currently unavailable. Let me continue to help you directly. What else can I assist you with?";
+
+        return {
+          response: transferMessage,
+          action: 'speak',
+          metadata: {
+            nodeType: 'transfer',
+            status: 'not_implemented',
+            requestedDestination: node.data?.destination || node.data?.phoneNumber || node.data?.transferTo
+          }
+        };
+
+      // ===== API REQUEST NODE TYPES (Not yet functional) =====
+      case 'apirequest':
+      case 'api':
+        console.log(`[ConversationRelay] ⚠️  API request node not yet functional: ${node.id}`);
+        console.log(`[ConversationRelay] 🔌 API integration feature coming soon - using AI fallback`);
+
+        // Use AI to continue conversation naturally
+        const apiMessages = [
+          {
+            role: 'system',
+            content: callData.workflowData?.globalPrompt || 'You are a helpful AI assistant. Provide concise, helpful responses.'
+          }
+        ];
+
+        if (callData.conversationHistory && callData.conversationHistory.length > 0) {
+          apiMessages.push(...callData.conversationHistory.slice(-5));
+        }
+
+        apiMessages.push({ role: 'user', content: input });
+
+        const apiResponse = await this.generateAIResponse(apiMessages);
+
+        return {
+          response: apiResponse,
+          action: 'speak',
+          metadata: {
+            nodeType: 'api',
+            status: 'not_implemented',
+            fallbackUsed: true
+          }
+        };
+
+      // ===== LEGACY NODE TYPES (Keep for backward compatibility) =====
+      case 'greeting':
+      case 'message':
+        return {
+          response: node.data?.message || node.data?.text || "Hello! How can I help you?",
+          action: 'speak'
+        };
+
+      case 'question':
+      case 'input':
+        return {
+          response: node.data?.question || node.data?.prompt || "What would you like to know?",
+          action: 'listen',
+          expectedInput: node.data?.expectedInput
+        };
+
+      case 'menu':
+      case 'choice':
+        const options = node.data?.options || [];
+        const menuText = node.data?.message || "Please choose an option:";
+        const optionsText = options.map((opt, idx) => `Press ${idx + 1} for ${opt.label}`).join('. ');
+        return {
+          response: `${menuText} ${optionsText}`,
+          action: 'menu',
+          options: options
+        };
+
+      // ===== DEFAULT FALLBACK =====
+      default:
+        console.log(`[ConversationRelay] ⚠️  Unknown node type: ${node.type} - using AI fallback`);
+
+        // Use AI to handle unknown node types gracefully
+        const fallbackMessages = [
+          {
+            role: 'system',
+            content: callData.workflowData?.globalPrompt || 'You are a helpful AI assistant. Provide concise, helpful responses.'
+          }
+        ];
+
+        if (callData.conversationHistory && callData.conversationHistory.length > 0) {
+          fallbackMessages.push(...callData.conversationHistory.slice(-5));
+        }
+
+        fallbackMessages.push({ role: 'user', content: input });
+
+        const fallbackResponse = await this.generateAIResponse(fallbackMessages);
+
+        return {
+          response: fallbackResponse,
+          action: 'speak',
+          metadata: {
+            nodeType: 'unknown',
+            originalType: node.type,
+            fallbackUsed: true
+          }
+        };
+    }
+  }
+
+  determineNextNode(workflowData, currentNode, input, nodeResult) {
+    // Find edges from current node
+    const edges = workflowData.edges || [];
+    const outgoingEdges = edges.filter(edge => edge.source === currentNode.id);
+
+    if (outgoingEdges.length === 0) {
+      console.log(`[ConversationRelay] ℹ️  No outgoing edges from node ${currentNode.id}`);
+      return null;
+    }
+
+    // If only one edge, follow it
+    if (outgoingEdges.length === 1) {
+      const targetNodeId = outgoingEdges[0].target;
+      return this.findNodeById(workflowData.nodes, targetNodeId);
+    }
+
+    // Multiple edges - evaluate conditions
+    for (const edge of outgoingEdges) {
+      if (this.evaluateEdgeCondition(edge, input, nodeResult)) {
+        const targetNodeId = edge.target;
+        return this.findNodeById(workflowData.nodes, targetNodeId);
+      }
+    }
+
+    // Default to first edge if no conditions match
+    const targetNodeId = outgoingEdges[0].target;
+    return this.findNodeById(workflowData.nodes, targetNodeId);
+  }
+
+  evaluateEdgeCondition(edge, input, nodeResult) {
+    // Evaluate edge condition to determine if this path should be taken
+    if (!edge.condition) return true; // No condition = always take this edge
+
+    const condition = edge.condition;
+    const inputLower = input.toLowerCase();
+
+    // Check for keyword matches
+    if (condition.keywords && Array.isArray(condition.keywords)) {
+      return condition.keywords.some(keyword => inputLower.includes(keyword.toLowerCase()));
+    }
+
+    // Check for DTMF digit matches
+    if (condition.digit && input.startsWith('DTMF:')) {
+      const digit = input.substring(5);
+      return digit === condition.digit.toString();
+    }
+
+    // Check for intent matches
+    if (condition.intent) {
+      // Simple intent matching - could be enhanced with NLU
+      return inputLower.includes(condition.intent.toLowerCase());
+    }
+
+    return true;
+  }
+
   async generateAIResponse(messages) {
-    // Generate AI response using configured LLM
+    // Generate AI response using Azure OpenAI
     try {
-      // This would integrate with Azure OpenAI or other LLM
-      // For now, return a contextual response based on input
-      const lastMessage = messages[messages.length - 1];
-      const input = lastMessage.content.toLowerCase();
-
-      if (input.includes('hello') || input.includes('hi')) {
-        return "Hello! I'm here to help you. What can I do for you today?";
+      // Check if Azure OpenAI is configured
+      if (!process.env.AZURE_OPENAI_ENDPOINT || !process.env.AZURE_OPENAI_API_KEY) {
+        console.error('[ConversationRelay] Missing Azure OpenAI credentials');
+        return "I'm here to help. What would you like to know?";
       }
 
-      if (input.includes('help')) {
-        return "I'd be happy to help you. Could you tell me more about what you need assistance with?";
+      console.log('[ConversationRelay] 🤖 Calling Azure OpenAI with', messages.length, 'messages');
+
+      const response = await fetch(process.env.AZURE_OPENAI_ENDPOINT, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'api-key': process.env.AZURE_OPENAI_API_KEY
+        },
+        body: JSON.stringify({
+          messages: messages,
+          max_tokens: 100, // Reduced from 150 to 100 for faster responses
+          temperature: 0.7,
+          top_p: 0.95,
+          frequency_penalty: 0,
+          presence_penalty: 0
+        })
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[ConversationRelay] Azure OpenAI API error:', response.status, errorText);
+        return "I'm here to help. What would you like to know?";
       }
 
-      if (input.includes('thank')) {
-        return "You're welcome! Is there anything else I can help you with?";
+      const data = await response.json();
+
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        console.error('[ConversationRelay] Invalid Azure OpenAI response structure');
+        return "I'm here to help. What would you like to know?";
       }
 
-      return "I understand. How can I assist you with that?";
+      const aiResponse = data.choices[0].message.content.trim();
+      console.log('[ConversationRelay] 🤖 Azure OpenAI response:', aiResponse.substring(0, 100) + '...');
+
+      return aiResponse;
 
     } catch (error) {
       console.error(`[ConversationRelay] AI response generation error:`, error);
       return "I'm here to help. Could you please tell me more about what you need?";
     }
+  }
+}
+
+class PerformanceMetrics {
+  constructor() {
+    this.processingTimes = [];
+    this.errors = [];
+    this.warnings = [];
+    this.startTime = Date.now();
+  }
+
+  recordProcessingTime(time) {
+    this.processingTimes.push(time);
+
+    // Keep only last 100 measurements for memory efficiency
+    if (this.processingTimes.length > 100) {
+      this.processingTimes.shift();
+    }
+  }
+
+  recordError(error) {
+    this.errors.push({ timestamp: Date.now(), error });
+  }
+
+  recordWarning(warning) {
+    this.warnings.push({ timestamp: Date.now(), warning });
+  }
+
+  getCurrentMetrics() {
+    const avgProcessingTime = this.processingTimes.length > 0
+      ? this.processingTimes.reduce((a, b) => a + b, 0) / this.processingTimes.length
+      : 0;
+
+    const p95ProcessingTime = this.processingTimes.length > 0
+      ? this.processingTimes.sort((a, b) => a - b)[Math.floor(this.processingTimes.length * 0.95)]
+      : 0;
+
+    return {
+      averageProcessingTime: avgProcessingTime,
+      p95ProcessingTime,
+      totalProcessedChunks: this.processingTimes.length,
+      errorCount: this.errors.length,
+      warningCount: this.warnings.length,
+      uptime: Date.now() - this.startTime
+    };
+  }
+
+  getFinalMetrics() {
+    return {
+      ...this.getCurrentMetrics(),
+      finalProcessingTimes: [...this.processingTimes],
+      allErrors: [...this.errors],
+      allWarnings: [...this.warnings]
+    };
   }
 }
 

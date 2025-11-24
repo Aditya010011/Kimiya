@@ -7,9 +7,10 @@ const LanguageOptimizer = require('./languageOptimizer');
 class PerformanceOrchestrator extends EventEmitter {
   constructor(workflowConfig, performanceConfig = {}) {
     super();
-    
+
     this.workflowConfig = workflowConfig;
-    
+    this.workflowData = null; // Will be set when startOptimizedConversation is called
+
     // All optimizations enabled by default for best performance
     this.config = {
       targetLatency: 300,
@@ -33,30 +34,33 @@ class PerformanceOrchestrator extends EventEmitter {
     this.startTime = Date.now();
     this.metrics = this.initializeMetrics();
     this.callData = new Map();
-    
+
     this.initializeServices();
     this.setupEventHandlers();
-    
+
     console.log('[PerformanceOrchestrator] Initialized with all optimizations enabled');
   }
 
   async startOptimizedConversation(callSid, workflowData) {
     const startTime = performance.now();
-    
+
     try {
       console.log(`[PerformanceOrchestrator] Starting optimized conversation for call ${callSid}`);
-      
+
+      // Store workflow data for later access by WebSocket handler
+      this.workflowData = workflowData;
+
       // Initialize call performance tracking
       this.initializeCallTracking(callSid, workflowData);
-      
+
       // Start conversation relay with optimized configuration
       await this.conversationRelay.startConversation(callSid, workflowData);
-      
+
       const initTime = performance.now() - startTime;
       console.log(`[PerformanceOrchestrator] Optimized conversation started in ${initTime}ms`);
-      
+
       this.emit('conversationStarted', { callSid, initTime });
-      
+
       return {
         success: true,
         callSid,
@@ -68,7 +72,7 @@ class PerformanceOrchestrator extends EventEmitter {
         },
         expectedLatency: '150-250ms'
       };
-      
+
     } catch (error) {
       console.error(`[PerformanceOrchestrator] Failed to start optimized conversation:`, error);
       this.emit('error', { callSid, error, phase: 'initialization' });
