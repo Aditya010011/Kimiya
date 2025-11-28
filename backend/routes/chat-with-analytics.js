@@ -161,7 +161,7 @@ module.exports = async function chatWithAnalyticsHandler(req, res) {
 
     console.log('Calling Azure OpenAI for chat...');
     const startTime = Date.now();
-    const aiResponse = await callAzureOpenAI(apiMessages);
+    const aiResult = await callAzureOpenAI(apiMessages);
     const processingTime = Date.now() - startTime;
 
     // Store messages in analytics if session is tracked
@@ -184,19 +184,21 @@ module.exports = async function chatWithAnalyticsHandler(req, res) {
           });
         }
 
-        // Store the AI response
-        console.log('🤖 ANALYTICS: Storing AI response:', aiResponse.substring(0, 50) + '...');
+        // Store the AI response with token usage
+        console.log('🤖 ANALYTICS: Storing AI response:', aiResult.content.substring(0, 50) + '...');
 
         await chatAnalyticsService.addMessage(sessionId, {
           id: `ai-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
           role: 'assistant',
-          content: aiResponse,
+          content: aiResult.content,
           timestamp: new Date(),
           nodeId: currentNodeId,
           nodeName: workflowData?.nodes?.find(n => n.id === currentNodeId)?.data?.label,
           metadata: {
             processing_time: processingTime,
-            tokens_used: estimateTokens(aiResponse)
+            tokens_used: aiResult.usage.total_tokens,
+            prompt_tokens: aiResult.usage.prompt_tokens,
+            completion_tokens: aiResult.usage.completion_tokens
           }
         });
 
@@ -213,7 +215,7 @@ module.exports = async function chatWithAnalyticsHandler(req, res) {
         console.log('🏁 ANALYTICS: Ending chat session:', sessionId);
 
         // Determine outcome based on conversation context
-        const outcome = determineConversationOutcome(messages, aiResponse);
+        const outcome = determineConversationOutcome(messages, aiResult.content);
         console.log('📊 ANALYTICS: Determined session outcome:', outcome);
 
         await chatAnalyticsService.endChatSession(sessionId, outcome);
@@ -232,13 +234,14 @@ module.exports = async function chatWithAnalyticsHandler(req, res) {
       'chat',
       {
         messageId,
-        responseLength: aiResponse.length,
+        responseLength: aiResult.content.length,
         messageCount: messages.length,
         workflowId,
         workflowName,
         sessionId,
         processingTime,
-        tokensUsed: estimateTokens(aiResponse),
+        tokensUsed: aiResult.usage.total_tokens,
+        tokenUsage: aiResult.usage,
         timestamp: new Date().toISOString()
       },
       messageId,
@@ -247,12 +250,13 @@ module.exports = async function chatWithAnalyticsHandler(req, res) {
 
     const response = {
       success: true,
-      response: aiResponse,
+      response: aiResult.content,
       metadata: {
         processing_time: processingTime,
         session_id: sessionId,
         workflow_id: workflowId,
-        node_id: currentNodeId
+        node_id: currentNodeId,
+        token_usage: aiResult.usage
       },
       timestamp: new Date().toISOString()
     };
@@ -318,9 +322,21 @@ async function callAzureOpenAI(messages) {
 
     const data = await response.json();
     console.log('Azure OpenAI chat response received');
-    
+
     if (data.choices && data.choices[0] && data.choices[0].message) {
-      return data.choices[0].message.content.trim();
+      // Extract token usage from response
+      const tokenUsage = data.usage || {};
+      const result = {
+        content: data.choices[0].message.content.trim(),
+        usage: {
+          prompt_tokens: tokenUsage.prompt_tokens || 0,
+          completion_tokens: tokenUsage.completion_tokens || 0,
+          total_tokens: tokenUsage.total_tokens || 0
+        }
+      };
+
+      console.log('Token usage:', result.usage);
+      return result;
     } else {
       console.error('Unexpected Azure OpenAI response format:', data);
       throw new Error('Invalid response format from Azure OpenAI');

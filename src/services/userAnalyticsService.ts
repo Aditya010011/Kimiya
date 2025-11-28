@@ -127,6 +127,24 @@ export class UserAnalyticsService {
    */
   static async getAdvancedUserAnalytics(userId: number, filters?: AnalyticsFilters): Promise<AdvancedUserAnalyticsData> {
     const baseData = await this.getUserAnalytics(userId, filters);
+
+    // Fetch real call records and analytics from backend
+    let callRecords = this.generateMockCallRecords(userId);
+    let callAnalytics = this.generateUserSpecificCallAnalytics(userId);
+
+    try {
+      const callData = await this.getUserCallRecords(userId);
+      if (callData.call_records && callData.call_records.length > 0) {
+        callRecords = callData.call_records;
+        callAnalytics = callData.call_analytics;
+        console.log(`✅ Loaded ${callRecords.length} real call records for user ${userId}`);
+      } else {
+        console.log(`⚠️ No real call records found for user ${userId}, using mock data`);
+      }
+    } catch (error) {
+      console.error('Failed to fetch real call records, falling back to mock data:', error);
+    }
+
     const advancedData: AdvancedUserAnalyticsData = {
       ...baseData,
       // ALL DATA FILTERED BY USER ID - NO SYSTEM-WIDE AGGREGATIONS
@@ -139,11 +157,47 @@ export class UserAnalyticsService {
       // New chat and call analytics
       chat_analytics: this.generateUserSpecificChatAnalytics(userId),
       chat_sessions: this.generateMockChatSessions(userId),
-      call_analytics: this.generateUserSpecificCallAnalytics(userId),
-      call_records: this.generateMockCallRecords(userId),
+      call_analytics: callAnalytics,
+      call_records: callRecords,
       alerts: this.generateUserSpecificAlerts(userId)
     };
     return advancedData;
+  }
+
+  /**
+   * Get user call records from backend
+   */
+  static async getUserCallRecords(userId: number): Promise<{ call_records: any[], call_analytics: any }> {
+    try {
+      const token = TokenManager.getAccessToken();
+      const headers: HeadersInit = {
+        'Content-Type': 'application/json'
+      };
+
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      const response = await fetch(`${this.baseUrl}/api/user-analytics/${userId}/call-records`, {
+        method: 'GET',
+        headers
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+
+      const result = await response.json();
+
+      if (result.success && result.data) {
+        return result.data;
+      } else {
+        throw new Error(result.error || 'Failed to fetch call records');
+      }
+    } catch (error) {
+      console.error('Failed to fetch call records:', error);
+      throw error;
+    }
   }
 
   /**

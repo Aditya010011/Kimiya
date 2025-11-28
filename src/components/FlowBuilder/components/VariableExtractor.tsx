@@ -65,9 +65,22 @@ const VariableExtractor: React.FC<VariableExtractorProps> = ({
 
   const handleUpdateVariable = (index: number, updates: Partial<ExtractedVariable>) => {
     const updatedVariables = [...variables];
-    updatedVariables[index] = { ...updatedVariables[index], ...updates };
+    const oldVariable = updatedVariables[index];
+    const oldName = oldVariable.name;
+
+    // Update the variable in the local state
+    updatedVariables[index] = { ...oldVariable, ...updates };
     setVariables(updatedVariables);
-    updateVariable(updatedVariables[index].name, updates);
+
+    // If the name is being changed, we need to delete the old variable and add the new one
+    if (updates.name && updates.name !== oldName) {
+      deleteVariable(oldName);
+      addVariable(updatedVariables[index]);
+    } else {
+      // Otherwise, just update the existing variable
+      updateVariable(oldName, updates);
+    }
+
     onVariablesChange?.(updatedVariables);
   };
 
@@ -106,7 +119,7 @@ const VariableExtractor: React.FC<VariableExtractorProps> = ({
 
       {/* Existing Variables */}
       {variables.map((variable, index) => (
-        <div key={variable.name} className="border rounded-lg p-4 space-y-3">
+        <div key={`variable-${index}`} className="border rounded-lg p-4 space-y-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               <Badge variant="secondary" className="truncate max-w-[150px]" title={variable.name}>{variable.name}</Badge>

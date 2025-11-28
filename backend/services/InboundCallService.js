@@ -197,6 +197,22 @@ class InboundCallService {
         request.input('answer_time', sql.DateTime2, additionalData.answerTime);
       }
 
+      // Add token usage if provided
+      if (additionalData.total_prompt_tokens !== undefined) {
+        updateFields.push('total_prompt_tokens = @total_prompt_tokens');
+        request.input('total_prompt_tokens', sql.Int, additionalData.total_prompt_tokens);
+      }
+
+      if (additionalData.total_completion_tokens !== undefined) {
+        updateFields.push('total_completion_tokens = @total_completion_tokens');
+        request.input('total_completion_tokens', sql.Int, additionalData.total_completion_tokens);
+      }
+
+      if (additionalData.total_tokens !== undefined) {
+        updateFields.push('total_tokens = @total_tokens');
+        request.input('total_tokens', sql.Int, additionalData.total_tokens);
+      }
+
       if (status === 'completed' || status === 'failed' || status === 'no-answer') {
         updateFields.push('end_time = GETDATE()');
       } else if (additionalData.endTime) {
@@ -239,12 +255,15 @@ class InboundCallService {
       const duration = endData.duration || 
         Math.floor((new Date() - callInfo.startTime) / 1000);
 
-      // Update call status to completed
+      // Update call status to completed with token usage
       await this.updateCallStatus(callSid, 'completed', {
         duration,
         recordingUrl: endData.recordingUrl,
         recordingDuration: endData.recordingDuration,
-        endTime: new Date()
+        endTime: new Date(),
+        total_prompt_tokens: endData.total_prompt_tokens,
+        total_completion_tokens: endData.total_completion_tokens,
+        total_tokens: endData.total_tokens
       });
 
       // Generate analytics if we have enough data
@@ -261,6 +280,33 @@ class InboundCallService {
 
     } catch (error) {
       console.error('❌ Failed to end call:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Update token usage for a call
+   */
+  async updateTokenUsage(callSid, tokenUsage) {
+    try {
+      const callInfo = this.activeCalls.get(callSid);
+      if (!callInfo) {
+        console.warn(`⚠️ No active call found for token update: ${callSid}`);
+        return { success: false, message: 'Call not found' };
+      }
+
+      // Update call with token usage
+      await this.updateCallStatus(callSid, callInfo.status, {
+        total_prompt_tokens: tokenUsage.total_prompt_tokens || 0,
+        total_completion_tokens: tokenUsage.total_completion_tokens || 0,
+        total_tokens: tokenUsage.total_tokens || 0
+      });
+
+      console.log('📊 Token usage updated:', { callSid, tokenUsage });
+      return { success: true, tokenUsage };
+
+    } catch (error) {
+      console.error('❌ Failed to update token usage:', error.message);
       throw error;
     }
   }

@@ -425,6 +425,9 @@ export interface CallRecord {
   transcription?: string;
   summary?: string;
   cost: number;
+  total_prompt_tokens?: number;
+  total_completion_tokens?: number;
+  total_tokens?: number;
   metadata: {
     caller_id?: string;
     caller_name?: string;

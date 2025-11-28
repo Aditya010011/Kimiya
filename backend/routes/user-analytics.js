@@ -194,5 +194,184 @@ router.get('/:userId', authenticateToken, async (req, res) => {
   }
 });
 
+/**
+ * GET /api/user-analytics/:userId/call-records
+ * Get detailed call records for a specific user
+ */
+router.get('/:userId/call-records', authenticateToken, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const requestingUserId = req.user?.id;
+    const requestingUserRole = req.user?.role;
+
+    // Check authorization
+    if (requestingUserRole !== 'admin' && parseInt(userId) !== requestingUserId) {
+      return res.status(403).json({
+        success: false,
+        error: 'Forbidden',
+        message: 'You can only access your own call records'
+      });
+    }
+
+    console.log(`📞 GET /api/user-analytics/${userId}/call-records called by user role: ${requestingUserRole}`);
+
+    // Get call records
+    // For admin users: return all calls
+    // For regular users: return calls for workflows they created
+    let callRecordsResult;
+
+    if (requestingUserRole === 'admin') {
+      console.log(`📊 Admin user - fetching all call records`);
+      callRecordsResult = await databaseService.query(`
+        SELECT
+          ic.id as call_id,
+          ic.call_sid,
+          ic.from_number,
+          ic.to_number,
+          ic.workflow_id,
+          ic.workflow_name,
+          ic.call_status as status,
+          ic.call_direction as direction,
+          ic.start_time,
+          ic.end_time,
+          ic.duration,
+          ic.recording_url,
+          ic.recording_duration,
+          ic.transcription,
+          ic.summary,
+          ic.cost,
+          ic.total_prompt_tokens,
+          ic.total_completion_tokens,
+          ic.total_tokens,
+          ica.sentiment_score,
+          ica.key_topics,
+          ica.action_items,
+          ica.call_outcome,
+          ica.customer_satisfaction,
+          ica.agent_performance
+        FROM tblInboundCalls ic
+        LEFT JOIN tblInboundCallAnalytics ica ON ic.id = ica.call_id
+        ORDER BY ic.start_time DESC
+      `);
+    } else {
+      console.log(`📊 Regular user - fetching calls for user's workflows`);
+      callRecordsResult = await databaseService.query(`
+        SELECT
+          ic.id as call_id,
+          ic.call_sid,
+          ic.from_number,
+          ic.to_number,
+          ic.workflow_id,
+          ic.workflow_name,
+          ic.call_status as status,
+          ic.call_direction as direction,
+          ic.start_time,
+          ic.end_time,
+          ic.duration,
+          ic.recording_url,
+          ic.recording_duration,
+          ic.transcription,
+          ic.summary,
+          ic.cost,
+          ic.total_prompt_tokens,
+          ic.total_completion_tokens,
+          ic.total_tokens,
+          ica.sentiment_score,
+          ica.key_topics,
+          ica.action_items,
+          ica.call_outcome,
+          ica.customer_satisfaction,
+          ica.agent_performance
+        FROM tblInboundCalls ic
+        LEFT JOIN tblInboundCallAnalytics ica ON ic.id = ica.call_id
+        WHERE EXISTS (
+          SELECT 1 FROM tblWorkflows w
+          WHERE CAST(w.id AS NVARCHAR(255)) = ic.workflow_id
+          AND w.created_by = @userId
+        )
+        ORDER BY ic.start_time DESC
+      `, { userId });
+    }
+
+    // Transform the data to match the CallRecord interface
+    const callRecords = callRecordsResult.recordset.map(record => ({
+      call_id: record.call_id.toString(),
+      call_sid: record.call_sid,
+      user_id: parseInt(userId),
+      workflow_id: record.workflow_id,
+      workflow_name: record.workflow_name,
+      direction: record.direction,
+      from_number: record.from_number,
+      to_number: record.to_number,
+      status: record.status,
+      start_time: record.start_time,
+      end_time: record.end_time,
+      duration: record.duration || 0,
+      recording_url: record.recording_url,
+      recording_duration: record.recording_duration,
+      transcription: record.transcription,
+      summary: record.summary,
+      cost: record.cost || 0,
+      total_prompt_tokens: record.total_prompt_tokens,
+      total_completion_tokens: record.total_completion_tokens,
+      total_tokens: record.total_tokens,
+      metadata: {},
+      analysis: record.sentiment_score ? {
+        sentiment_score: record.sentiment_score,
+        key_topics: record.key_topics ? JSON.parse(record.key_topics) : [],
+        action_items: record.action_items ? JSON.parse(record.action_items) : [],
+        outcome: record.call_outcome || 'unsuccessful',
+        customer_satisfaction: record.customer_satisfaction,
+        agent_performance: record.agent_performance
+      } : undefined
+    }));
+
+    // Calculate call analytics
+    const totalCalls = callRecords.length;
+    const answeredCalls = callRecords.filter(c => c.status === 'answered' || c.status === 'completed').length;
+    const missedCalls = callRecords.filter(c => c.status === 'no-answer' || c.status === 'declined').length;
+    const totalDuration = callRecords.reduce((sum, c) => sum + (c.duration || 0), 0);
+    const avgDuration = totalCalls > 0 ? totalDuration / totalCalls : 0;
+    const answerRate = totalCalls > 0 ? (answeredCalls / totalCalls) * 100 : 0;
+    const totalCost = callRecords.reduce((sum, c) => sum + (c.cost || 0), 0);
+
+    const callAnalytics = {
+      total_calls: totalCalls,
+      answered_calls: answeredCalls,
+      missed_calls: missedCalls,
+      total_duration: totalDuration,
+      average_duration: Math.round(avgDuration),
+      answer_rate: Math.round(answerRate * 10) / 10,
+      cost_summary: {
+        total_cost: totalCost,
+        average_cost_per_call: totalCalls > 0 ? totalCost / totalCalls : 0,
+        cost_by_direction: {
+          inbound: callRecords.filter(c => c.direction === 'inbound').reduce((sum, c) => sum + (c.cost || 0), 0),
+          outbound: callRecords.filter(c => c.direction === 'outbound').reduce((sum, c) => sum + (c.cost || 0), 0)
+        }
+      }
+    };
+
+    console.log(`✅ Retrieved ${callRecords.length} call records for user ${userId}`);
+
+    res.json({
+      success: true,
+      data: {
+        call_records: callRecords,
+        call_analytics: callAnalytics
+      },
+      timestamp: new Date().toISOString()
+    });
+
+  } catch (error) {
+    console.error('❌ Failed to get call records:', error);
+    res.status(500).json({
+      success: false,
+      error: 'Failed to retrieve call records',
+      message: error.message
+    });
+  }
+});
+
 module.exports = router;
 

@@ -110,7 +110,7 @@ module.exports = async function chatHandler(req, res) {
     ];
 
     console.log('Calling Azure OpenAI for chat...');
-    const aiResponse = await callAzureOpenAI(apiMessages);
+    const aiResult = await callAzureOpenAI(apiMessages);
 
     console.log('Chat AI response generated successfully');
 
@@ -121,10 +121,11 @@ module.exports = async function chatHandler(req, res) {
       'chat',
       {
         messageId,
-        responseLength: aiResponse.length,
+        responseLength: aiResult.content.length,
         messageCount: messages.length,
         workflowId,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
+        tokenUsage: aiResult.usage
       },
       messageId,
       'chat_message'
@@ -132,8 +133,9 @@ module.exports = async function chatHandler(req, res) {
 
     const response = {
       success: true,
-      response: aiResponse,
-      timestamp: new Date().toISOString()
+      response: aiResult.content,
+      timestamp: new Date().toISOString(),
+      usage: aiResult.usage
     };
 
     // Add credit information to response if credits were processed
@@ -172,7 +174,7 @@ module.exports = async function chatHandler(req, res) {
 async function callAzureOpenAI(messages) {
   try {
     console.log('Calling Azure OpenAI for chat...');
-    
+
     const response = await fetch(process.env.AZURE_OPENAI_ENDPOINT, {
       method: 'POST',
       headers: {
@@ -197,9 +199,21 @@ async function callAzureOpenAI(messages) {
 
     const data = await response.json();
     console.log('Azure OpenAI chat response received');
-    
+
     if (data.choices && data.choices[0] && data.choices[0].message) {
-      return data.choices[0].message.content.trim();
+      // Extract token usage from response
+      const tokenUsage = data.usage || {};
+      const result = {
+        content: data.choices[0].message.content.trim(),
+        usage: {
+          prompt_tokens: tokenUsage.prompt_tokens || 0,
+          completion_tokens: tokenUsage.completion_tokens || 0,
+          total_tokens: tokenUsage.total_tokens || 0
+        }
+      };
+
+      console.log('Token usage:', result.usage);
+      return result;
     } else {
       console.error('Unexpected Azure OpenAI response format:', data);
       throw new Error('Invalid response format from Azure OpenAI');

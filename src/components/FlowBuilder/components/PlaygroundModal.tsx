@@ -11,7 +11,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Node } from '@xyflow/react';
-import { ConditionalEdge } from '../../../types/flowTypes';
+import { ConditionalEdge, ConditionType, ExtractedVariable } from '../../../types/flowTypes';
 import { WorkflowConfig } from '../../../types/workflowConfig';
 import { toast } from 'sonner';
 import { defaultTwilioService, TwilioService, CallResponse } from '../../../services/twilioService';
@@ -39,6 +39,11 @@ interface ChatMessage {
   timestamp: Date;
   nodeId?: string;
   nodeName?: string;
+  tokenUsage?: {
+    prompt_tokens?: number;
+    completion_tokens?: number;
+    total_tokens?: number;
+  };
 }
 
 // Azure OpenAI config is now handled on the backend
@@ -79,6 +84,13 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
   const [isAnalyticsEnabled, setIsAnalyticsEnabled] = useState(true);
   const [sessionStartTime, setSessionStartTime] = useState<Date | null>(null);
 
+  // Token usage tracking state
+  const [sessionTokenUsage, setSessionTokenUsage] = useState({
+    total_prompt_tokens: 0,
+    total_completion_tokens: 0,
+    total_tokens: 0
+  });
+
   // Call functionality state
   const [activeTab, setActiveTab] = useState<'chat' | 'call'>('chat');
   const [phoneNumber, setPhoneNumber] = useState('');
@@ -99,6 +111,13 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
     callTimeout: workflowConfig?.twilio?.callTimeout ?? 30
   });
   const [showAuthToken, setShowAuthToken] = useState(false);
+
+  // Workflow execution state - track extracted variables
+  const [extractedVariables, setExtractedVariables] = useState<Map<string, any>>(new Map());
+
+  // User inactivity tracking for follow-up messages
+  const [lastUserMessageTime, setLastUserMessageTime] = useState<number | null>(null);
+  const [inactivityTimeoutId, setInactivityTimeoutId] = useState<NodeJS.Timeout | null>(null);
 
   // Chat now uses backend API instead of direct Azure OpenAI calls
 
@@ -215,12 +234,10 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
       };
       setMessages([systemMessage]);
 
-      // If start node has specific content, have AI initiate the conversation
-      if (startNode.data?.prompt || startNode.data?.greeting) {
-        setTimeout(() => {
-          initiateNodeConversation(startNode, true); // true = this is the first node
-        }, 500);
-      }
+      // ALWAYS have AI initiate the conversation (simulating outbound call)
+      setTimeout(() => {
+        initiateNodeConversation(startNode, true); // true = this is the first node
+      }, 500);
     } else {
       toast.error('No start node found in the workflow');
     }
@@ -288,7 +305,7 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
       await chatAnalyticsService.updateChatSession(analyticsSessionId, {
         end_time: new Date().toISOString(),
         status: 'completed',
-        outcome: outcome || 'success'
+        outcome: (outcome as 'success' | 'partial_success' | 'failure' | 'abandoned') || 'success'
       });
 
       console.log('✅ ANALYTICS: Session ended successfully:', analyticsSessionId);
@@ -299,7 +316,7 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
     }
   };
 
-  const callBackendChatAPI = async (messages: any[]): Promise<string> => {
+  const callBackendChatAPI = async (messages: any[]): Promise<{ content: string; tokenUsage: any }> => {
     try {
       // Get current node to check for KB configuration
       const currentNode = currentNodeId ? nodes.find(n => n.id === currentNodeId) : null;
@@ -312,7 +329,7 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
       };
 
       // Add knowledge base configuration if present in current node
-      if (currentNode?.data?.knowledgeBases && currentNode.data.knowledgeBases.length > 0) {
+      if (currentNode?.data?.knowledgeBases && Array.isArray(currentNode.data.knowledgeBases) && currentNode.data.knowledgeBases.length > 0) {
         requestBody.knowledgeBases = currentNode.data.knowledgeBases;
         requestBody.kbRetrievalConfig = currentNode.data.kbRetrievalConfig || {
           topK: 3,
@@ -361,7 +378,11 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
         throw error;
       }
 
-      return response.response || 'No response generated';
+      // Return both response and token usage
+      return {
+        content: response.response || 'No response generated',
+        tokenUsage: response.tokenUsage || response.usage || null
+      };
     } catch (error: any) {
       console.error('Backend chat API error:', error);
       // Mark credit errors so they can be handled differently
@@ -385,58 +406,456 @@ const PlaygroundModal: React.FC<PlaygroundModalProps> = ({
       const nodeInstructions = node.data?.instructions || '';
       const effectiveGlobalPrompt = getEffectiveGlobalPrompt();
 
-      // Only initiate conversation for the very first node (start node)
-      // For subsequent nodes, let the conversation flow naturally
-      if (!isFirstNode) {
-        return;
-      }
+      // Get conversation history for context
+      const conversationHistory = messages
+        .filter(msg => msg.role !== 'system')
+        .slice(-10)
+        .map(msg => ({
+          role: msg.role,
+          content: msg.content
+        }));
 
       const systemPrompt = `${effectiveGlobalPrompt}
 
 Current Node: ${node.data?.label || node.type}
 Node Context: ${nodePrompt}
 ${nodeInstructions ? `Instructions: ${nodeInstructions}` : ''}
+${conversationSummary ? `\nConversation Summary So Far: ${conversationSummary}` : ''}
 
-You are starting a phone conversation. Be natural and conversational. Begin with an appropriate greeting based on the node context.`;
+${isFirstNode
+  ? 'You are initiating an outbound phone call. Start the conversation naturally based on the node context. Be friendly and professional.'
+  : 'You have just transitioned to a new node in the conversation. Continue the conversation naturally, focusing on this node\'s specific objective. Do NOT repeat greetings or information already discussed.'
+}
+
+IMPORTANT:
+- Ask questions to gather information needed to satisfy the edge conditions for moving to the next node
+- If the user's response is unclear or ambiguous, ask clarifying questions
+- Stay in this node until you have clear, definitive information to satisfy an edge condition
+- Focus ONLY on this node's objective - don't try to complete the entire workflow here`;
 
       try {
-        const aiResponse = await callBackendChatAPI([
+        const result = await callBackendChatAPI([
           { role: 'system', content: systemPrompt },
-          { role: 'user', content: 'Hello' }
+          ...conversationHistory,
+          { role: 'user', content: isFirstNode ? '[CALL_START]' : '[NODE_TRANSITION]' }
         ]);
+
+        // Update session token usage
+        if (result.tokenUsage) {
+          setSessionTokenUsage(prev => ({
+            total_prompt_tokens: prev.total_prompt_tokens + (result.tokenUsage.prompt_tokens || 0),
+            total_completion_tokens: prev.total_completion_tokens + (result.tokenUsage.completion_tokens || 0),
+            total_tokens: prev.total_tokens + (result.tokenUsage.total_tokens || 0)
+          }));
+        }
 
         const aiMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           role: 'assistant',
-          content: aiResponse,
+          content: result.content,
           timestamp: new Date(),
           nodeId: node.id,
+          tokenUsage: result.tokenUsage,
           nodeName: node.data?.label as string
         };
 
         setMessages(prev => [...prev, aiMessage]);
+
+        // Start inactivity timer after AI sends a message
+        startInactivityTimer();
       } catch (error) {
         console.error('Failed to initiate conversation:', error);
       }
     }
   };
 
+  /**
+   * Send a follow-up message if user hasn't responded in 20 seconds
+   */
+  const sendFollowUpMessage = async () => {
+    const currentNode = getCurrentNode();
+    if (!currentNode || !isSimulating || isLoading) return;
+
+    console.log('[Playground] User inactive for 20 seconds - sending follow-up');
+
+    const nodePrompt = currentNode.data?.prompt || '';
+    const effectiveGlobalPrompt = getEffectiveGlobalPrompt();
+
+    const conversationHistory = messages
+      .filter(msg => msg.role !== 'system')
+      .slice(-10)
+      .map(msg => ({
+        role: msg.role,
+        content: msg.content
+      }));
+
+    const systemPrompt = `${effectiveGlobalPrompt}
+
+Current Node: ${currentNode.data?.label || currentNode.type}
+Node Context: ${nodePrompt}
+
+The user hasn't responded for a few seconds. Send a brief, natural follow-up message to re-engage them.
+Examples: "Are you still there?", "Did you have any questions?", "Would you like me to clarify anything?"
+
+Keep it short, friendly, and contextually relevant to what you just asked.`;
+
+    try {
+      setIsLoading(true);
+      const result = await callBackendChatAPI([
+        { role: 'system', content: systemPrompt },
+        ...conversationHistory,
+        { role: 'user', content: '[USER_INACTIVE]' }
+      ]);
+
+      // Update session token usage
+      if (result.tokenUsage) {
+        setSessionTokenUsage(prev => ({
+          total_prompt_tokens: prev.total_prompt_tokens + (result.tokenUsage.prompt_tokens || 0),
+          total_completion_tokens: prev.total_completion_tokens + (result.tokenUsage.completion_tokens || 0),
+          total_tokens: prev.total_tokens + (result.tokenUsage.total_tokens || 0)
+        }));
+      }
+
+      const aiMessage: ChatMessage = {
+        id: `ai-followup-${Date.now()}`,
+        role: 'assistant',
+        content: result.content,
+        timestamp: new Date(),
+        nodeId: currentNode.id,
+        tokenUsage: result.tokenUsage,
+        nodeName: currentNode.data?.label as string
+      };
+
+      setMessages(prev => [...prev, aiMessage]);
+
+      // Restart inactivity timer after follow-up
+      startInactivityTimer();
+    } catch (error) {
+      console.error('Failed to send follow-up message:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  /**
+   * Start or restart the inactivity timer
+   */
+  const startInactivityTimer = () => {
+    // Clear existing timer
+    if (inactivityTimeoutId) {
+      clearTimeout(inactivityTimeoutId);
+    }
+
+    // Set new timer for 20 seconds
+    const timeoutId = setTimeout(() => {
+      sendFollowUpMessage();
+    }, 20000);
+
+    setInactivityTimeoutId(timeoutId);
+    setLastUserMessageTime(Date.now());
+  };
+
+  /**
+   * Clear the inactivity timer
+   */
+  const clearInactivityTimer = () => {
+    if (inactivityTimeoutId) {
+      clearTimeout(inactivityTimeoutId);
+      setInactivityTimeoutId(null);
+    }
+  };
+
+  // Clean up timer on unmount or when simulation stops
+  useEffect(() => {
+    return () => {
+      clearInactivityTimer();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!isSimulating) {
+      clearInactivityTimer();
+    }
+  }, [isSimulating]);
+
   const getCurrentNode = () => {
     return nodes.find(node => node.id === currentNodeId);
   };
 
-  const getNextNode = (currentNodeId: string, userMessage?: string) => {
+  /**
+   * Evaluate if an edge condition is met
+   */
+  const evaluateEdgeCondition = async (edge: ConditionalEdge, userMessage: string, aiResponse: string): Promise<boolean> => {
+    // No condition or NONE type = always follow
+    if (!edge.data || edge.data.type === ConditionType.NONE) {
+      return true;
+    }
+
+    const conditionData = edge.data;
+
+    try {
+      // Check for simple keyword matching first (faster than AI)
+      // If aiCondition looks like a simple keyword (single word, no spaces or punctuation), treat it as keyword match
+      if (conditionData.type === ConditionType.AI_BASED && conditionData.aiCondition) {
+        const condition = conditionData.aiCondition.trim().toLowerCase();
+        const userLower = userMessage.toLowerCase();
+        const aiLower = aiResponse.toLowerCase();
+
+        // Simple keyword matching for common cases like "yes", "no", "help", etc.
+        const isSimpleKeyword = /^[a-z]+$/.test(condition) && condition.length < 15;
+
+        if (isSimpleKeyword) {
+          // Check if keyword appears in user message or AI response
+          const keywordFound = userLower.includes(condition) || aiLower.includes(condition);
+          console.log(`[Playground] Keyword match for "${condition}": ${keywordFound}`);
+          return keywordFound;
+        }
+      }
+
+      // AI-based condition evaluation (for complex conditions)
+      if (conditionData.type === ConditionType.AI_BASED && conditionData.aiCondition) {
+        console.log(`[Playground] Evaluating AI condition: "${conditionData.aiCondition}"`);
+
+        // Use AI to evaluate the condition
+        const evaluationPrompt = `You are evaluating a workflow condition.
+
+Condition to evaluate: "${conditionData.aiCondition}"
+
+Recent conversation context:
+User: ${userMessage}
+Assistant: ${aiResponse}
+
+Does the conversation satisfy this condition? Consider the user's intent, the content of the messages, and the context.
+
+Respond with ONLY "YES" if the condition is met, or "NO" if it is not met.`;
+
+        const result = await callBackendChatAPI([
+          { role: 'system', content: evaluationPrompt }
+        ]);
+
+        const conditionMet = result.content.trim().toUpperCase().includes('YES');
+        console.log(`[Playground] AI condition result: ${conditionMet}`);
+        return conditionMet;
+      }
+
+      // Logical condition evaluation
+      if (conditionData.type === ConditionType.LOGICAL && conditionData.logicalConditions) {
+        console.log(`[Playground] Evaluating ${conditionData.logicalConditions.length} logical conditions`);
+
+        let result = true;
+        for (const condition of conditionData.logicalConditions) {
+          const variableValue = extractedVariables.get(condition.variable);
+          const conditionResult = evaluateLogicalCondition(condition, variableValue);
+
+          console.log(`[Playground] Logical condition: ${condition.variable} ${condition.operator} ${condition.value} = ${conditionResult}`);
+
+          // Handle AND/OR combination
+          if (condition.combineWith === 'and') {
+            result = result && conditionResult;
+          } else if (condition.combineWith === 'or') {
+            result = result || conditionResult;
+          } else {
+            result = conditionResult;
+          }
+        }
+
+        console.log(`[Playground] Logical conditions result: ${result}`);
+        return result;
+      }
+
+      // Combined condition (AI + Logical)
+      if (conditionData.type === ConditionType.COMBINED) {
+        console.log(`[Playground] Evaluating combined condition`);
+
+        // Evaluate both AI and logical conditions
+        let aiResult = true;
+        let logicalResult = true;
+
+        if (conditionData.aiCondition) {
+          aiResult = await evaluateEdgeCondition(
+            { ...edge, data: { ...conditionData, type: ConditionType.AI_BASED } },
+            userMessage,
+            aiResponse
+          );
+        }
+
+        if (conditionData.logicalConditions) {
+          logicalResult = await evaluateEdgeCondition(
+            { ...edge, data: { ...conditionData, type: ConditionType.LOGICAL } },
+            userMessage,
+            aiResponse
+          );
+        }
+
+        const result = aiResult && logicalResult;
+        console.log(`[Playground] Combined condition result: ${result} (AI: ${aiResult}, Logical: ${logicalResult})`);
+        return result;
+      }
+
+      // Default: condition not recognized
+      console.warn(`[Playground] Unknown condition type: ${conditionData.type}`);
+      return false;
+
+    } catch (error) {
+      console.error('[Playground] Error evaluating edge condition:', error);
+      return false;
+    }
+  };
+
+  /**
+   * Evaluate a single logical condition
+   */
+  const evaluateLogicalCondition = (condition: any, variableValue: any): boolean => {
+    if (variableValue === undefined || variableValue === null) {
+      console.warn(`[Playground] Variable "${condition.variable}" not found in extracted variables`);
+      return false;
+    }
+
+    const { operator, value } = condition;
+
+    switch (operator) {
+      case '==':
+      case 'equals':
+        return variableValue == value;
+
+      case '!=':
+      case 'not_equals':
+        return variableValue != value;
+
+      case '>':
+      case 'greater_than':
+        return Number(variableValue) > Number(value);
+
+      case '<':
+      case 'less_than':
+        return Number(variableValue) < Number(value);
+
+      case '>=':
+      case 'greater_than_or_equal':
+        return Number(variableValue) >= Number(value);
+
+      case '<=':
+      case 'less_than_or_equal':
+        return Number(variableValue) <= Number(value);
+
+      case 'contains':
+        return String(variableValue).toLowerCase().includes(String(value).toLowerCase());
+
+      case 'not_contains':
+        return !String(variableValue).toLowerCase().includes(String(value).toLowerCase());
+
+      default:
+        console.warn(`[Playground] Unknown operator: ${operator}`);
+        return false;
+    }
+  };
+
+  /**
+   * Extract variables from conversation using AI
+   */
+  const extractVariablesFromConversation = async (userMessage: string, aiResponse: string, currentNode: Node) => {
+    // Get variables that should be extracted from this node
+    const { workflowContext } = useFlowStore.getState();
+    const nodeVariables = Array.from(workflowContext.variables.values()).filter(
+      v => v.nodeId === currentNode.id
+    );
+
+    if (nodeVariables.length === 0) {
+      return; // No variables to extract for this node
+    }
+
+    console.log(`[Playground] Extracting ${nodeVariables.length} variables from conversation`);
+
+    try {
+      const extractionPrompt = `You are extracting specific information from a conversation.
+
+Variables to extract:
+${nodeVariables.map(v => `- ${v.name} (${v.type}): ${v.description}`).join('\n')}
+
+Recent conversation:
+User: ${userMessage}
+Assistant: ${aiResponse}
+
+Extract the values for each variable from the conversation. If a variable's value is not mentioned, respond with "NOT_FOUND".
+
+Respond in JSON format:
+{
+  "variable_name": "extracted_value",
+  ...
+}`;
+
+      const result = await callBackendChatAPI([
+        { role: 'system', content: extractionPrompt }
+      ]);
+
+      // Parse the JSON response
+      try {
+        const extractedData = JSON.parse(result.content);
+
+        // Update extracted variables state
+        setExtractedVariables(prev => {
+          const updated = new Map(prev);
+          for (const [key, value] of Object.entries(extractedData)) {
+            if (value !== 'NOT_FOUND') {
+              updated.set(key, value);
+              console.log(`[Playground] Extracted variable: ${key} = ${value}`);
+            }
+          }
+          return updated;
+        });
+      } catch (parseError) {
+        console.warn('[Playground] Failed to parse variable extraction response:', result.content);
+      }
+    } catch (error) {
+      console.error('[Playground] Error extracting variables:', error);
+    }
+  };
+
+  /**
+   * Get the next node based on edge conditions
+   */
+  const getNextNode = async (currentNodeId: string, userMessage: string, aiResponse: string): Promise<Node | null> => {
     // Find edges from current node
     const outgoingEdges = edges.filter(edge => edge.source === currentNodeId);
 
     if (outgoingEdges.length === 0) {
+      console.log('[Playground] No outgoing edges - end of workflow');
       return null; // End of flow
     }
 
-    // For now, just take the first edge (in a real implementation, this would evaluate conditions)
-    // In the future, this could evaluate edge conditions based on the user message or AI response
-    const nextEdge = outgoingEdges[0];
-    return nodes.find(node => node.id === nextEdge.target);
+    // If only one edge, follow it (no need to evaluate conditions)
+    if (outgoingEdges.length === 1) {
+      console.log('[Playground] Single edge - following it');
+      return nodes.find(node => node.id === outgoingEdges[0].target) || null;
+    }
+
+    // Multiple edges - evaluate conditions
+    console.log(`[Playground] Evaluating ${outgoingEdges.length} edges for conditions`);
+
+    for (const edge of outgoingEdges) {
+      // Skip default edges in first pass
+      if (edge.data?.isDefault) {
+        continue;
+      }
+
+      const conditionMet = await evaluateEdgeCondition(edge, userMessage, aiResponse);
+
+      if (conditionMet) {
+        console.log(`[Playground] Condition met for edge ${edge.id} - following to node ${edge.target}`);
+        return nodes.find(node => node.id === edge.target) || null;
+      }
+    }
+
+    // No conditions matched - look for default edge
+    const defaultEdge = outgoingEdges.find(e => e.data?.isDefault);
+    if (defaultEdge) {
+      console.log('[Playground] No conditions matched - following default edge');
+      return nodes.find(node => node.id === defaultEdge.target) || null;
+    }
+
+    // No matching conditions and no default edge - stay in current node
+    console.log('[Playground] No conditions matched and no default edge - staying in current node');
+    return null;
   };
 
   const getNodeTypeDescription = (nodeType: string) => {
@@ -502,11 +921,20 @@ AVOID staying in current node if:
 Respond with only "YES" if we should move to the next node, or "NO" if we should continue the conversation in this node.`;
 
     try {
-      const evaluation = await callBackendChatAPI([
+      const result = await callBackendChatAPI([
         { role: 'system', content: evaluationPrompt }
       ]);
 
-      return evaluation.trim().toUpperCase().includes('YES');
+      // Update session token usage
+      if (result.tokenUsage) {
+        setSessionTokenUsage(prev => ({
+          total_prompt_tokens: prev.total_prompt_tokens + (result.tokenUsage.prompt_tokens || 0),
+          total_completion_tokens: prev.total_completion_tokens + (result.tokenUsage.completion_tokens || 0),
+          total_tokens: prev.total_tokens + (result.tokenUsage.total_tokens || 0)
+        }));
+      }
+
+      return result.content.trim().toUpperCase().includes('YES');
     } catch (error) {
       console.error('Failed to evaluate node completion:', error);
       // Default to staying in node if evaluation fails
@@ -547,16 +975,27 @@ Node Context: ${nodePrompt}
 ${nodeInstructions ? `Instructions: ${nodeInstructions}` : ''}
 ${conversationSummary ? `\nConversation Summary So Far: ${conversationSummary}` : ''}
 
-You are continuing a phone conversation. The user has been talking with you and you should maintain context from the previous conversation. Focus ONLY on achieving the specific objective of THIS node - do not try to complete the entire workflow in one node.
+You are continuing a phone conversation. The user has been talking with you and you should maintain context from the previous conversation.
 
-IMPORTANT:
+CRITICAL INSTRUCTIONS FOR THIS NODE:
+- Your PRIMARY GOAL is to gather clear, definitive information to satisfy the edge conditions for moving to the next node
+- If the user's response is unclear, ambiguous, or incomplete, you MUST ask clarifying questions
+- Do NOT move forward until you have a clear, definitive answer
+- Ask follow-up questions naturally to get the information you need
+- Stay in this node until the edge condition is clearly satisfied
+
+CONVERSATION GUIDELINES:
 - Do NOT start with greetings like "Hello" or "Thank you for reaching out" unless this is truly the first interaction
 - Continue the conversation naturally based on what has been discussed
 - Remember what the user has already told you (check the conversation summary)
 - Don't ask for information the user has already provided
-- Focus ONLY on the current node's specific objective - there are other nodes designed for other purposes
-- Do NOT try to gather all information at once - stick to this node's purpose
-- Once this node's specific objective is met, the conversation will naturally move to the next specialized node
+- Focus ONLY on this node's specific objective - there are other nodes designed for other purposes
+- Be conversational and natural, not robotic or repetitive
+
+EXAMPLES OF GOOD CLARIFYING QUESTIONS:
+- User says "Maybe" → Ask: "Can you tell me more about your situation? Are you currently looking to sell or just exploring options?"
+- User says "I'm not sure" → Ask: "No problem! What brings you here today? Are you interested in buying or selling property?"
+- User gives vague answer → Ask specific follow-up questions to get clarity
 
 Conversation turns in this node: ${conversationTurns}`
         },
@@ -568,15 +1007,25 @@ Conversation turns in this node: ${conversationTurns}`
       ];
 
       try {
-        const aiResponse = await callBackendChatAPI(conversationMessages);
+        const result = await callBackendChatAPI(conversationMessages);
+
+        // Update session token usage
+        if (result.tokenUsage) {
+          setSessionTokenUsage(prev => ({
+            total_prompt_tokens: prev.total_prompt_tokens + (result.tokenUsage.prompt_tokens || 0),
+            total_completion_tokens: prev.total_completion_tokens + (result.tokenUsage.completion_tokens || 0),
+            total_tokens: prev.total_tokens + (result.tokenUsage.total_tokens || 0)
+          }));
+        }
 
         const aiMessage: ChatMessage = {
           id: `ai-${Date.now()}`,
           role: 'assistant',
-          content: aiResponse,
+          content: result.content,
           timestamp: new Date(),
           nodeId: currentNode.id,
-          nodeName: currentNode.data?.label as string
+          nodeName: currentNode.data?.label as string,
+          tokenUsage: result.tokenUsage
         };
 
         setMessages(prev => [...prev, aiMessage]);
@@ -584,17 +1033,15 @@ Conversation turns in this node: ${conversationTurns}`
         // Note: AI message analytics tracking is handled by the backend chat-with-analytics endpoint
         // to avoid duplicate message storage
 
-        // Check if we should move to next node (more aggressive to follow workflow)
-        if (conversationTurns >= 2) { // Reduced back to 2 to move faster through workflow
-          // Add a small delay to make the conversation feel more natural
-          setTimeout(async () => {
-            const shouldMove = await shouldMoveToNextNode(currentNode, [...messages, aiMessage], userMessage);
+        // Extract variables from the conversation
+        await extractVariablesFromConversation(userMessage, result.content, currentNode);
 
-            if (shouldMove) {
-              await moveToNextNode(currentNode.id, userMessage);
-            }
-          }, 1000); // Reduced delay to move through workflow faster
-        }
+        // Check edge conditions in the background to see if we should transition
+        // But DON'T transition immediately - let AI ask clarifying questions first
+        await evaluateAndTransitionIfReady(currentNode.id, userMessage, result.content);
+
+        // Start inactivity timer after AI responds
+        startInactivityTimer();
       } catch (error: any) {
         // Don't show generic error toast if this is a credit error
         // (credit errors are already handled by useChatWithCredits hook)
@@ -606,38 +1053,42 @@ Conversation turns in this node: ${conversationTurns}`
       }
     } else {
       // Non-conversation nodes - process and move immediately
-      await handleNonConversationNode(currentNode);
-      await moveToNextNode(currentNode.id, userMessage);
+      const nodeResponse = await handleNonConversationNode(currentNode);
+      await moveToNextNode(currentNode.id, userMessage, nodeResponse);
     }
   };
 
-  const handleNonConversationNode = async (node: Node) => {
+  const handleNonConversationNode = async (node: Node): Promise<string> => {
     let nodeMessage: ChatMessage;
+    let responseContent: string;
 
     if (node.type === 'apiRequest') {
+      responseContent = `[API Request] ${node.data?.label || 'API call executed'} - Processing request...`;
       nodeMessage = {
         id: `api-${Date.now()}`,
         role: 'assistant',
-        content: `[API Request] ${node.data?.label || 'API call executed'} - Processing request...`,
+        content: responseContent,
         timestamp: new Date(),
         nodeId: node.id,
         nodeName: node.data?.label as string
       };
     } else if (node.type === 'endCall') {
+      responseContent = 'Call ended. Thank you for calling!';
       nodeMessage = {
         id: `end-${Date.now()}`,
         role: 'system',
-        content: 'Call ended. Thank you for calling!',
+        content: responseContent,
         timestamp: new Date(),
         nodeId: node.id,
         nodeName: node.data?.label as string
       };
       setIsSimulating(false);
     } else {
+      responseContent = `[${getNodeTypeDescription(node.type)}] ${node.data?.label || 'Processing'}...`;
       nodeMessage = {
         id: `node-${Date.now()}`,
         role: 'assistant',
-        content: `[${getNodeTypeDescription(node.type)}] ${node.data?.label || 'Processing'}...`,
+        content: responseContent,
         timestamp: new Date(),
         nodeId: node.id,
         nodeName: node.data?.label as string
@@ -645,33 +1096,91 @@ Conversation turns in this node: ${conversationTurns}`
     }
 
     setMessages(prev => [...prev, nodeMessage]);
+    return responseContent;
   };
 
-  const moveToNextNode = async (currentNodeId: string, userMessage?: string) => {
-    const nextNode = getNextNode(currentNodeId, userMessage);
+  /**
+   * Evaluate edge conditions and transition ONLY if condition is definitively met
+   * This replaces the old immediate transition logic
+   */
+  const evaluateAndTransitionIfReady = async (currentNodeId: string, userMessage: string, aiResponse: string) => {
+    console.log('[Playground] Evaluating edge conditions for potential transition...');
+
+    const outgoingEdges = edges.filter(edge => edge.source === currentNodeId);
+
+    if (outgoingEdges.length === 0) {
+      console.log('[Playground] No outgoing edges - end of workflow');
+      return;
+    }
+
+    // Evaluate all edge conditions
+    for (const edge of outgoingEdges) {
+      // Skip default edges in first pass
+      if (edge.data?.isDefault) {
+        continue;
+      }
+
+      const conditionMet = await evaluateEdgeCondition(edge, userMessage, aiResponse);
+
+      if (conditionMet) {
+        console.log(`[Playground] ✅ Edge condition DEFINITIVELY met for edge ${edge.id}`);
+        console.log(`[Playground] Transitioning to node ${edge.target}`);
+
+        // Condition is definitively met - transition now
+        const nextNode = nodes.find(node => node.id === edge.target);
+        if (nextNode) {
+          await transitionToNode(nextNode);
+        }
+        return;
+      } else {
+        console.log(`[Playground] ❌ Edge condition NOT met for edge ${edge.id} - AI should ask clarifying questions`);
+      }
+    }
+
+    // No conditions met - check for default edge
+    const defaultEdge = outgoingEdges.find(e => e.data?.isDefault);
+    if (defaultEdge) {
+      console.log('[Playground] No conditions met - but NOT transitioning to default edge yet');
+      console.log('[Playground] AI should continue asking questions to satisfy a condition');
+    } else {
+      console.log('[Playground] No conditions met and no default edge - staying in current node');
+    }
+  };
+
+  /**
+   * Actually transition to a new node
+   */
+  const transitionToNode = async (nextNode: Node) => {
+    console.log(`[Playground] 🔄 Transitioning to node: ${nextNode.data?.label || nextNode.type}`);
+
+    setCurrentNodeId(nextNode.id);
+    setConversationTurns(0); // Reset conversation turns for new node
+
+    // Set new node context
+    const context = (nextNode.data?.prompt || nextNode.data?.description || '') as string;
+    setNodeContext(context);
+
+    // Add system message about node transition
+    const transitionMessage: ChatMessage = {
+      id: `transition-${Date.now()}`,
+      role: 'system',
+      content: `→ Moved to: ${nextNode.data?.label || getNodeTypeDescription(nextNode.type)}`,
+      timestamp: new Date(),
+      nodeId: nextNode.id,
+      nodeName: nextNode.data?.label as string
+    };
+
+    setMessages(prev => [...prev, transitionMessage]);
+
+    // Initiate conversation in the new node
+    await initiateNodeConversation(nextNode, false);
+  };
+
+  const moveToNextNode = async (currentNodeId: string, userMessage: string, aiResponse: string) => {
+    const nextNode = await getNextNode(currentNodeId, userMessage, aiResponse);
 
     if (nextNode) {
-      setCurrentNodeId(nextNode.id);
-      setConversationTurns(0); // Reset conversation turns for new node
-
-      // Set new node context
-      const context = (nextNode.data?.prompt || nextNode.data?.description || '') as string;
-      setNodeContext(context);
-
-      // Add system message about node transition (more subtle)
-      const transitionMessage: ChatMessage = {
-        id: `transition-${Date.now()}`,
-        role: 'system',
-        content: `→ Moved to: ${nextNode.data?.label || getNodeTypeDescription(nextNode.type)}`,
-        timestamp: new Date(),
-        nodeId: nextNode.id,
-        nodeName: nextNode.data?.label as string
-      };
-
-      setMessages(prev => [...prev, transitionMessage]);
-
-      // For conversation nodes, don't initiate new conversation - let it flow naturally
-      // The AI will continue the conversation based on the new node context
+      await transitionToNode(nextNode);
     } else {
       // End of workflow
       const endMessage: ChatMessage = {
@@ -701,6 +1210,9 @@ Conversation turns in this node: ${conversationTurns}`
 
   const handleSendMessage = async () => {
     if (!inputMessage.trim() || isLoading) return;
+
+    // Clear inactivity timer when user sends a message
+    clearInactivityTimer();
 
     const userMessage: ChatMessage = {
       id: `user-${Date.now()}`,
@@ -758,6 +1270,16 @@ Conversation turns in this node: ${conversationTurns}`
   const handleStartSimulation = async () => {
     setIsSimulating(true);
 
+    // Reset token usage
+    setSessionTokenUsage({
+      total_prompt_tokens: 0,
+      total_completion_tokens: 0,
+      total_tokens: 0
+    });
+
+    // Reset extracted variables
+    setExtractedVariables(new Map());
+
     // Start analytics session
     await startAnalyticsSession();
 
@@ -771,6 +1293,16 @@ Conversation turns in this node: ${conversationTurns}`
     setConversationTurns(0);
     setNodeContext('');
     setConversationSummary('');
+
+    // Reset token usage
+    setSessionTokenUsage({
+      total_prompt_tokens: 0,
+      total_completion_tokens: 0,
+      total_tokens: 0
+    });
+
+    // Reset extracted variables
+    setExtractedVariables(new Map());
 
     // End analytics session
     await endAnalyticsSession('abandoned');
@@ -1110,6 +1642,50 @@ Conversation turns in this node: ${conversationTurns}`
           </TabsList>
 
           <TabsContent value="chat" className="flex-1 flex flex-col min-h-0 mt-4">
+            {/* Token Usage Display */}
+            {isSimulating && sessionTokenUsage.total_tokens > 0 && (
+              <div className="mb-3 p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-700">Session Token Usage</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs">
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-600">Prompt:</span>
+                      <span className="font-semibold text-blue-600">{sessionTokenUsage.total_prompt_tokens}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-600">Completion:</span>
+                      <span className="font-semibold text-purple-600">{sessionTokenUsage.total_completion_tokens}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-gray-600">Total:</span>
+                      <span className="font-bold text-gray-800">🪙 {sessionTokenUsage.total_tokens}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Extracted Variables Display */}
+            {isSimulating && extractedVariables.size > 0 && (
+              <div className="mb-3 p-3 bg-gradient-to-r from-green-50 to-teal-50 border border-green-200 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-semibold text-gray-700">Extracted Variables</span>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 text-xs">
+                    {Array.from(extractedVariables.entries()).map(([key, value]) => (
+                      <div key={key} className="flex items-center gap-1 bg-white px-2 py-1 rounded border border-green-300">
+                        <span className="text-gray-600 font-medium">{key}:</span>
+                        <span className="font-semibold text-green-700">{String(value)}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Chat Messages */}
             <div className="relative flex-1 min-h-0">
               <div
@@ -1157,11 +1733,20 @@ Conversation turns in this node: ${conversationTurns}`
                                 }`}>
                                   {formatTime(message.timestamp)}
                                 </span>
-                                {message.nodeName && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    {message.nodeName}
-                                  </Badge>
-                                )}
+                                <div className="flex items-center gap-2">
+                                  {message.tokenUsage && (
+                                    <span className={`text-xs opacity-70 ${
+                                      message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
+                                    }`} title={`Prompt: ${message.tokenUsage.prompt_tokens || 0} | Completion: ${message.tokenUsage.completion_tokens || 0}`}>
+                                      🪙 {message.tokenUsage.total_tokens || 0}
+                                    </span>
+                                  )}
+                                  {message.nodeName && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      {message.nodeName}
+                                    </Badge>
+                                  )}
+                                </div>
                               </div>
                             </div>
                           </div>

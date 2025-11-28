@@ -16,6 +16,23 @@ interface ChatResponse {
   currentBalance?: number;
   requiredCredits?: number;
   message?: string;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
+  metadata?: {
+    token_usage?: {
+      prompt_tokens: number;
+      completion_tokens: number;
+      total_tokens: number;
+    };
+  };
+  tokenUsage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
 }
 
 interface ChatRequest {
@@ -107,6 +124,11 @@ export const useChatWithCredits = () => {
           setTimeout(() => {
             refreshBalance();
           }, 1000);
+        }
+
+        // Normalize token usage from different response formats
+        if (!data.tokenUsage) {
+          data.tokenUsage = data.usage || data.metadata?.token_usage || undefined;
         }
 
         return data;

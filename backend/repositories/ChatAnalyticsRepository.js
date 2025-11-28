@@ -76,6 +76,21 @@ class ChatAnalyticsRepository {
         request.input('completionRate', sql.Decimal(5, 2), updateData.completion_rate);
       }
 
+      if (updateData.total_prompt_tokens !== undefined) {
+        updateFields.push('total_prompt_tokens = @totalPromptTokens');
+        request.input('totalPromptTokens', sql.Int, updateData.total_prompt_tokens);
+      }
+
+      if (updateData.total_completion_tokens !== undefined) {
+        updateFields.push('total_completion_tokens = @totalCompletionTokens');
+        request.input('totalCompletionTokens', sql.Int, updateData.total_completion_tokens);
+      }
+
+      if (updateData.total_tokens !== undefined) {
+        updateFields.push('total_tokens = @totalTokens');
+        request.input('totalTokens', sql.Int, updateData.total_tokens);
+      }
+
       updateFields.push('updated_at = GETDATE()');
 
       if (updateFields.length === 1) { // Only updated_at
@@ -138,16 +153,21 @@ class ChatAnalyticsRepository {
         .input('confidenceScore', sql.Decimal(3, 2), messageData.confidence_score || null)
         .input('processingTime', sql.Int, messageData.processing_time || null)
         .input('tokensUsed', sql.Int, messageData.tokens_used || null)
+        .input('promptTokens', sql.Int, messageData.prompt_tokens || null)
+        .input('completionTokens', sql.Int, messageData.completion_tokens || null)
+        .input('totalTokens', sql.Int, messageData.total_tokens || null)
         .input('intentDetected', sql.NVarChar, messageData.intent_detected || null)
         .input('entitiesExtracted', sql.NVarChar, messageData.entities_extracted ? JSON.stringify(messageData.entities_extracted) : null)
         .query(`
           INSERT INTO tblChatMessages (
             message_id, session_id, type, content, timestamp, node_id, node_name,
-            confidence_score, processing_time, tokens_used, intent_detected, entities_extracted
+            confidence_score, processing_time, tokens_used, prompt_tokens, completion_tokens, total_tokens,
+            intent_detected, entities_extracted
           )
           VALUES (
             @messageId, @sessionId, @type, @content, @timestamp, @nodeId, @nodeName,
-            @confidenceScore, @processingTime, @tokensUsed, @intentDetected, @entitiesExtracted
+            @confidenceScore, @processingTime, @tokensUsed, @promptTokens, @completionTokens, @totalTokens,
+            @intentDetected, @entitiesExtracted
           )
         `);
 
@@ -559,6 +579,44 @@ class ChatAnalyticsRepository {
       return selectResult.recordset[0];
     } catch (error) {
       console.error('❌ Failed to update user analytics:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Calculate total tokens used in a chat session
+   */
+  async calculateSessionTokens(sessionId) {
+    try {
+      const pool = await this.db.connect();
+
+      // Get session database ID
+      const sessionResult = await pool.request()
+        .input('sessionId', sql.NVarChar, sessionId)
+        .query('SELECT id FROM tblChatSessions WHERE session_id = @sessionId');
+
+      if (sessionResult.recordset.length === 0) {
+        console.warn(`Session not found: ${sessionId}`);
+        return { total_prompt_tokens: 0, total_completion_tokens: 0, total_tokens: 0 };
+      }
+
+      const sessionDbId = sessionResult.recordset[0].id;
+
+      // Sum up tokens from all messages in this session
+      const result = await pool.request()
+        .input('sessionId', sql.Int, sessionDbId)
+        .query(`
+          SELECT
+            ISNULL(SUM(prompt_tokens), 0) as total_prompt_tokens,
+            ISNULL(SUM(completion_tokens), 0) as total_completion_tokens,
+            ISNULL(SUM(total_tokens), 0) as total_tokens
+          FROM tblChatMessages
+          WHERE session_id = @sessionId
+        `);
+
+      return result.recordset[0];
+    } catch (error) {
+      console.error('❌ Failed to calculate session tokens:', error.message);
       throw error;
     }
   }

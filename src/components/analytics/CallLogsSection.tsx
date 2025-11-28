@@ -353,13 +353,14 @@ const CallLogsSection: React.FC<CallLogsSectionProps> = ({
                   <TableHead>Workflow</TableHead>
                   <TableHead>Time</TableHead>
                   <TableHead>Cost</TableHead>
+                  <TableHead>Tokens</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredRecords.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                    <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                       <Phone className="h-12 w-12 mx-auto mb-4 text-gray-300" />
                       <p>No call records found matching your filters.</p>
                     </TableCell>
@@ -407,6 +408,22 @@ const CallLogsSection: React.FC<CallLogsSectionProps> = ({
                       </TableCell>
                       <TableCell>
                         <div className="font-medium">${record.cost.toFixed(3)}</div>
+                      </TableCell>
+                      <TableCell>
+                        {record.total_tokens ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="font-medium text-sm" title={`Prompt: ${record.total_prompt_tokens || 0} | Completion: ${record.total_completion_tokens || 0}`}>
+                              🪙 {record.total_tokens}
+                            </span>
+                            {record.duration > 0 && (
+                              <span className="text-xs text-gray-500">
+                                {Math.round(record.total_tokens / (record.duration / 60))}/min
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-gray-400">-</span>
+                        )}
                       </TableCell>
                       <TableCell className="text-right">
                         <DropdownMenu>

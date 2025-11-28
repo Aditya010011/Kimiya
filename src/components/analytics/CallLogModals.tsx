@@ -537,6 +537,41 @@ const CallLogModals: React.FC<CallLogModalsProps> = ({
                   </CardContent>
                 </Card>
 
+                {/* Token Usage Information */}
+                {selectedCall.total_tokens && selectedCall.total_tokens > 0 && (
+                  <Card className="border-blue-200 bg-gradient-to-br from-blue-50 to-purple-50">
+                    <CardHeader>
+                      <CardTitle className="text-lg flex items-center gap-2">
+                        🪙 Token Usage
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Total Tokens</p>
+                          <p className="text-2xl font-bold text-gray-800">{selectedCall.total_tokens}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Tokens per Minute</p>
+                          <p className="text-2xl font-bold text-blue-600">
+                            {selectedCall.duration > 0
+                              ? Math.round(selectedCall.total_tokens / (selectedCall.duration / 60))
+                              : 0}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Prompt Tokens</p>
+                          <p className="text-lg font-semibold text-blue-700">{selectedCall.total_prompt_tokens || 0}</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-gray-600">Completion Tokens</p>
+                          <p className="text-lg font-semibold text-purple-700">{selectedCall.total_completion_tokens || 0}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* Workflow Information */}
                 {selectedCall.workflow_name && (
                   <Card>

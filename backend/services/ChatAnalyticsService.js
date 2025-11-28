@@ -38,10 +38,17 @@ class ChatAnalyticsService {
     try {
       console.log('🏁 Ending chat session:', sessionId);
 
-      // Update session with end time and outcome
+      // Calculate total tokens from all messages in this session
+      const tokenTotals = await this.repository.calculateSessionTokens(sessionId);
+      console.log('📊 Session token totals:', tokenTotals);
+
+      // Update session with end time, outcome, and token totals
       const updateData = {
         end_time: new Date(),
-        status: 'completed'
+        status: 'completed',
+        total_prompt_tokens: tokenTotals.total_prompt_tokens || 0,
+        total_completion_tokens: tokenTotals.total_completion_tokens || 0,
+        total_tokens: tokenTotals.total_tokens || 0
       };
 
       if (outcome) {
@@ -80,6 +87,9 @@ class ChatAnalyticsService {
         confidence_score: messageData.metadata?.confidence_score,
         processing_time: messageData.metadata?.processing_time,
         tokens_used: messageData.metadata?.tokens_used,
+        prompt_tokens: messageData.metadata?.prompt_tokens,
+        completion_tokens: messageData.metadata?.completion_tokens,
+        total_tokens: messageData.metadata?.tokens_used || messageData.metadata?.total_tokens,
         intent_detected: messageData.metadata?.intent_detected,
         entities_extracted: messageData.metadata?.entities_extracted
       });

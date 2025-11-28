@@ -99,11 +99,11 @@ class RAGService {
 
       // Step 4: Generate answer using LLM
       console.log('[RAG] Generating answer with LLM...');
-      const answer = await this.generateAnswer(question, context, temperature, maxTokens);
+      const answerResult = await this.generateAnswer(question, context, temperature, maxTokens);
 
       // Step 5: Prepare response
       const response = {
-        answer: answer,
+        answer: answerResult.content,
         sources: includeSource ? searchResults.map(result => ({
           documentId: result.documentId,
           chunkIndex: result.chunkIndex,
@@ -111,10 +111,11 @@ class RAGService {
           score: result.score
         })) : [],
         confidence: searchResults[0]?.score || 0,
-        chunksUsed: searchResults.length
+        chunksUsed: searchResults.length,
+        usage: answerResult.usage
       };
 
-      console.log('[RAG] Query processing complete');
+      console.log('[RAG] Query processing complete. Token usage:', answerResult.usage);
       return response;
     } catch (error) {
       console.error('[RAG] Error processing query:', error);
@@ -172,7 +173,16 @@ ${context}`;
       );
 
       if (response.data && response.data.choices && response.data.choices[0]) {
-        return response.data.choices[0].message.content;
+        // Extract token usage
+        const tokenUsage = response.data.usage || {};
+        return {
+          content: response.data.choices[0].message.content,
+          usage: {
+            prompt_tokens: tokenUsage.prompt_tokens || 0,
+            completion_tokens: tokenUsage.completion_tokens || 0,
+            total_tokens: tokenUsage.total_tokens || 0
+          }
+        };
       } else {
         throw new Error('Invalid response from Azure OpenAI');
       }

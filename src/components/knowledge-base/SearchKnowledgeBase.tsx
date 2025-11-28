@@ -41,6 +41,11 @@ interface RAGResponse {
   }>;
   confidence: number;
   chunksUsed: number;
+  usage?: {
+    prompt_tokens: number;
+    completion_tokens: number;
+    total_tokens: number;
+  };
 }
 
 const SearchKnowledgeBase: React.FC<SearchKnowledgeBaseProps> = ({
@@ -51,6 +56,14 @@ const SearchKnowledgeBase: React.FC<SearchKnowledgeBaseProps> = ({
   const [ragResponse, setRagResponse] = useState<RAGResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [searchMode, setSearchMode] = useState<'search' | 'rag'>('search');
+
+  // Token usage tracking for RAG queries
+  const [sessionTokenUsage, setSessionTokenUsage] = useState({
+    total_prompt_tokens: 0,
+    total_completion_tokens: 0,
+    total_tokens: 0,
+    query_count: 0
+  });
 
   const handleSearch = async () => {
     if (!query.trim()) {
@@ -72,6 +85,17 @@ const SearchKnowledgeBase: React.FC<SearchKnowledgeBaseProps> = ({
         // RAG query (search + AI response)
         const data = await knowledgeBaseService.query(knowledgeBaseId, query);
         setRagResponse(data);
+
+        // Update session token usage
+        if (data.usage) {
+          setSessionTokenUsage(prev => ({
+            total_prompt_tokens: prev.total_prompt_tokens + (data.usage?.prompt_tokens || 0),
+            total_completion_tokens: prev.total_completion_tokens + (data.usage?.completion_tokens || 0),
+            total_tokens: prev.total_tokens + (data.usage?.total_tokens || 0),
+            query_count: prev.query_count + 1
+          }));
+        }
+
         toast.success('Response generated successfully');
       }
     } catch (error: any) {
@@ -102,6 +126,32 @@ const SearchKnowledgeBase: React.FC<SearchKnowledgeBaseProps> = ({
 
   return (
     <div className="space-y-6">
+      {/* Session Token Usage Banner */}
+      {searchMode === 'rag' && sessionTokenUsage.query_count > 0 && (
+        <div className="p-3 bg-gradient-to-r from-blue-50 to-purple-50 border border-blue-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-gray-700">Session Token Usage</span>
+              <Badge variant="secondary">{sessionTokenUsage.query_count} {sessionTokenUsage.query_count === 1 ? 'query' : 'queries'}</Badge>
+            </div>
+            <div className="flex items-center gap-4 text-xs">
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">Prompt:</span>
+                <span className="font-semibold text-blue-600">{sessionTokenUsage.total_prompt_tokens}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">Completion:</span>
+                <span className="font-semibold text-purple-600">{sessionTokenUsage.total_completion_tokens}</span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">Total:</span>
+                <span className="font-bold text-gray-800">🪙 {sessionTokenUsage.total_tokens}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Search Input */}
       <Card>
         <CardHeader>
@@ -233,24 +283,35 @@ const SearchKnowledgeBase: React.FC<SearchKnowledgeBaseProps> = ({
                     {ragResponse.answer}
                   </p>
                 </div>
-                <div className="flex items-center gap-4">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => copyToClipboard(ragResponse.answer)}
-                    className="gap-2"
-                  >
-                    <Copy className="h-4 w-4" />
-                    Copy Response
-                  </Button>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                    <Badge variant="secondary">
-                      Confidence: {(ragResponse.confidence * 100).toFixed(1)}%
-                    </Badge>
-                    <Badge variant="outline">
-                      {ragResponse.chunksUsed} chunks used
-                    </Badge>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyToClipboard(ragResponse.answer)}
+                      className="gap-2"
+                    >
+                      <Copy className="h-4 w-4" />
+                      Copy Response
+                    </Button>
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Badge variant="secondary">
+                        Confidence: {(ragResponse.confidence * 100).toFixed(1)}%
+                      </Badge>
+                      <Badge variant="outline">
+                        {ragResponse.chunksUsed} chunks used
+                      </Badge>
+                    </div>
                   </div>
+
+                  {/* Token Usage Display */}
+                  {ragResponse.usage && (
+                    <div className="flex items-center gap-2 text-xs text-gray-600 bg-white px-3 py-1.5 rounded-lg border border-indigo-200">
+                      <span className="font-semibold" title={`Prompt: ${ragResponse.usage.prompt_tokens} | Completion: ${ragResponse.usage.completion_tokens}`}>
+                        🪙 {ragResponse.usage.total_tokens} tokens
+                      </span>
+                    </div>
+                  )}
                 </div>
               </div>
             </CardContent>

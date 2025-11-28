@@ -43,7 +43,12 @@ class ConversationRelay extends EventEmitter {
         conversationHistory: [],
         currentNode: startNodeId,
         startTime: Date.now(),
-        isActive: true
+        isActive: true,
+        tokenUsage: {
+          total_prompt_tokens: 0,
+          total_completion_tokens: 0,
+          total_tokens: 0
+        }
       });
 
       // Initialize streaming connection
@@ -337,12 +342,19 @@ class ConversationRelay extends EventEmitter {
     if (callData) {
       callData.isActive = false;
 
-      // Emit conversation ended event with metrics
+      // Emit conversation ended event with metrics including token usage
       this.emit('conversationEnded', {
         callSid,
         duration: Date.now() - callData.startTime,
-        messageCount: callData.messageCount || 0
+        messageCount: callData.messageCount || 0,
+        tokenUsage: callData.tokenUsage || {
+          total_prompt_tokens: 0,
+          total_completion_tokens: 0,
+          total_tokens: 0
+        }
       });
+
+      console.log(`[ConversationRelay] 📊 Call ${callSid} token usage:`, callData.tokenUsage);
 
       // Clean up resources
       this.activeCalls.delete(callSid);
@@ -500,9 +512,16 @@ class ConversationRelay extends EventEmitter {
       messages.push({ role: 'user', content: input });
 
       // Generate AI response
-      const response = await this.generateAIResponse(messages);
+      const aiResult = await this.generateAIResponse(messages);
 
-      return response;
+      // Accumulate token usage
+      if (callData.tokenUsage && aiResult.usage) {
+        callData.tokenUsage.total_prompt_tokens += aiResult.usage.prompt_tokens;
+        callData.tokenUsage.total_completion_tokens += aiResult.usage.completion_tokens;
+        callData.tokenUsage.total_tokens += aiResult.usage.total_tokens;
+      }
+
+      return aiResult.content;
 
     } catch (error) {
       console.error(`[ConversationRelay] Workflow logic error:`, error);
@@ -604,10 +623,17 @@ class ConversationRelay extends EventEmitter {
         conversationMessages.push({ role: 'user', content: input });
 
         console.log(`[ConversationRelay] 💬 Generating AI response with ${conversationMessages.length} messages`);
-        const conversationResponse = await this.generateAIResponse(conversationMessages);
+        const conversationAiResult = await this.generateAIResponse(conversationMessages);
+
+        // Accumulate token usage
+        if (callData.tokenUsage && conversationAiResult.usage) {
+          callData.tokenUsage.total_prompt_tokens += conversationAiResult.usage.prompt_tokens;
+          callData.tokenUsage.total_completion_tokens += conversationAiResult.usage.completion_tokens;
+          callData.tokenUsage.total_tokens += conversationAiResult.usage.total_tokens;
+        }
 
         return {
-          response: conversationResponse,
+          response: conversationAiResult.content,
           action: 'speak',
           metadata: {
             nodeType: 'conversation',
@@ -672,10 +698,17 @@ class ConversationRelay extends EventEmitter {
 
         apiMessages.push({ role: 'user', content: input });
 
-        const apiResponse = await this.generateAIResponse(apiMessages);
+        const apiAiResult = await this.generateAIResponse(apiMessages);
+
+        // Accumulate token usage
+        if (callData.tokenUsage && apiAiResult.usage) {
+          callData.tokenUsage.total_prompt_tokens += apiAiResult.usage.prompt_tokens;
+          callData.tokenUsage.total_completion_tokens += apiAiResult.usage.completion_tokens;
+          callData.tokenUsage.total_tokens += apiAiResult.usage.total_tokens;
+        }
 
         return {
-          response: apiResponse,
+          response: apiAiResult.content,
           action: 'speak',
           metadata: {
             nodeType: 'api',
@@ -729,10 +762,17 @@ class ConversationRelay extends EventEmitter {
 
         fallbackMessages.push({ role: 'user', content: input });
 
-        const fallbackResponse = await this.generateAIResponse(fallbackMessages);
+        const fallbackAiResult = await this.generateAIResponse(fallbackMessages);
+
+        // Accumulate token usage
+        if (callData.tokenUsage && fallbackAiResult.usage) {
+          callData.tokenUsage.total_prompt_tokens += fallbackAiResult.usage.prompt_tokens;
+          callData.tokenUsage.total_completion_tokens += fallbackAiResult.usage.completion_tokens;
+          callData.tokenUsage.total_tokens += fallbackAiResult.usage.total_tokens;
+        }
 
         return {
-          response: fallbackResponse,
+          response: fallbackAiResult.content,
           action: 'speak',
           metadata: {
             nodeType: 'unknown',
@@ -829,24 +869,45 @@ class ConversationRelay extends EventEmitter {
       if (!response.ok) {
         const errorText = await response.text();
         console.error('[ConversationRelay] Azure OpenAI API error:', response.status, errorText);
-        return "I'm here to help. What would you like to know?";
+        return {
+          content: "I'm here to help. What would you like to know?",
+          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
+        };
       }
 
       const data = await response.json();
 
       if (!data.choices || !data.choices[0] || !data.choices[0].message) {
         console.error('[ConversationRelay] Invalid Azure OpenAI response structure');
-        return "I'm here to help. What would you like to know?";
+        return {
+          content: "I'm here to help. What would you like to know?",
+          usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
+        };
       }
 
       const aiResponse = data.choices[0].message.content.trim();
-      console.log('[ConversationRelay] 🤖 Azure OpenAI response:', aiResponse.substring(0, 100) + '...');
 
-      return aiResponse;
+      // Extract token usage
+      const tokenUsage = data.usage || {};
+      const usage = {
+        prompt_tokens: tokenUsage.prompt_tokens || 0,
+        completion_tokens: tokenUsage.completion_tokens || 0,
+        total_tokens: tokenUsage.total_tokens || 0
+      };
+
+      console.log('[ConversationRelay] 🤖 Azure OpenAI response:', aiResponse.substring(0, 100) + '... (tokens:', usage.total_tokens + ')');
+
+      return {
+        content: aiResponse,
+        usage: usage
+      };
 
     } catch (error) {
       console.error(`[ConversationRelay] AI response generation error:`, error);
-      return "I'm here to help. Could you please tell me more about what you need?";
+      return {
+        content: "I'm here to help. Could you please tell me more about what you need?",
+        usage: { prompt_tokens: 0, completion_tokens: 0, total_tokens: 0 }
+      };
     }
   }
 }
